@@ -170,7 +170,7 @@ async function addFiles(list) {
 		}
 	}
 	if (unsupported.length > 0) {
-		status.textContent = `⚠ 不支援的檔案：${unsupported.join('、')}（只接受 PNG / APNG / GIF）`;
+		status.textContent = t('unsupported', {list: unsupported.join('、')});
 	}
 	rebuildPreviews();
 }
@@ -270,7 +270,7 @@ async function importAPNG(buf, originalName) {
 		files.push(new File([blob], fname, {type: 'image/png'}));
 		frameDelays.push(Math.max(16, delays[i] || 100));
 	}
-	status.textContent = `已匯入 APNG：${n} 格`;
+	status.textContent = t('importedAPNG', {n});
 }
 
 // 把 GIF 拆回獨立 PNG 影格
@@ -305,7 +305,7 @@ async function importGIF(buf, originalName) {
 		if (delay < 10) delay = 100;
 		frameDelays.push(Math.max(16, delay));
 	}
-	status.textContent = `已匯入 GIF：${n} 格`;
+	status.textContent = t('importedGIF', {n});
 }
 
 // 重新產生所有預覽 URL 並刷新 UI
@@ -484,7 +484,7 @@ function updatePlaybackInfo() {
 	const totalMs = frameDelays.reduce((sum, d) => sum + (d || 100), 0);
 	const totalSec = totalMs / 1000;
 	const fps = totalSec > 0 ? (previewUrls.length / totalSec).toFixed(1) : '0.0';
-	posEl.textContent = `FPS: ${fps}`;
+	posEl.textContent = t('fps', {fps});
 	const m = Math.floor(totalSec / 60);
 	const s = Math.floor(totalSec % 60);
 	const ms = Math.round((totalSec % 1) * 100);
@@ -537,7 +537,7 @@ clearBtn.addEventListener('click', () => {
 	renderList();
 	renderTimeline();
 	previewImg.style.display = 'none';
-	previewInfo.textContent = '尚無圖片';
+	previewInfo.textContent = t('previewEmpty');
 	downloadLink.style.display = 'none';
 	status.textContent = '';
 	fileInfo.textContent = '';
@@ -551,7 +551,7 @@ clearBtn.addEventListener('click', () => {
 makeBtn.addEventListener('click', async () => {
 	pause();
 	makeBtn.disabled = true;
-	status.textContent = '處理中...';
+	status.textContent = t('processing');
 	try {
 		const loops = parseInt(document.getElementById('loops').value) || 0;
 		const cnum = parseInt(document.getElementById('cnum').value);
@@ -576,7 +576,7 @@ makeBtn.addEventListener('click', async () => {
 		for (const f of files) {
 			const bitmap = await createImageBitmap(f);
 			if (bitmap.width !== srcW || bitmap.height !== srcH) {
-				throw new Error(`「${f.name}」尺寸 ${bitmap.width}x${bitmap.height} 跟第一張 ${srcW}x${srcH} 不同`);
+				throw new Error(t('sizeMismatch', {name: f.name, w1: bitmap.width, h1: bitmap.height, w2: srcW, h2: srcH}));
 			}
 			const canvas = document.createElement('canvas');
 			canvas.width = targetW; canvas.height = targetH;
@@ -590,7 +590,7 @@ makeBtn.addEventListener('click', async () => {
 		const w = targetW, h = targetH;
 		const dels = frameDelays.slice(0, frames.length);
 
-		status.textContent = '正在編碼 APNG...';
+		status.textContent = t('encoding');
 		let buf = UPNG.encode(frames, w, h, cnum, dels);
 		// UPNG 不支援 loops，自己事後改 acTL
 		if (loops > 0) buf = setApngLoops(buf, loops);
@@ -598,7 +598,7 @@ makeBtn.addEventListener('click', async () => {
 		const blob = new Blob([buf], {type: 'image/apng'});
 		const url = URL.createObjectURL(blob);
 		previewImg.src = url;
-		previewInfo.textContent = `APNG 預覽 · ${frames.length} 格`;
+		previewInfo.textContent = t('previewAPNG', {n: frames.length});
 		downloadLink.href = url;
 		downloadLink.download = 'animation.png';
 		downloadLink.style.display = 'inline-block';
@@ -606,16 +606,16 @@ makeBtn.addEventListener('click', async () => {
 		// 算一下總時間顯示給使用者看
 		const loopMs = dels.reduce((a, b) => a + b, 0);
 		const loopSec = (loopMs / 1000).toFixed(2);
-		let loopInfo = `單次循環 ${loopSec} 秒`;
+		let loopInfo = t('loopOnce', {sec: loopSec});
 		if (loops > 0) {
-			loopInfo += ` · 共播 ${loops} 次 = ${(loopMs * loops / 1000).toFixed(2)} 秒`;
+			loopInfo += t('loopTimes', {n: loops, sec: (loopMs * loops / 1000).toFixed(2)});
 		} else {
-			loopInfo += ` · 無限循環`;
+			loopInfo += t('loopInfLoop');
 		}
-		fileInfo.textContent = `尺寸 ${w}x${h} · ${frames.length} 影格 · ${loopInfo} · 檔案 ${(blob.size/1024).toFixed(1)} KB`;
-		status.textContent = `✅ 完成！共 ${frames.length} 影格`;
+		fileInfo.textContent = t('fileInfo', {w, h, n: frames.length, loopInfo, size: (blob.size/1024).toFixed(1)});
+		status.textContent = t('done', {n: frames.length});
 	} catch (err) {
-		status.textContent = `❌ 錯誤：${err.message}`;
+		status.textContent = t('err', {msg: err.message});
 		console.error(err);
 	} finally {
 		makeBtn.disabled = false;

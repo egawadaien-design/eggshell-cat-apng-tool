@@ -1,7 +1,7 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 10
+	@Correction: 11
 	蛋殼喵 APNG 工具 — 樣式表
 	粉色系主題，RWD 手機版在最下面
 */
@@ -35,8 +35,23 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	margin-bottom: 12px;
 }
 .app-title .logo { width: 48px; height: 48px; }
+.title-text { flex: 1; }
 .app-title h1 { margin: 0; }
-.app-title small { color: #a08090; font-size: 13px; }
+.app-title small { color: #a08090; font-size: 13px; display: block; }
+
+/* 語言切換：下拉選單 */
+.lang-select {
+	background: #fff;
+	color: #806070;
+	border: 1px solid #e8c8d2;
+	border-radius: 10px;
+	padding: 6px 10px;
+	font-size: 13px;
+	cursor: pointer;
+	outline: none;
+	box-shadow: 0 2px 6px rgba(212,112,138,0.1);
+}
+.lang-select:focus { border-color: #d4708a; }
 
 .tab-bar {
 	display: flex;
