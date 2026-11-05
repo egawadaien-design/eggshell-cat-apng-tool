@@ -1,123 +1,178 @@
 <!--
-  @author: DaiEn
-  @Date: 2026-11-04
-  @Correction: 6
-  蛋殼貓 APNG 工具 — 第一階段：純前端 UPNG.js 版
-  圖片完全在瀏覽器本機處理，不上傳伺服器
-  v5：CSS/JS 各自獨立成檔
+	@author: DaiEn
+	@Date: 2026-11-05
+	@Correction: 9
+	蛋殼喵 APNG 工具 — 第一階段：純前端 UPNG.js 版
+	圖片完全在瀏覽器本機處理，不上傳伺服器
+	v5：CSS/JS 各自獨立成檔
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>蛋殼貓 APNG 工具</title>
-<link rel="icon" href="/icon/favicon.ico" type="image/x-icon">
-<link rel="icon" type="image/png" sizes="16x16" href="/icon/icon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/icon/icon-32x32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icon/icon-192x192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icon/icon-512x512.png">
+<title>蛋殼喵 APNG 工具</title>
+<link rel="icon" type="image/png" href="icon/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon/32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon/192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon/512x512.png">
 
 <link rel="stylesheet" href="css/apng.css">
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 </head>
 <body>
 
-<div class="main-layout">
-
-  <div class="left-panel">
-		<div class="subtitle">
-			<h1><img src="/icon/icon-32x32.png" alt="" style="width:28px;height:28px;vertical-align:middle"> 蛋殼貓 APNG 工具</h1>
-			把一序列 PNG、APNG、GIF 打包成動畫 PNG。
+<!-- 頁首 -->
+<header class="app-header">
+	<div class="app-title">
+		<img src="icon/128x128.png" alt="" class="logo">
+		<div>
+			<h1>蛋殼喵 APNG 工具</h1>
+			<small>把一序列 PNG、APNG、GIF 打包成動畫 PNG</small>
 		</div>
-    <div class="drop-zone" id="dropZone">
-      <p><strong>把 PNG、APNG、GIF 圖片拖曳到這裡</strong>（可多選）</p>
-      <p>或點此選擇檔案</p>
-      <input type="file" id="fileInput" accept="image/png" multiple hidden>
-    </div>
+	</div>
+	<!-- 四個 tab -->
+	<nav class="tab-bar">
+		<button class="tab-btn active" data-tab="tab-app">APNG工具</button>
+		<button class="tab-btn" data-tab="tab-readme">📖 README</button>
+		<button class="tab-btn" data-tab="tab-help">❓ HELP</button>
+		<button class="tab-btn" data-tab="tab-src">💻 SRC</button>
+	</nav>
+</header>
 
-    <div class="preview-area">
-      <div class="preview-stage" id="previewStage">
-        <div class="preview-info" id="previewInfo">尚無圖片</div>
-        <img id="previewImg" style="display:none">
-        <button id="bgToggle" title="切換背景" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:12px;padding:4px 10px;font-size:11px;cursor:pointer;">棋盤格</button>
-      </div>
-      <div class="playback-controls">
-        <button id="firstBtn" class="icon-btn icon-first" title="到第一格"></button>
-        <button id="prevBtn" class="icon-btn icon-prev" title="上一格"></button>
-        <button id="playBtn" class="icon-btn icon-play" title="播放/暫停"></button>
-        <button id="nextBtn" class="icon-btn icon-next" title="下一格"></button>
-        <button id="lastBtn" class="icon-btn icon-last" title="到最後一格"></button>
-        <div class="playback-info">
-          <div id="framePosText">影格：0/0</div>
-          <div id="totalTimeText">00:00.00</div>
-        </div>
-      </div>
-      <div class="timeline" id="timeline"></div>
+<!-- ===== Tab 1: APNG 工具本體 ===== -->
+<main id="tab-app" class="tab-panel active">
+	<div class="main-layout">
+		<div class="left-panel">
+			<div class="drop-zone" id="dropZone">
+				<p><strong>把 PNG、APNG、GIF 圖片拖曳到這裡</strong>（可多選）</p>
+				<p>或點此選擇檔案</p>
+				<input type="file" id="fileInput" accept="image/png" multiple hidden>
+			</div>
 
-      <div class="frame-manager">
-        <div class="sort-bar">
-          <button class="sort-btn active" data-sort="manual">≡ 排序順序</button>
-          <button class="sort-btn" data-sort="name-asc">⇅ 檔名遞增</button>
-          <button class="sort-btn" data-sort="name-desc">⇅ 檔名遞減</button>
-          <button class="sort-btn" data-sort="date-new">◷ 最新在上</button>
-          <button class="sort-btn" data-sort="date-old">◷ 最早在上</button>
-        </div>
-        <div class="frame-grid" id="frameGrid"></div>
-      </div>
-    </div>
+			<div class="preview-area">
+				<div class="preview-stage" id="previewStage">
+					<div class="preview-info" id="previewInfo">尚無圖片</div>
+					<img id="previewImg" style="display:none">
+					<button id="bgToggle" title="切換背景" class="bg-toggle">棋盤格</button>
+				</div>
+				<div class="playback-controls">
+					<button id="firstBtn" class="icon-btn icon-first" title="到第一格"></button>
+					<button id="prevBtn" class="icon-btn icon-prev" title="上一格"></button>
+					<button id="playBtn" class="icon-btn icon-play" title="播放/暫停"></button>
+					<button id="nextBtn" class="icon-btn icon-next" title="下一格"></button>
+					<button id="lastBtn" class="icon-btn icon-last" title="到最後一格"></button>
+					<div class="playback-info">
+						<div id="framePosText">影格：0/0</div>
+						<div id="totalTimeText">00:00.00</div>
+					</div>
+				</div>
+				<div class="timeline" id="timeline"></div>
 
-    <div class="actions">
-      <button id="makeBtn" disabled>✨️ 生成 APNG</button>
-      <button id="clearBtn" class="secondary">🗑️ 清空</button>
-      <a id="downloadLink" style="display:none;text-decoration:none">
-        <button class="secondary">⬇️ 下載 PNG</button>
-      </a>
-    </div>
+				<div class="frame-manager">
+					<div class="sort-bar">
+						<button class="sort-btn active" data-sort="manual">≡ 排序順序</button>
+						<button class="sort-btn" data-sort="name-asc">⇅ 檔名遞增</button>
+						<button class="sort-btn" data-sort="name-desc">⇅ 檔名遞減</button>
+						<button class="sort-btn" data-sort="date-new">◷ 最新在上</button>
+						<button class="sort-btn" data-sort="date-old">◷ 最早在上</button>
+					</div>
+					<div class="frame-grid" id="frameGrid"></div>
+				</div>
+			</div>
 
-    <div id="status"></div>
-    <div id="fileInfo"></div>
-  </div>
+			<div class="actions">
+				<button id="makeBtn" disabled>✨️ 生成 APNG</button>
+				<button id="clearBtn" class="secondary">🗑️ 清空</button>
+				<a id="downloadLink" style="display:none;text-decoration:none">
+					<button class="secondary">⬇️ 下載 PNG</button>
+				</a>
+			</div>
 
-  <div class="right-panel">
-    <div class="settings-group">
-      <h3>⚙️ 基本設定</h3>
-      <label>循環次數（0 = 無限）</label>
-      <!--input type="number" id="loops" value="1" min="0"-->
-	  <select id="loops">
-	    <option value="1">播放1次</option>
-	    <option value="2">播放2次</option>
-	    <option value="3">播放3次</option>
-		<option value="4">播放4次</option>
-		<option value="0">無限循環</option>
-	  </select>
-	  
-      <label>色彩（0 = 全彩 24bit）</label>
-      <select id="cnum">
-        <option value="256">256 色（較小檔）</option>
-        <option value="128">128 色（更小）</option>
-        <option value="0">全彩（最大檔但最細緻）</option>
-      </select>
-    </div>
+			<div id="status"></div>
+			<div id="fileInfo"></div>
+		</div>
 
-    <div class="settings-group">
-      <h3>📏 輸出尺寸</h3>
-      <label>輸出寬度（px）</label>
-      <input type="number" id="outW" min="1" placeholder="原圖大小">
-      <label>輸出高度（px）</label>
-      <input type="number" id="outH" min="1" placeholder="原圖大小">
-      <small>設其一，另一邊自動等比</small>
-    </div>
+		<div class="right-panel">
+			<div class="settings-group">
+				<h3>⚙️ 基本設定</h3>
+				<label>循環次數（0 = 無限）</label>
+				<select id="loops">
+					<option value="1">播放1次</option>
+					<option value="2">播放2次</option>
+					<option value="3">播放3次</option>
+					<option value="4">播放4次</option>
+					<option value="0">無限循環</option>
+				</select>
+				<label>色彩（0 = 全彩 24bit）</label>
+				<select id="cnum">
+					<option value="256">256 色（較小檔）</option>
+					<option value="128">128 色（更小）</option>
+					<option value="0">全彩（最大檔但最細緻）</option>
+				</select>
+			</div>
 
-    <div class="settings-group" id="fileListGroup" style="display:none">
-      <h3>📋️ 檔案清單</h3>
-      <div class="file-list" id="fileList"></div>
-    </div>
-  </div>
+			<div class="settings-group">
+				<h3>📏 輸出尺寸</h3>
+				<label>輸出寬度（px）</label>
+				<input type="number" id="outW" min="1" placeholder="原圖大小">
+				<label>輸出高度（px）</label>
+				<input type="number" id="outH" min="1" placeholder="原圖大小">
+				<small>設其一，另一邊自動等比</small>
+			</div>
 
-</div>
+			<div class="settings-group" id="fileListGroup" style="display:none">
+				<h3>📋️ 檔案清單</h3>
+				<div class="file-list" id="fileList"></div>
+			</div>
+		</div>
+	</div>
+</main>
+
+<!-- ===== Tab 2: README（fetch README.md 用 marked.js 渲染） ===== -->
+<section id="tab-readme" class="tab-panel">
+	<div class="card md-body" id="readmeContent">載入中...</div>
+</section>
+
+<!-- ===== Tab 3: HELP ===== -->
+<section id="tab-help" class="tab-panel help-panel">
+	<div class="card">
+		<h2>❓ 怎麼用</h2>
+		<ol>
+			<li>把 PNG / APNG / GIF 拖到虛線框（可多選）</li>
+			<li>在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）</li>
+			<li>用卡片下方的 ⏮ ◀ ▶ ⏭ 按鈕調整影格順序，✕ 刪除不需要的格</li>
+			<li>設定循環次數與色彩深度</li>
+			<li>需要縮放才填輸出寬高，留空 = 原圖大小</li>
+			<li>點「✨ 生成 APNG」→「⬇️ 下載 PNG」</li>
+		</ol>
+
+		<h3>💡 小提示</h3>
+		<ul>
+			<li>拖入現成的 APNG / GIF 會自動拆成影格並還原時間</li>
+			<li>右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣</li>
+			<li>所有圖片都在你瀏覽器本機處理，不會上傳</li>
+			<li>輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動</li>
+		</ul>
+	</div>
+</section>
+
+<!-- ===== Tab 4: SRC ===== -->
+<section id="tab-src" class="tab-panel">
+	<div class="card src-card">
+		<h2>💻 原始碼</h2>
+		<p>本工具開源在 GitHub，歡迎 star / issue / PR。</p>
+		<a class="big-link" href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener">
+			<img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" class="gh-icon">
+			egawadaien-design/eggshell-cat-apng-tool
+		</a>
+		<p class="muted">技術：純 HTML / CSS / JS · UPNG.js · pako · omggif · 無框架</p>
+	</div>
+</section>
 
 <script src="js/apng.js"></script>
 </body>
