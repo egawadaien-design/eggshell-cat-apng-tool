@@ -1,0 +1,185 @@
+<!--
+	@author: DaiEn
+	@Date: 2026-11-05
+	@Correction: 10
+	蛋殼喵 APNG 工具 — 多國語言版
+	圖片完全在瀏覽器本機處理，不上傳伺服器
+-->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蛋殼喵 APNG 工具</title>
+<link rel="icon" type="image/png" href="icon/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icon/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon/32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon/192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon/512x512.png">
+
+<link rel="stylesheet" href="css/apng.css">
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="js/i18n.js"></script>
+</head>
+<body>
+
+<!-- 頁首 -->
+<header class="app-header">
+	<div class="app-title">
+		<img src="icon/128x128.png" alt="" class="logo">
+		<div class="title-text">
+			<h1 data-i18n="title">蛋殼喵 APNG 工具</h1>
+			<small data-i18n="subtitle">把一序列 PNG、APNG、GIF 打包成動畫 PNG</small>
+		</div>
+		<!-- 語言切換：下拉選單 -->
+		<select id="langSelect" class="lang-select" title="語言">
+			<option value="zh-TW">繁體中文</option>
+			<option value="zh-CN">简体中文</option>
+			<option value="en">English</option>
+			<option value="ja">日本語</option>
+		</select>
+	</div>
+	<!-- 四個 tab -->
+	<nav class="tab-bar">
+		<button class="tab-btn active" data-tab="tab-app" data-i18n="tabApp">APNG工具</button>
+		<button class="tab-btn" data-tab="tab-readme" data-i18n="tabReadme">📖 README</button>
+		<button class="tab-btn" data-tab="tab-help" data-i18n="tabHelp">❓ HELP</button>
+		<button class="tab-btn" data-tab="tab-src" data-i18n="tabSrc">💻 SRC</button>
+	</nav>
+</header>
+
+<!-- ===== Tab 1: APNG 工具本體 ===== -->
+<main id="tab-app" class="tab-panel active">
+	<div class="main-layout">
+		<div class="left-panel">
+			<div class="drop-zone" id="dropZone">
+				<p><strong data-i18n="dropHint">把 PNG、APNG、GIF 圖片拖曳到這裡（可多選）</strong></p>
+				<p data-i18n="dropOrClick">或點此選擇檔案</p>
+				<input type="file" id="fileInput" accept="image/png" multiple hidden>
+			</div>
+
+			<div class="preview-area">
+				<div class="preview-stage" id="previewStage">
+					<div class="preview-info" id="previewInfo" data-i18n="previewEmpty">尚無圖片</div>
+					<img id="previewImg" style="display:none">
+					<button id="bgToggle" title="切換背景" class="bg-toggle" data-i18n="bgToggle">棋盤格</button>
+				</div>
+				<div class="playback-controls">
+					<button id="firstBtn" class="icon-btn icon-first" data-i18n-title="firstFrame" title="到第一格"></button>
+					<button id="prevBtn" class="icon-btn icon-prev" data-i18n-title="prevFrame" title="上一格"></button>
+					<button id="playBtn" class="icon-btn icon-play" data-i18n-title="playPause" title="播放/暫停"></button>
+					<button id="nextBtn" class="icon-btn icon-next" data-i18n-title="nextFrame" title="下一格"></button>
+					<button id="lastBtn" class="icon-btn icon-last" data-i18n-title="lastFrame" title="到最後一格"></button>
+					<div class="playback-info">
+						<div id="framePosText">FPS: 0.0</div>
+						<div id="totalTimeText">00:00.00</div>
+					</div>
+				</div>
+				<div class="timeline" id="timeline"></div>
+
+				<div class="frame-manager">
+					<div class="sort-bar">
+						<button class="sort-btn active" data-sort="manual" data-i18n="sortManual">≡ 排序順序</button>
+						<button class="sort-btn" data-sort="name-asc" data-i18n="sortNameAsc">⇅ 檔名遞增</button>
+						<button class="sort-btn" data-sort="name-desc" data-i18n="sortNameDesc">⇅ 檔名遞減</button>
+						<button class="sort-btn" data-sort="date-new" data-i18n="sortDateNew">◷ 最新在上</button>
+						<button class="sort-btn" data-sort="date-old" data-i18n="sortDateOld">◷ 最早在上</button>
+					</div>
+					<div class="frame-grid" id="frameGrid"></div>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button id="makeBtn" disabled data-i18n="makeBtn">✨️ 生成 APNG</button>
+				<button id="clearBtn" class="secondary" data-i18n="clearBtn">🗑️ 清空</button>
+				<a id="downloadLink" style="display:none;text-decoration:none">
+					<button class="secondary" data-i18n="downloadBtn">⬇️ 下載 PNG</button>
+				</a>
+			</div>
+
+			<div id="status"></div>
+			<div id="fileInfo"></div>
+		</div>
+
+		<div class="right-panel">
+			<div class="settings-group">
+				<h3 data-i18n="basicSettings">⚙️ 基本設定</h3>
+				<label data-i18n="loopLabel">循環次數（0 = 無限）</label>
+				<select id="loops">
+					<option value="1" data-i18n="loop1">播放1次</option>
+					<option value="2" data-i18n="loop2">播放2次</option>
+					<option value="3" data-i18n="loop3">播放3次</option>
+					<option value="4" data-i18n="loop4">播放4次</option>
+					<option value="0" data-i18n="loopInf">無限循環</option>
+				</select>
+				<label data-i18n="colorLabel">色彩（0 = 全彩 24bit）</label>
+				<select id="cnum">
+					<option value="256" data-i18n="color256">256 色（較小檔）</option>
+					<option value="128" data-i18n="color128">128 色（更小）</option>
+					<option value="0" data-i18n="colorFull">全彩（最大檔但最細緻）</option>
+				</select>
+			</div>
+
+			<div class="settings-group">
+				<h3 data-i18n="outSize">📏 輸出尺寸</h3>
+				<label data-i18n="outW">輸出寬度（px）</label>
+				<input type="number" id="outW" min="1">
+				<label data-i18n="outH">輸出高度（px）</label>
+				<input type="number" id="outH" min="1">
+				<small data-i18n="outHint">設其一，另一邊自動等比</small>
+			</div>
+
+			<div class="settings-group" id="fileListGroup" style="display:none">
+				<h3 data-i18n="fileList">📋️ 檔案清單</h3>
+				<div class="file-list" id="fileList"></div>
+			</div>
+		</div>
+	</div>
+</main>
+
+<!-- ===== Tab 2: README ===== -->
+<section id="tab-readme" class="tab-panel">
+	<div class="card md-body" id="readmeContent">載入中...</div>
+</section>
+
+<!-- ===== Tab 3: HELP ===== -->
+<section id="tab-help" class="tab-panel help-panel">
+	<div class="card">
+		<h2 data-i18n="helpTitle">❓ 怎麼用</h2>
+		<ol>
+			<li data-i18n="helpStep1">把 PNG / APNG / GIF 拖到虛線框（可多選）</li>
+			<li data-i18n="helpStep2">在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）</li>
+			<li data-i18n="helpStep3">用卡片下方的 ⏮ ◀ ▶ ⏭ 按鈕調整影格順序，✕ 刪除不需要的格</li>
+			<li data-i18n="helpStep4">設定循環次數與色彩深度</li>
+			<li data-i18n="helpStep5">需要縮放才填輸出寬高，留空 = 原圖大小</li>
+			<li data-i18n="helpStep6">點「✨ 生成 APNG」→「⬇️ 下載 PNG」</li>
+		</ol>
+		<h3 data-i18n="helpTip">💡 小提示</h3>
+		<ul>
+			<li data-i18n="helpTip1">拖入現成的 APNG / GIF 會自動拆成影格並還原時間</li>
+			<li data-i18n="helpTip2">右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣</li>
+			<li data-i18n="helpTip3">所有圖片都在你瀏覽器本機處理，不會上傳</li>
+			<li data-i18n="helpTip4">輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動</li>
+		</ul>
+	</div>
+</section>
+
+<!-- ===== Tab 4: SRC ===== -->
+<section id="tab-src" class="tab-panel">
+	<div class="card src-card">
+		<h2 data-i18n="srcTitle">💻 原始碼</h2>
+		<p data-i18n="srcDesc">本工具開源在 GitHub，歡迎 star / issue / PR。</p>
+		<a class="big-link" href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener">
+			<img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" class="gh-icon">
+			egawadaien-design/eggshell-cat-apng-tool
+		</a>
+		<p class="muted" data-i18n="srcTech">技術：純 HTML / CSS / JS · UPNG.js · pako · omggif · 無框架</p>
+	</div>
+</section>
+
+<script src="js/apng.js"></script>
+</body>
+</html>
