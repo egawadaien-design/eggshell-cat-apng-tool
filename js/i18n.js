@@ -112,7 +112,7 @@ const I18N = {
 	},
 
 	'en': {
-		title: 'Eggshell Cat APNG Tool',
+		title: 'EggshellCat APNG Tool',
 		subtitle: 'Pack a sequence of PNG / APNG / GIF into an animated PNG',
 		tabApp: 'APNG Tool', tabReadme: '📖 README', tabHelp: '❓ HELP', tabSrc: '💻 SRC',
 		dropHint: 'Drag & drop PNG / APNG / GIF here (multi-select)',
@@ -164,7 +164,7 @@ const I18N = {
 	},
 
 	'ja': {
-		title: 'たまねこ APNG ツール',
+		title: 'エッグシェル・ミャオ APNG ツール',
 		subtitle: 'PNG / APNG / GIF を連結してアニメーション PNG に',
 		tabApp: 'APNGツール', tabReadme: '📖 README', tabHelp: '❓ ヘルプ', tabSrc: '💻 ソース',
 		dropHint: 'PNG / APNG / GIF をここにドラッグ（複数可）',

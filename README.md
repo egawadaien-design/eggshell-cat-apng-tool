@@ -1,5 +1,5 @@
-<img src="icon/128x128.png" alt="蛋殼貓" height="80" align="left" style="margin-right:12px">
-<img src="icon/logo-txt-w.png" alt="蛋殼貓 APNG 工具" height="80" align="left">
+<img src="icon/128x128.png" alt="蛋殼喵" height="80" align="left" style="margin-right:12px">
+<img src="icon/logo-txt-w.png" alt="蛋殼喵 APNG 工具" height="80" align="left">
 
 <br clear="left">
 
@@ -91,6 +91,18 @@ MIT License — 自由使用、修改、散佈。
 ## 💕 關於作者
 
 蛋殼喵工作室 (EggshellCat Studio)
+
+---
+
+## 📝 更新紀錄
+
+### 2026-11-05
+- 加入多國語言切換（繁中 / 簡中 / EN / 日本語），自動跟隨瀏覽器
+- 介面改為多 tab：APNG工具 / README / HELP / SRC
+- README tab 改用 marked.js 動態渲染 markdown
+- 主頁面改為 `index.html`，新增 `js/i18n.js`
+- CSS 向量播放控制列、影格卡片排序與刪除功能
+- 修正 favicon 路徑為相對路徑
 
 ---
 

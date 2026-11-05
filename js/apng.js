@@ -19,17 +19,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ============================================================
-// README tab：fetch 同層 README.md，用 marked.js 渲染成 HTML
-// 這樣改 README.md 不用動 HTML
+// README tab：fetch 同層 README.txt，用 marked.js 渲染成 HTML
+// 副檔名用 .txt 是因為 Vercel 預設不 serve .md 檔
 // ============================================================
-fetch('README.md')
+fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-tool/main/README.md')
 	.then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
 	.then(md => {
 		document.getElementById('readmeContent').innerHTML = marked.parse(md);
 	})
 	.catch(err => {
 		document.getElementById('readmeContent').innerHTML =
-			'<p style="color:#c06078">⚠ 無法載入 README.md：' + err.message + '</p>';
+			'<p style="color:#c06078">⚠ 無法載入 README：' + err.message + '</p>';
 	});
 
 // ============================================================
