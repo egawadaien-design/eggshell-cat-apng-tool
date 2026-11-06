@@ -1,26 +1,206 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 14
+	@Correction: 19
 	蛋殼喵 APNG 工具 — 前端邏輯
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 */
 
 // ============================================================
-// Tab 切換：四個分頁，按 data-tab 對應 panel id
+// Tab 切換：分頁，按 data-tab 對應 panel id
 // ============================================================
-document.querySelectorAll('.tab-btn').forEach(btn => {
-	btn.addEventListener('click', () => {
-		document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-		document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-		btn.classList.add('active');
-		document.getElementById(btn.dataset.tab).classList.add('active');
-	});
+// 切換 tab 並記住目前頁面（重新整理後保留）
+function switchTab(target) {
+	document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+	document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+	document.querySelectorAll(`[data-tab="${target}"]`).forEach(b => b.classList.add('active'));
+	document.getElementById(target).classList.add('active');
+	localStorage.setItem('eggshellcat-tab', target);
+}
+
+// 所有帶 data-tab 的元素（上方 tab-btn + 底部 footer-github 等）
+document.querySelectorAll('[data-tab]').forEach(btn => {
+	btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
+
+// 頁面載入時恢復上次的 tab
+(function restoreTab() {
+	const saved = localStorage.getItem('eggshellcat-tab');
+	if (saved && document.getElementById(saved)) {
+		switchTab(saved);
+	}
+})();
+
+// ============================================================
+// Meme 頁面：動態載入 sample/list.json，生成圖片卡片
+// 點擊圖片重新播放一次 APNG 循環
+// ============================================================
+// 解析 APNG / GIF 的中繼資訊（尺寸、格數、循環時間、檔案大小）
+async function parseAnimationMeta(url) {
+	const resp = await fetch(url);
+	const blob = await resp.blob();
+	const buf = await blob.arrayBuffer();
+	const dv = new DataView(buf);
+	const bytes = new Uint8Array(buf);
+
+	const meta = {
+		width: 0, height: 0,
+		frames: 0, durationMs: 0,
+		size: blob.size
+	};
+
+	// 判斷格式：PNG signature 89 50 4E 47
+	const isPNG = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+	const isGIF = bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46;
+
+	if (isPNG) {
+		// 從 offset 8 開始掃 chunks
+		let off = 8;
+		while (off < bytes.length - 8) {
+			const len = dv.getUint32(off);
+			const type = String.fromCharCode(bytes[off+4], bytes[off+5], bytes[off+6], bytes[off+7]);
+			const dataOff = off + 8;
+			if (type === 'IHDR') {
+				meta.width = dv.getUint32(dataOff);
+				meta.height = dv.getUint32(dataOff + 4);
+			} else if (type === 'acTL') {
+				meta.frames = dv.getUint32(dataOff);
+			} else if (type === 'fcTL') {
+				const num = dv.getUint16(dataOff + 20);
+				const den = dv.getUint16(dataOff + 22);
+				meta.durationMs += den === 0 ? num * 10 : (num / den) * 1000;
+			}
+			off += 12 + len; // len(4) + type(4) + data + crc(4)
+		}
+	} else if (isGIF) {
+		// Logical Screen Descriptor: offset 6, width(2) + height(2)
+		meta.width = dv.getUint16(6, true);
+		meta.height = dv.getUint16(8, true);
+		// 掃描 blocks，找 Graphic Control Extension (0x21 0xF9)
+		let off = 13; // 跳過 LSD + global color table flag
+		while (off < bytes.length) {
+			if (bytes[off] === 0x21 && bytes[off+1] === 0xF9) {
+				// GCE: 0x21 F9 size(1=4) ... delay(2)
+				const delay = dv.getUint16(off + 4, true);
+				meta.durationMs += delay * 10;
+				meta.frames++;
+			}
+			// 簡單掃描：GIF block 結構較複雜，這裡粗略跳過
+			if (bytes[off] === 0x3b) break; // trailer
+			off++;
+		}
+	}
+	return meta;
+}
+
+function formatSize(bytes) {
+	if (bytes < 1024) return bytes + 'B';
+	if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + 'KB';
+	return (bytes / 1024 / 1024).toFixed(1) + 'MB';
+}
+
+(function initMeme() {
+	const grid = document.getElementById('memeGrid');
+	const sortBtn = document.getElementById('memeSortBtn');
+	if (!grid) return;
+
+	let memes = [];
+	let asc = true; // 預設正序
+
+	fetch('sample/list.json')
+		.then(r => r.json())
+		.then(data => {
+			memes = data.items || [];
+			renderMemes();
+		})
+		.catch(err => console.warn('Meme list.json 載入失敗:', err));
+
+	function renderMemes() {
+		grid.innerHTML = '';
+		const list = asc ? memes : [...memes].reverse();
+		list.forEach(item => {
+			const div = document.createElement('div');
+			div.className = 'meme-item';
+			div.innerHTML = `
+				<img src="sample/${item.file}" alt="${item.label}" loading="lazy">
+				<p class="meme-caption">${item.label}</p>
+				<p class="meme-meta">載入中...</p>
+			`;
+			// 點擊重新播放：重新設定 src 強制 APNG 從頭播放
+			div.querySelector('img').addEventListener('click', function () {
+				const src = this.src;
+				this.src = '';
+				this.src = src;
+			});
+			grid.appendChild(div);
+
+			// 非同步載入中繼資訊
+			parseAnimationMeta(`sample/${item.file}`)
+				.then(meta => {
+					const metaEl = div.querySelector('.meme-meta');
+					if (metaEl) {
+						const sec = (meta.durationMs / 1000).toFixed(1);
+						metaEl.textContent = `[${meta.width}x${meta.height}px | ${meta.frames} | ${sec}s | ${formatSize(meta.size)}]`;
+					}
+				})
+				.catch(() => {
+					const metaEl = div.querySelector('.meme-meta');
+					if (metaEl) metaEl.textContent = '';
+				});
+		});
+	}
+	// 排序樣品動畫圖片
+	if (sortBtn) {
+		function updateSortLabel() {
+			const key = asc ? 'memeSortAsc' : 'memeSortDesc';
+			const label = document.getElementById('memeSortLabel');
+			if (typeof I18N !== 'undefined' && typeof currentLang !== 'undefined' && I18N[currentLang]) {
+				if (label) label.textContent = I18N[currentLang][key] || key;
+			}
+		}
+		sortBtn.addEventListener('click', () => {
+			asc = !asc;
+			renderMemes();
+			updateSortLabel();
+		});
+		// 初始文字
+		updateSortLabel();
+	}
+})();
+
+// Emoji 字型展示：動態產生 258 個貓咪 emoji
+const emojiGrid = document.getElementById('emojiGrid');
+if (emojiGrid) {
+	for (let i = 1; i <= 258; i++) {
+		const num = String(i).padStart(3, '0');
+		const item = document.createElement('div');
+		item.className = 'emoji-item';
+		item.innerHTML = `
+			<span class="emoji-icon cat cat-${num}"></span>
+			<span class="emoji-name">cat-${num}</span>
+		`;
+		item.title = `Copy cat-${num}`;
+		item.addEventListener('click', () => {
+			navigator.clipboard.writeText(`cat cat-${num}`).then(() => {
+				item.style.background = '#d4708a';
+				item.querySelector('.emoji-name').textContent = 'copied!';
+				setTimeout(() => {
+					item.style.background = '';
+					item.querySelector('.emoji-name').textContent = `cat-${num}`;
+				}, 800);
+			});
+		});
+		emojiGrid.appendChild(item);
+	}
+}
 
 // ============================================================
 // README tab：fetch 同層 README.txt，用 marked.js 渲染成 HTML
-// 副檔名用 .txt 是因為 Vercel 預設不 serve .md 檔
+// Vercel 預設不 serve *.md 檔
+// 所以加載https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-tool/main/README.md
+// ============================================================
+// ============================================================
+// README tab：fetch GitHub raw README.md，用 marked.js 渲染成 HTML
 // ============================================================
 fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-tool/main/README.md')
 	.then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
@@ -29,7 +209,7 @@ fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-too
 	})
 	.catch(err => {
 		document.getElementById('readmeContent').innerHTML =
-			'<p style="color:#c06078">⚠ 無法載入 README：' + err.message + '</p>';
+			'<p style="color:#c06078">⚠ Failed to load README: ' + err.message + '</p>';
 	});
 
 // ============================================================
@@ -53,6 +233,14 @@ function crc32(bytes) {
 		crc = crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
 	}
 	return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+// 隨機英數字串（下載檔名用）
+function randomId(len) {
+	const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	let s = '';
+	for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+	return s;
 }
 
 // 掃 PNG chunks 找到 acTL，把 num_plays 寫進去（offset+12 開始 4 bytes）
@@ -97,6 +285,7 @@ const status = document.getElementById('status');
 const fileInfo = document.getElementById('fileInfo');
 const timeline = document.getElementById('timeline');
 const playBtn = document.getElementById('playBtn');
+playBtn.innerHTML = '<small class="cat cat-083 cat-2x cat-color03"></small>'; // 初始：播放圖示
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const outW = document.getElementById('outW');
@@ -170,7 +359,7 @@ async function addFiles(list) {
 		}
 	}
 	if (unsupported.length > 0) {
-		status.textContent = t('unsupported', {list: unsupported.join('、')});
+		status.innerHTML = t('unsupported', {list: unsupported.join('、')});
 	}
 	rebuildPreviews();
 }
@@ -270,7 +459,7 @@ async function importAPNG(buf, originalName) {
 		files.push(new File([blob], fname, {type: 'image/png'}));
 		frameDelays.push(Math.max(16, delays[i] || 100));
 	}
-	status.textContent = t('importedAPNG', {n});
+	status.innerHTML = t('importedAPNG', {n});
 }
 
 // 把 GIF 拆回獨立 PNG 影格
@@ -305,7 +494,7 @@ async function importGIF(buf, originalName) {
 		if (delay < 10) delay = 100;
 		frameDelays.push(Math.max(16, delay));
 	}
-	status.textContent = t('importedGIF', {n});
+	status.innerHTML = t('importedGIF', {n});
 }
 
 // 重新產生所有預覽 URL 並刷新 UI
@@ -374,7 +563,7 @@ function renderTimeline() {
 		card.className = 'frame-card' + (i === currentFrame ? ' active' : '');
 		card.innerHTML = `
 			<div class="frame-num">${i + 1}</div>
-			<button class="frame-del" title="移除">✕</button>
+			<button class="frame-del" title="${t('deleteFrame')}"><small class="cat cat-1x5 cat-017 cat-color02"></small></button>
 			<img class="frame-thumb" src="${previewUrls[i]}">
 			<div class="frame-name">${file.name}</div>
 			<div class="frame-ms">
@@ -382,11 +571,11 @@ function renderTimeline() {
 				<span>ms</span>
 			</div>
 			<div class="frame-nav">
-				<button class="nav-mini nav-first" title="移到最前"></button>
-				<button class="nav-mini nav-prev" title="往前一格"></button>
+				<button class="nav-mini nav-first" title="${t('firstFrame')}"><small class="cat cat-086"></small></button>
+				<button class="nav-mini nav-prev" title="${t('prevFrame')}"><small class="cat cat-082"></small></button>
 				<span class="frame-nav-info"></span>
-				<button class="nav-mini nav-next" title="往後一格"></button>
-				<button class="nav-mini nav-last" title="移到最後"></button>
+				<button class="nav-mini nav-next" title="${t('nextFrame')}"><small class="cat cat-083"></small></button>
+				<button class="nav-mini nav-last" title="${t('lastFrame')}"><small class="cat cat-087"></small></button>
 			</div>
 		`;
 		// 卡片底部 4 顆導航鈕：到最前 / 前一格 / 後一格 / 到最後
@@ -501,6 +690,7 @@ function togglePlay() {
 	} else {
 		playing = true;
 		playBtn.classList.add('playing');
+		playBtn.innerHTML = '<small class="cat cat-080 cat-2x cat-color03"></small>';
 		tick();
 	}
 }
@@ -515,6 +705,7 @@ function tick() {
 function pause() {
 	playing = false;
 	playBtn.classList.remove('playing');
+	playBtn.innerHTML = '<small class="cat cat-083 cat-2x cat-color03"></small>';
 	if (playTimer) clearTimeout(playTimer);
 }
 playBtn.addEventListener('click', togglePlay);
@@ -539,7 +730,7 @@ clearBtn.addEventListener('click', () => {
 	previewImg.style.display = 'none';
 	previewInfo.textContent = t('previewEmpty');
 	downloadLink.style.display = 'none';
-	status.textContent = '';
+	status.innerHTML = '';
 	fileInfo.textContent = '';
 	document.querySelector('.preview-area').style.display = 'none';
 	document.getElementById('fileListGroup').style.display = 'none';
@@ -551,7 +742,7 @@ clearBtn.addEventListener('click', () => {
 makeBtn.addEventListener('click', async () => {
 	pause();
 	makeBtn.disabled = true;
-	status.textContent = t('processing');
+	status.innerHTML = t('processing');
 	try {
 		const loops = parseInt(document.getElementById('loops').value) || 0;
 		const cnum = parseInt(document.getElementById('cnum').value);
@@ -590,7 +781,7 @@ makeBtn.addEventListener('click', async () => {
 		const w = targetW, h = targetH;
 		const dels = frameDelays.slice(0, frames.length);
 
-		status.textContent = t('encoding');
+		status.innerHTML = t('encoding');
 		let buf = UPNG.encode(frames, w, h, cnum, dels);
 		// UPNG 不支援 loops，自己事後改 acTL
 		if (loops > 0) buf = setApngLoops(buf, loops);
@@ -600,7 +791,7 @@ makeBtn.addEventListener('click', async () => {
 		previewImg.src = url;
 		previewInfo.textContent = t('previewAPNG', {n: frames.length});
 		downloadLink.href = url;
-		downloadLink.download = 'animation.png';
+		downloadLink.download = 'eggshell-' + randomId(8) + '.png';
 		downloadLink.style.display = 'inline-block';
 
 		// 算一下總時間顯示給使用者看
@@ -613,10 +804,12 @@ makeBtn.addEventListener('click', async () => {
 			loopInfo += t('loopInfLoop');
 		}
 		fileInfo.textContent = t('fileInfo', {w, h, n: frames.length, loopInfo, size: (blob.size/1024).toFixed(1)});
-		status.textContent = t('done', {n: frames.length});
+		status.innerHTML = t('done', {n: frames.length});
+		
 	} catch (err) {
-		status.textContent = t('err', {msg: err.message});
+		status.innerHTML = t('err', {msg: err.message});
 		console.error(err);
+		
 	} finally {
 		makeBtn.disabled = false;
 	}

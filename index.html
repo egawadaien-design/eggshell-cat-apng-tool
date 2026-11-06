@@ -29,25 +29,41 @@
 <!-- 頁首 -->
 <header class="app-header">
 	<div class="app-title">
-		<img src="icon/128x128.png" alt="" class="logo">
+		<div class="cat cat-4x cat-112"></div>
 		<div class="title-text">
 			<h1 data-i18n="title">蛋殼喵 APNG 工具</h1>
 			<small data-i18n="subtitle">把一序列 PNG、APNG、GIF 打包成動畫 PNG</small>
 		</div>
-		<!-- 語言切換：下拉選單 -->
-		<select id="langSelect" class="lang-select" title="語言">
-			<option value="zh-TW">繁體中文</option>
-			<option value="zh-CN">简体中文</option>
-			<option value="en">English</option>
-			<option value="ja">日本語</option>
-		</select>
+		<!-- 語言切換：自訂下拉（可放emoji） -->
+		<div class="lang-dropdown" id="langDropdown">
+			<button class="lang-btn" id="langBtn" title="語言">
+				<small class="cat cat-033"></small>
+				<span class="lang-label">繁體中文</span>
+				<span class="lang-arrow">▾</span>
+			</button>
+			<ul class="lang-menu" id="langMenu">
+				<li data-value="zh-TW"><small class="cat cat-214"></small>繁體中文</li>
+				<li data-value="zh-CN"><small class="cat cat-213"></small>简体中文</li>
+				<li data-value="en"><small class="cat cat-215"></small>English</li>
+				<li data-value="ja"><small class="cat cat-216"></small>日本語</li>
+				<li data-value="th"><small class="cat cat-239"></small>ไทย</li>
+			</ul>
+		</div>
 	</div>
 	<!-- 四個 tab -->
 	<nav class="tab-bar">
-		<button class="tab-btn active" data-tab="tab-app" data-i18n="tabApp">APNG工具</button>
-		<button class="tab-btn" data-tab="tab-readme" data-i18n="tabReadme">📖 README</button>
-		<button class="tab-btn" data-tab="tab-help" data-i18n="tabHelp">❓ HELP</button>
-		<button class="tab-btn" data-tab="tab-src" data-i18n="tabSrc">💻 SRC</button>
+		<button class="tab-btn active" data-tab="tab-app">
+			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabApp">APNG</small>
+		</button>
+		<button class="tab-btn" data-tab="tab-help">
+			<small class="cat cat-029"></small>&nbsp;<small data-i18n="tabHelp">Help</small>
+		</button>
+		<button class="tab-btn" data-tab="tab-emoji">
+			<small class="cat cat-020"></small>&nbsp;<small data-i18n="tabEmoji">Emoji</small>
+		</button>
+		<button class="tab-btn" data-tab="tab-meme">
+			<small class="cat cat-026"></small>&nbsp;<small data-i18n="tabMeme">Meme</small>
+		</button>
 	</nav>
 </header>
 
@@ -65,14 +81,29 @@
 				<div class="preview-stage" id="previewStage">
 					<div class="preview-info" id="previewInfo" data-i18n="previewEmpty">尚無圖片</div>
 					<img id="previewImg" style="display:none">
-					<button id="bgToggle" title="切換背景" class="bg-toggle" data-i18n="bgToggle">棋盤格</button>
+					<button id="bgToggle" title="切換背景" class="bg-toggle" data-i18n="bgToggle" data-i18n-title="bgToggleTitle">棋盤格</button>
 				</div>
 				<div class="playback-controls">
-					<button id="firstBtn" class="icon-btn icon-first" data-i18n-title="firstFrame" title="到第一格"></button>
-					<button id="prevBtn" class="icon-btn icon-prev" data-i18n-title="prevFrame" title="上一格"></button>
-					<button id="playBtn" class="icon-btn icon-play" data-i18n-title="playPause" title="播放/暫停"></button>
-					<button id="nextBtn" class="icon-btn icon-next" data-i18n-title="nextFrame" title="下一格"></button>
-					<button id="lastBtn" class="icon-btn icon-last" data-i18n-title="lastFrame" title="到最後一格"></button>
+					<!-- class="icon-btn icon-first" -->
+					<button id="firstBtn" data-i18n-title="firstFrame" title="到第一格">
+						<small class="cat cat-2x cat-color01 cat-086"></small>
+					</button>
+					<!--class="icon-btn icon-prev"-->
+					<button id="prevBtn" data-i18n-title="prevFrame" title="上一格">
+						<small class="cat cat-2x cat-color02 cat-084"></small>
+					</button>
+					<!--class="icon-btn icon-play"-->
+					<button id="playBtn" data-i18n-title="playPause" title="播放/暫停">
+						<small class="cat cat-2x cat-color03 cat-083"></small>
+					</button>
+					<!--class="icon-btn icon-next"-->
+					<button id="nextBtn" data-i18n-title="nextFrame" title="下一格">
+						<small class="cat cat-2x cat-color04 cat-085"></small>
+					</button>
+					<!--class="icon-btn icon-last"-->
+					<button id="lastBtn" data-i18n-title="lastFrame" title="到最後一格">
+						<small class="cat cat-2x cat-color05 cat-087"></small>
+					</button>
 					<div class="playback-info">
 						<div id="framePosText">FPS: 0.0</div>
 						<div id="totalTimeText">00:00.00</div>
@@ -82,21 +113,37 @@
 
 				<div class="frame-manager">
 					<div class="sort-bar">
-						<button class="sort-btn active" data-sort="manual" data-i18n="sortManual">≡ 排序順序</button>
-						<button class="sort-btn" data-sort="name-asc" data-i18n="sortNameAsc">⇅ 檔名遞增</button>
-						<button class="sort-btn" data-sort="name-desc" data-i18n="sortNameDesc">⇅ 檔名遞減</button>
-						<button class="sort-btn" data-sort="date-new" data-i18n="sortDateNew">◷ 最新在上</button>
-						<button class="sort-btn" data-sort="date-old" data-i18n="sortDateOld">◷ 最早在上</button>
+						<button class="sort-btn active" data-sort="manual">
+							<small class="cat cat-144"></small>&nbsp;<small data-i18n="sortManual">排序順序</small>
+						</button>
+						<button class="sort-btn" data-sort="name-asc">
+							<small class="cat cat-100"></small>&nbsp;<small data-i18n="sortNameAsc">檔名遞增</small>
+						</button>
+						<button class="sort-btn" data-sort="name-desc">
+							<small class="cat cat-100"></small>&nbsp;<small data-i18n="sortNameDesc">檔名遞減</small>
+						</button>
+						<button class="sort-btn" data-sort="date-new">
+							<small class="cat cat-068"></small>&nbsp;<small data-i18n="sortDateNew">最新在上</small>
+						</button>
+						<button class="sort-btn" data-sort="date-old">
+							<small class="cat cat-068"></small>&nbsp;<small data-i18n="sortDateOld">最早在上</small>
+						</button>
 					</div>
 					<div class="frame-grid" id="frameGrid"></div>
 				</div>
 			</div>
 
 			<div class="actions">
-				<button id="makeBtn" disabled data-i18n="makeBtn">✨️ 生成 APNG</button>
-				<button id="clearBtn" class="secondary" data-i18n="clearBtn">🗑️ 清空</button>
+				<button id="makeBtn" disabled>
+					<small class="cat cat-033"></small>&nbsp;<small data-i18n="makeBtn">生成 APNG</small>
+				</button>
+				<button id="clearBtn" class="secondary">
+					<small class="cat cat-094"></small>&nbsp;<small data-i18n="clearBtn">清空</small>
+				</button>
 				<a id="downloadLink" style="display:none;text-decoration:none">
-					<button class="secondary" data-i18n="downloadBtn">⬇️ 下載 PNG</button>
+					<button class="secondary">
+						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadBtn">下載 PNG</small>
+					</button>
 				</a>
 			</div>
 
@@ -106,7 +153,9 @@
 
 		<div class="right-panel">
 			<div class="settings-group">
-				<h3 data-i18n="basicSettings">⚙️ 基本設定</h3>
+				<h3>
+					<cat class="cat cat-color10 cat-209"></cat>&nbsp;<cat data-i18n="basicSettings">基本設定</cat>
+				</h3>
 				<label data-i18n="loopLabel">循環次數（0 = 無限）</label>
 				<select id="loops">
 					<option value="1" data-i18n="loop1">播放1次</option>
@@ -124,7 +173,9 @@
 			</div>
 
 			<div class="settings-group">
-				<h3 data-i18n="outSize">📏 輸出尺寸</h3>
+				<h3>
+					<cat class="cat cat-color10 cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
+				</h3>
 				<label data-i18n="outW">輸出寬度（px）</label>
 				<input type="number" id="outW" min="1">
 				<label data-i18n="outH">輸出高度（px）</label>
@@ -133,31 +184,33 @@
 			</div>
 
 			<div class="settings-group" id="fileListGroup" style="display:none">
-				<h3 data-i18n="fileList">📋️ 檔案清單</h3>
+				<h3>
+					<cat class="cat cat-color10 cat-207"></cat>&nbsp;<cat data-i18n="fileList">檔案清單</cat>
+				</h3>
 				<div class="file-list" id="fileList"></div>
 			</div>
 		</div>
 	</div>
 </main>
 
-<!-- ===== Tab 2: README ===== -->
+<!-- ===== Tab: README ===== -->
 <section id="tab-readme" class="tab-panel">
 	<div class="card md-body" id="readmeContent">載入中...</div>
 </section>
 
-<!-- ===== Tab 3: HELP ===== -->
+<!-- ===== Tab: HELP ===== -->
 <section id="tab-help" class="tab-panel help-panel">
 	<div class="card">
-		<h2 data-i18n="helpTitle">❓ 怎麼用</h2>
+		<h2><span class="cat cat-229"></span>&nbsp;<span data-i18n="helpTitle">怎麼用</span></h2>
 		<ol>
 			<li data-i18n="helpStep1">把 PNG / APNG / GIF 拖到虛線框（可多選）</li>
 			<li data-i18n="helpStep2">在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）</li>
 			<li data-i18n="helpStep3">用卡片下方的 ⏮ ◀ ▶ ⏭ 按鈕調整影格順序，✕ 刪除不需要的格</li>
 			<li data-i18n="helpStep4">設定循環次數與色彩深度</li>
 			<li data-i18n="helpStep5">需要縮放才填輸出寬高，留空 = 原圖大小</li>
-			<li data-i18n="helpStep6">點「✨ 生成 APNG」→「⬇️ 下載 PNG」</li>
+			<li data-i18n="helpStep6">點「生成 APNG」→「下載 PNG」</li>
 		</ol>
-		<h3 data-i18n="helpTip">💡 小提示</h3>
+		<h2><span class="cat cat-230"></span>&nbsp;<span data-i18n="helpTip">小提示</span></h2>
 		<ul>
 			<li data-i18n="helpTip1">拖入現成的 APNG / GIF 會自動拆成影格並還原時間</li>
 			<li data-i18n="helpTip2">右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣</li>
@@ -167,18 +220,59 @@
 	</div>
 </section>
 
-<!-- ===== Tab 4: SRC ===== -->
+<!-- ===== Tab: SRC ===== -->
 <section id="tab-src" class="tab-panel">
 	<div class="card src-card">
-		<h2 data-i18n="srcTitle">💻 原始碼</h2>
+		<h2><span class="cat cat-237"></span>&nbsp;<span data-i18n="srcTitle">原始碼</span></h2>
 		<p data-i18n="srcDesc">本工具開源在 GitHub，歡迎 star / issue / PR。</p>
 		<a class="big-link" href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener">
-			<img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" class="gh-icon">
+			<!--img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" class="gh-icon"-->
+			<span class="cat cat-1x5 cat-color00 cat-116"></span>&nbsp;
 			egawadaien-design/eggshell-cat-apng-tool
 		</a>
 		<p class="muted" data-i18n="srcTech">技術：純 HTML / CSS / JS · UPNG.js · pako · omggif · 無框架</p>
 	</div>
 </section>
+
+<!-- ===== Tab: Emoji 字型展示 ===== -->
+<section id="tab-emoji" class="tab-panel">
+	<div class="card emoji-card">
+		<h2><span class="cat cat-220"></span>&nbsp;<span data-i18n="emojiTitle">Emoji 字型</span></h2>
+		<p class="muted" data-i18n="emojiDesc">點擊任何圖示即可複製 class 名稱，貼到 HTML 就能用~</p>
+		<div class="emoji-grid" id="emojiGrid"></div>
+	</div>
+</section>
+
+<!-- ===== Tab: Meme ===== -->
+<section id="tab-meme" class="tab-panel">
+	<div class="card meme-card">
+		<h2><span class="cat cat-226"></span>&nbsp;<span data-i18n="memeTitle">貓咪MEME</span></h2>
+		<p class="muted" data-i18n="memeDesc">這裡放一些蛋殼喵的梗圖和廢文，開心一下~ 點擊圖片可重新播放</p>
+		<div class="meme-toolbar">
+			<button id="memeSortBtn" class="btn-secondary btn-sm" type="button">
+				<span class="cat cat-068"></span>&nbsp;<span id="memeSortLabel"></span>
+			</button>
+		</div>
+		<div id="memeGrid" class="meme-grid"></div>
+	</div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="site-footer">
+	<div class="footer-group footer-group-brand">
+		<button data-tab="tab-src" class="footer-github">
+			<span class="cat cat-1x5 cat-116"></span>&nbsp;Star on GitHub
+		</button>
+		<span class="footer-copy">© 2026 EggshellCat Studio</span>
+	</div>
+	<div class="footer-group footer-group-legal">
+		<span class="footer-brand"><span class="cat cat-1x5 cat-111"></span>&nbsp;EggshellCat APNG Tool</span>
+		<span class="footer-note" data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</span>
+		<button data-tab="tab-readme" class="footer-github">
+			<small data-i18n="tabReadme">APNG TOOL 修改記錄</small>
+		</button>
+	</div>
+</footer>
 
 <script src="js/apng.js"></script>
 </body>

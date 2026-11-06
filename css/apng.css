@@ -1,7 +1,7 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 11
+	@Correction: 14
 	蛋殼喵 APNG 工具 — 樣式表
 	粉色系主題，RWD 手機版在最下面
 */
@@ -39,8 +39,9 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 .app-title h1 { margin: 0; }
 .app-title small { color: #a08090; font-size: 13px; display: block; }
 
-/* 語言切換：下拉選單 */
-.lang-select {
+/* 語言切換：自訂下拉（可放貓咪 emoji） */
+.lang-dropdown { position: relative; display: inline-block; }
+.lang-btn {
 	background: #fff;
 	color: #806070;
 	border: 1px solid #e8c8d2;
@@ -48,11 +49,41 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	padding: 6px 10px;
 	font-size: 13px;
 	cursor: pointer;
-	outline: none;
 	box-shadow: 0 2px 6px rgba(212,112,138,0.1);
+	display: flex;
+	align-items: center;
+	gap: 6px;
 }
-.lang-select:focus { border-color: #d4708a; }
-
+.lang-btn .cat { font-size: 16px; }
+.lang-arrow { font-size: 10px; color: #b090a0; }
+.lang-menu {
+	display: none;
+	position: absolute;
+	top: 100%;
+	right: 0;
+	margin: 4px 0 0;
+	padding: 4px 0;
+	list-style: none;
+	background: #fff;
+	border: 1px solid #e8c8d2;
+	border-radius: 10px;
+	box-shadow: 0 4px 12px rgba(212,112,138,0.15);
+	z-index: 100;
+	min-width: 120px;
+}
+.lang-menu.open { display: block; }
+.lang-menu li {
+	padding: 6px 12px;
+	font-size: 13px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+.lang-menu li:hover { background: #fdf0f3; color: #d4708a; }
+.lang-menu li .cat { font-size: 16px; }
+/**選項卡*/
 .tab-bar {
 	display: flex;
 	gap: 4px;
@@ -67,7 +98,7 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	color: #806070;
 	padding: 10px 16px;
 	border-radius: 8px;
-	font-size: 14px;
+	font-size: 24px;
 	cursor: pointer;
 	transition: all .15s;
 }
@@ -106,6 +137,43 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 .card li { margin-bottom: 6px; }
 
 .src-card { text-align: center; }
+
+/* Meme 頁面 */
+.meme-toolbar {
+	margin-top: 12px;
+}
+.meme-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	margin-top: 20px;
+}
+.meme-item {
+	background: #fff5f8;
+	border-radius: 12px;
+	padding: 20px;
+	text-align: center;
+	transition: transform 0.2s;
+}
+.meme-item:hover { transform: translateY(-4px); }
+.meme-item img {
+	width: 80px;
+	height: 80px;
+	object-fit: contain;
+	margin-bottom: 12px;
+	cursor: pointer;
+}
+.meme-caption {
+	font-size: 13px;
+	color: #888;
+	margin: 0;
+}
+.meme-meta {
+	font-size: 11px;
+	color: #aaa;
+	margin: 6px 0 0;
+	font-family: monospace;
+}
 .big-link {
 	display: inline-block;
 	margin: 16px 0;
@@ -241,19 +309,19 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	color: #d4708a;
 }
 .playback-controls button {
-	background: #d4708a !important;
-	color: #fff;
+	background: transparent !important;
+	color: #806070;
 	border: none;
 	min-width: 44px;
 	height: 36px;
 	border-radius: 6px;
 	cursor: pointer;
-	font-size: 14px;
+	font-size: 18px;
 	padding: 0 10px;
 }
-.playback-controls button:hover { background: #c06078 !important; }
+.playback-controls button:hover { background: rgba(212, 112, 138, 0.15) !important; }
 .playback-controls button:focus, .playback-controls button:active {
-	background: #c06078 !important;
+	background: rgba(212, 112, 138, 0.25) !important;
 	outline: none;
 }
 
@@ -348,6 +416,7 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 
 /* 底部按鈕列 */
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions button { font-size: 18px; }
 button {
 	background: #d4708a;
 	color: #fff;
@@ -376,7 +445,7 @@ button.secondary:hover { background: #8a6a7a; }
 }
 .settings-group { margin-bottom: 16px; }
 .settings-group h3 {
-	font-size: 13px;
+	font-size: 20px;
 	color: #d4708a;
 	margin-bottom: 8px;
 	padding-bottom: 4px;
@@ -415,7 +484,7 @@ button.secondary:hover { background: #8a6a7a; }
 	border: 1px solid #e8c8d2;
 	padding: 5px 10px;
 	border-radius: 6px;
-	font-size: 11px;
+	font-size: 18px;
 	cursor: pointer;
 }
 .sort-btn:hover { background: #ffe8ef; }
@@ -458,7 +527,7 @@ button.secondary:hover { background: #8a6a7a; }
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	background: #ff5555;
+	background: transparent;
 	color: #fff;
 	border: none;
 	width: 18px;
@@ -544,21 +613,325 @@ button.secondary:hover { background: #8a6a7a; }
 	text-align: center;
 }
 
-/* 卡片上小按鈕的 CSS 向量箭頭（跟大播放列同風格但小一號） */
-.nav-mini::before, .nav-mini::after {
-	content: '';
-	position: absolute;
-	top: 50%;
-	transform: translateY(-50%);
-	border-top: 5px solid transparent;
-	border-bottom: 5px solid transparent;
+/* 卡片上小按鈕：用貓咪 emoji 字體顯示，不再用 CSS 向量畫箭頭 */
+.nav-mini {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	color: #806070;
 }
-.nav-prev::after { left: 50%; transform: translate(-50%, -50%); border-right: 7px solid #806070; }
-.nav-next::before { left: 50%; transform: translate(-50%, -50%); border-left: 7px solid #806070; }
-.nav-first::before { left: 5px; width: 2px; height: 10px; border: none; background: #806070; }
-.nav-first::after  { left: 11px; border-right: 6px solid #806070; }
-.nav-last::before { right: 11px; border-left: 6px solid #806070; }
-.nav-last::after  { right: 5px; width: 2px; height: 10px; border: none; background: #806070; }
+
+/* ===== 蛋殼喵 Emoji 字型（從 webfonts/font.css 移植） ===== */
+@font-face {
+	font-family: 'CatEmoji';
+	font-style: normal;
+	font-display: block;
+	src: url(../webfonts/EggshellCat.woff2) format("woff2"),
+		url(../webfonts/EggshellCat.woff) format("woff"),
+		url(../webfonts/EggshellCat.ttf) format("truetype");
+}
+.cat {
+	font-family: 'CatEmoji';
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	display: inline-block;
+	font-style: normal;
+	font-variant: normal;
+	text-rendering: auto;
+	font-weight: 300;
+	line-height: 1.2;
+}
+
+.cat-10px { font-size: 10px; }
+.cat-12px { font-size: 12px; }
+.cat-14px { font-size: 14px; }
+.cat-16px { font-size: 16px; }
+.cat-18px { font-size: 18px; }
+.cat-20px { font-size: 20px; }
+.cat-22px { font-size: 22px; }
+.cat-24px { font-size: 24px; }
+.cat-1x { font-size: 1em; }
+.cat-2x { font-size: 2em; }
+.cat-3x { font-size: 3em; }
+.cat-4x { font-size: 4em; }
+.cat-5x { font-size: 5em; }
+.cat-6x { font-size: 6em; }
+.cat-7x { font-size: 7em; }
+.cat-8x { font-size: 8em; }
+.cat-1x5 { font-size: 1.5em; }
+
+/* 112 格貓咪 emoji：PUA-A U+F0000 ~ U+F006F */
+.cat-001:before { content: "\F0000"; }
+.cat-002:before { content: "\F0001"; }
+.cat-003:before { content: "\F0002"; }
+.cat-004:before { content: "\F0003"; }
+.cat-005:before { content: "\F0004"; }
+.cat-006:before { content: "\F0005"; }
+.cat-007:before { content: "\F0006"; }
+.cat-008:before { content: "\F0007"; }
+.cat-009:before { content: "\F0008"; }
+.cat-010:before { content: "\F0009"; }
+.cat-011:before { content: "\F000A"; }
+.cat-012:before { content: "\F000B"; }
+.cat-013:before { content: "\F000C"; }
+.cat-014:before { content: "\F000D"; }
+.cat-015:before { content: "\F000E"; }
+.cat-016:before { content: "\F000F"; }
+.cat-017:before { content: "\F0010"; }
+.cat-018:before { content: "\F0011"; }
+.cat-019:before { content: "\F0012"; }
+.cat-020:before { content: "\F0013"; }
+.cat-021:before { content: "\F0014"; }
+.cat-022:before { content: "\F0015"; }
+.cat-023:before { content: "\F0016"; }
+.cat-024:before { content: "\F0017"; }
+.cat-025:before { content: "\F0018"; }
+.cat-026:before { content: "\F0019"; }
+.cat-027:before { content: "\F001A"; }
+.cat-028:before { content: "\F001B"; }
+.cat-029:before { content: "\F001C"; }
+.cat-030:before { content: "\F001D"; }
+.cat-031:before { content: "\F001E"; }
+.cat-032:before { content: "\F001F"; }
+.cat-033:before { content: "\F0020"; }
+.cat-034:before { content: "\F0021"; }
+.cat-035:before { content: "\F0022"; }
+.cat-036:before { content: "\F0023"; }
+.cat-037:before { content: "\F0024"; }
+.cat-038:before { content: "\F0025"; }
+.cat-039:before { content: "\F0026"; }
+.cat-040:before { content: "\F0027"; }
+.cat-041:before { content: "\F0028"; }
+.cat-042:before { content: "\F0029"; }
+.cat-043:before { content: "\F002A"; }
+.cat-044:before { content: "\F002B"; }
+.cat-045:before { content: "\F002C"; }
+.cat-046:before { content: "\F002D"; }
+.cat-047:before { content: "\F002E"; }
+.cat-048:before { content: "\F002F"; }
+.cat-049:before { content: "\F0030"; }
+.cat-050:before { content: "\F0031"; }
+.cat-051:before { content: "\F0032"; }
+.cat-052:before { content: "\F0033"; }
+.cat-053:before { content: "\F0034"; }
+.cat-054:before { content: "\F0035"; }
+.cat-055:before { content: "\F0036"; }
+.cat-056:before { content: "\F0037"; }
+.cat-057:before { content: "\F0038"; }
+.cat-058:before { content: "\F0039"; }
+.cat-059:before { content: "\F003A"; }
+.cat-060:before { content: "\F003B"; }
+.cat-061:before { content: "\F003C"; }
+.cat-062:before { content: "\F003D"; }
+.cat-063:before { content: "\F003E"; }
+.cat-064:before { content: "\F003F"; }
+.cat-065:before { content: "\F0040"; }
+.cat-066:before { content: "\F0041"; }
+.cat-067:before { content: "\F0042"; }
+.cat-068:before { content: "\F0043"; }
+.cat-069:before { content: "\F0044"; }
+.cat-070:before { content: "\F0045"; }
+.cat-071:before { content: "\F0046"; }
+.cat-072:before { content: "\F0047"; }
+.cat-073:before { content: "\F0048"; }
+.cat-074:before { content: "\F0049"; }
+.cat-075:before { content: "\F004A"; }
+.cat-076:before { content: "\F004B"; }
+.cat-077:before { content: "\F004C"; }
+.cat-078:before { content: "\F004D"; }
+.cat-079:before { content: "\F004E"; }
+.cat-080:before { content: "\F004F"; }
+.cat-081:before { content: "\F0050"; }
+.cat-082:before { content: "\F0051"; }
+.cat-083:before { content: "\F0052"; }
+.cat-084:before { content: "\F0053"; }
+.cat-085:before { content: "\F0054"; }
+.cat-086:before { content: "\F0055"; }
+.cat-087:before { content: "\F0056"; }
+.cat-088:before { content: "\F0057"; }
+.cat-089:before { content: "\F0058"; }
+.cat-090:before { content: "\F0059"; }
+.cat-091:before { content: "\F005A"; }
+.cat-092:before { content: "\F005B"; }
+.cat-093:before { content: "\F005C"; }
+.cat-094:before { content: "\F005D"; }
+.cat-095:before { content: "\F005E"; }
+.cat-096:before { content: "\F005F"; }
+.cat-097:before { content: "\F0060"; }
+.cat-098:before { content: "\F0061"; }
+.cat-099:before { content: "\F0062"; }
+.cat-100:before { content: "\F0063"; }
+.cat-101:before { content: "\F0064"; }
+.cat-102:before { content: "\F0065"; }
+.cat-103:before { content: "\F0066"; }
+.cat-104:before { content: "\F0067"; }
+.cat-105:before { content: "\F0068"; }
+.cat-106:before { content: "\F0069"; }
+.cat-107:before { content: "\F006A"; }
+.cat-108:before { content: "\F006B"; }
+.cat-109:before { content: "\F006C"; }
+.cat-110:before { content: "\F006D"; }
+.cat-111:before { content: "\F006E"; }
+.cat-112:before { content: "\F006F"; }
+.cat-113:before { content: "\F0070"; }
+.cat-114:before { content: "\F0071"; }
+.cat-115:before { content: "\F0072"; }
+.cat-116:before { content: "\F0073"; }
+.cat-117:before { content: "\F0074"; }
+.cat-118:before { content: "\F0075"; }
+.cat-119:before { content: "\F0076"; }
+.cat-120:before { content: "\F0077"; }
+.cat-121:before { content: "\F0078"; }
+.cat-122:before { content: "\F0079"; }
+.cat-123:before { content: "\F007A"; }
+.cat-124:before { content: "\F007B"; }
+.cat-125:before { content: "\F007C"; }
+.cat-126:before { content: "\F007D"; }
+.cat-127:before { content: "\F007E"; }
+.cat-128:before { content: "\F007F"; }
+.cat-129:before { content: "\F0080"; }
+.cat-130:before { content: "\F0081"; }
+.cat-131:before { content: "\F0082"; }
+.cat-132:before { content: "\F0083"; }
+.cat-133:before { content: "\F0084"; }
+.cat-134:before { content: "\F0085"; }
+.cat-135:before { content: "\F0086"; }
+.cat-136:before { content: "\F0087"; }
+.cat-137:before { content: "\F0088"; }
+.cat-138:before { content: "\F0089"; }
+.cat-139:before { content: "\F008A"; }
+.cat-140:before { content: "\F008B"; }
+.cat-141:before { content: "\F008C"; }
+.cat-142:before { content: "\F008D"; }
+.cat-143:before { content: "\F008E"; }
+.cat-144:before { content: "\F008F"; }
+.cat-145:before { content: "\F0090"; }
+.cat-146:before { content: "\F0091"; }
+.cat-147:before { content: "\F0092"; }
+.cat-148:before { content: "\F0093"; }
+.cat-149:before { content: "\F0094"; }
+.cat-150:before { content: "\F0095"; }
+.cat-151:before { content: "\F0096"; }
+.cat-152:before { content: "\F0097"; }
+.cat-153:before { content: "\F0098"; }
+.cat-154:before { content: "\F0099"; }
+.cat-155:before { content: "\F009A"; }
+.cat-156:before { content: "\F009B"; }
+.cat-157:before { content: "\F009C"; }
+.cat-158:before { content: "\F009D"; }
+.cat-159:before { content: "\F009E"; }
+.cat-160:before { content: "\F009F"; }
+.cat-161:before { content: "\F00A0"; }
+.cat-162:before { content: "\F00A1"; }
+.cat-163:before { content: "\F00A2"; }
+.cat-164:before { content: "\F00A3"; }
+.cat-165:before { content: "\F00A4"; }
+.cat-166:before { content: "\F00A5"; }
+.cat-167:before { content: "\F00A6"; }
+.cat-168:before { content: "\F00A7"; }
+.cat-169:before { content: "\F00A8"; }
+.cat-170:before { content: "\F00A9"; }
+.cat-171:before { content: "\F00AA"; }
+.cat-172:before { content: "\F00AB"; }
+.cat-173:before { content: "\F00AC"; }
+.cat-174:before { content: "\F00AD"; }
+.cat-175:before { content: "\F00AE"; }
+.cat-176:before { content: "\F00AF"; }
+.cat-177:before { content: "\F00B0"; }
+.cat-178:before { content: "\F00B1"; }
+.cat-179:before { content: "\F00B2"; }
+.cat-180:before { content: "\F00B3"; }
+.cat-181:before { content: "\F00B4"; }
+.cat-182:before { content: "\F00B5"; }
+.cat-183:before { content: "\F00B6"; }
+.cat-184:before { content: "\F00B7"; }
+.cat-185:before { content: "\F00B8"; }
+.cat-186:before { content: "\F00B9"; }
+.cat-187:before { content: "\F00BA"; }
+.cat-188:before { content: "\F00BB"; }
+.cat-189:before { content: "\F00BC"; }
+.cat-190:before { content: "\F00BD"; }
+.cat-191:before { content: "\F00BE"; }
+.cat-192:before { content: "\F00BF"; }
+.cat-193:before { content: "\F00C0"; }
+.cat-194:before { content: "\F00C1"; }
+.cat-195:before { content: "\F00C2"; }
+.cat-196:before { content: "\F00C3"; }
+.cat-197:before { content: "\F00C4"; }
+.cat-198:before { content: "\F00C5"; }
+.cat-199:before { content: "\F00C6"; }
+.cat-200:before { content: "\F00C7"; }
+.cat-201:before { content: "\F00C8"; }
+.cat-202:before { content: "\F00C9"; }
+.cat-203:before { content: "\F00CA"; }
+.cat-204:before { content: "\F00CB"; }
+.cat-205:before { content: "\F00CC"; }
+.cat-206:before { content: "\F00CD"; }
+.cat-207:before { content: "\F00CE"; }
+.cat-208:before { content: "\F00CF"; }
+.cat-209:before { content: "\F00D0"; }
+.cat-210:before { content: "\F00D1"; }
+.cat-211:before { content: "\F00D2"; }
+.cat-212:before { content: "\F00D3"; }
+.cat-213:before { content: "\F00D4"; }
+.cat-214:before { content: "\F00D5"; }
+.cat-215:before { content: "\F00D6"; }
+.cat-216:before { content: "\F00D7"; }
+.cat-217:before { content: "\F00D8"; }
+.cat-218:before { content: "\F00D9"; }
+.cat-219:before { content: "\F00DA"; }
+.cat-220:before { content: "\F00DB"; }
+.cat-221:before { content: "\F00DC"; }
+.cat-222:before { content: "\F00DD"; }
+.cat-223:before { content: "\F00DE"; }
+.cat-224:before { content: "\F00DF"; }
+.cat-225:before { content: "\F00E0"; }
+.cat-226:before { content: "\F00E1"; }
+.cat-227:before { content: "\F00E2"; }
+.cat-228:before { content: "\F00E3"; }
+.cat-229:before { content: "\F00E4"; }
+.cat-230:before { content: "\F00E5"; }
+.cat-231:before { content: "\F00E6"; }
+.cat-232:before { content: "\F00E7"; }
+.cat-233:before { content: "\F00E8"; }
+.cat-234:before { content: "\F00E9"; }
+.cat-235:before { content: "\F00EA"; }
+.cat-236:before { content: "\F00EB"; }
+.cat-237:before { content: "\F00EC"; }
+.cat-238:before { content: "\F00ED"; }
+.cat-239:before { content: "\F00EE"; }
+.cat-240:before { content: "\F00EF"; }
+.cat-241:before { content: "\F00F0"; }
+.cat-242:before { content: "\F00F1"; }
+.cat-243:before { content: "\F00F2"; }
+.cat-244:before { content: "\F00F3"; }
+.cat-245:before { content: "\F00F4"; }
+.cat-246:before { content: "\F00F5"; }
+.cat-247:before { content: "\F00F6"; }
+.cat-248:before { content: "\F00F7"; }
+.cat-249:before { content: "\F00F8"; }
+.cat-250:before { content: "\F00F9"; }
+.cat-251:before { content: "\F00FA"; }
+.cat-252:before { content: "\F00FB"; }
+.cat-253:before { content: "\F00FC"; }
+.cat-254:before { content: "\F00FD"; }
+.cat-255:before { content: "\F00FE"; }
+.cat-256:before { content: "\F00FF"; }
+.cat-257:before { content: "\F0100"; }
+.cat-258:before { content: "\F0101"; }
+/* 鮮豔配色 */
+.cat-color01 { color: rgba(10, 0, 178, 1.0); }
+.cat-color02 { color: rgba(255, 0, 0, 1.0); }
+.cat-color03 { color: rgba(0, 153, 68, 1.0); }
+.cat-color04 { color: rgba(235, 97, 0, 1.0); }
+.cat-color05 { color: rgba(228, 0, 127, 1.0); }
+.cat-color06 { color: rgba(0, 102, 204, 1.0); }
+.cat-color07 { color: rgba(102, 51, 153, 1.0); }
+.cat-color08 { color: rgba(191, 64, 191, 1.0); }
+.cat-color09 { color: rgba(0, 204, 153, 1.0); }
+.cat-color10 { color: rgba(153, 0, 51, 1.0); }
+.cat-color00 { color: rgba(255, 255, 255, 1.0); }
 
 /* ===== 手機版 RWD（一定要放最後，才會覆蓋上面規則） ===== */
 @media (max-width: 768px) {
@@ -568,9 +941,78 @@ button.secondary:hover { background: #8a6a7a; }
 	.left-panel { order: 1; }
 	.frame-grid { grid-template-columns: repeat(2, 1fr); }
 	.sort-bar { gap: 4px; }
-	.sort-btn { font-size: 10px; padding: 4px 8px; }
+	.sort-btn { font-size: 12px; padding: 4px 8px; }
 	/* tab 列在手機上字小一點、padding 縮水 */
-	.tab-btn { font-size: 12px; padding: 8px 6px; }
+	.tab-btn { font-size: 16px; padding: 8px 6px; }
 	.app-title .logo { width: 36px; height: 36px; }
 	.app-title h1 { font-size: 18px; }
+}
+
+/* ===== Footer ===== */
+.site-footer {
+	margin-top: 48px;
+	padding: 20px 16px;
+	border-top: 1px solid #ffe4ec;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	max-width: 900px;
+	margin-left: auto;
+	margin-right: auto;
+}
+.footer-group { display: flex; align-items: center; gap: 12px; }
+.footer-group-brand { flex-direction: column; align-items: flex-start; gap: 4px; }
+.footer-group-legal { flex-direction: column; align-items: flex-end; gap: 4px; }
+.footer-brand { font-size: 14px; color: #d4708a; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.footer-note { font-size: 12px; color: #bbb; }
+.footer-github { font-size: 13px; color: #888; background: none !important; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+.footer-github:hover { background: none !important; color: #888 !important; }
+.footer-copy { font-size: 12px; color: #bbb; }
+
+/* ===== Emoji 字型展示頁 ===== */
+.emoji-card { max-width: 900px; margin: 0 auto; }
+.emoji-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+	gap: 8px;
+	margin-top: 20px;
+}
+.emoji-item {
+	background: #fff5f8;
+	border-radius: 8px;
+	padding: 12px 4px;
+	text-align: center;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+.emoji-item:hover {
+	background: #ffe4ec;
+	transform: scale(1.05);
+}
+.emoji-icon {
+	font-size: 32px;
+	line-height: 1;
+	margin-bottom: 6px;
+	display: block;
+}
+.emoji-name {
+	font-size: 10px;
+	color: #999;
+	font-family: monospace;
+}
+.emoji-color {
+	display: block;
+	font-size: 9px;
+	color: #ccc;
+	font-family: monospace;
+	margin-top: 2px;
+}
+
+/* 小螢幕：footer 改成上下排列，同組資訊在一起 */
+@media (max-width: 600px) {
+	.site-footer { flex-direction: column; text-align: center; }
+	.footer-group { flex-direction: column; gap: 4px; }
+	.footer-group-brand { align-items: center; }
 }
