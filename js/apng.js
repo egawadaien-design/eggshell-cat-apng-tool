@@ -1,7 +1,7 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 19
+	@Correction: 51
 	蛋殼喵 APNG 工具 — 前端邏輯
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 */
@@ -93,6 +93,7 @@ async function parseAnimationMeta(url) {
 	return meta;
 }
 
+// 位元組轉可讀字串（B / KB / MB）
 function formatSize(bytes) {
 	if (bytes < 1024) return bytes + 'B';
 	if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + 'KB';
@@ -195,12 +196,8 @@ if (emojiGrid) {
 }
 
 // ============================================================
-// README tab：fetch 同層 README.txt，用 marked.js 渲染成 HTML
-// Vercel 預設不 serve *.md 檔
-// 所以加載https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-tool/main/README.md
-// ============================================================
-// ============================================================
-// README tab：fetch GitHub raw README.md，用 marked.js 渲染成 HTML
+// README tab：從 GitHub raw 抓 README.md，用 marked.js 渲染成 HTML
+// Vercel 預設不 serve *.md，所以直接從 GitHub 抓
 // ============================================================
 fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-tool/main/README.md')
 	.then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
@@ -209,7 +206,7 @@ fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-too
 	})
 	.catch(err => {
 		document.getElementById('readmeContent').innerHTML =
-			'<p style="color:#c06078">⚠ Failed to load README: ' + err.message + '</p>';
+			'<p style="color:#c06078"><span class="cat cat-030"></span>&nbsp;Failed to load README: ' + err.message + '</p>';
 	});
 
 // ============================================================
@@ -501,8 +498,9 @@ async function importGIF(buf, originalName) {
 function rebuildPreviews() {
 	previewUrls.forEach(u => URL.revokeObjectURL(u));
 	previewUrls = files.map(f => URL.createObjectURL(f));
-	if (frameDelays.length === 0) {
-		frameDelays = files.map(() => 100); // 預設 100ms
+	// 補齊 frameDelays：新加入的圖片預設 100ms
+	while (frameDelays.length < files.length) {
+		frameDelays.push(100);
 	}
 	currentFrame = 0;
 	renderList();
@@ -521,6 +519,7 @@ function rebuildPreviews() {
 	}
 }
 
+// 讀取第一張圖片的原始尺寸，自動填入輸出寬高欄位
 async function detectFirstImageSize() {
 	if (files.length === 0) {
 		sourceW = sourceH = 0;
@@ -537,6 +536,7 @@ async function detectFirstImageSize() {
 	} catch (e) { console.warn(e); }
 }
 
+// 渲染左側檔案清單（檔名 + 大小）
 function renderList() {
 	fileList.innerHTML = files.map((f, i) =>
 		`<div><span>${i+1}. ${f.name}</span><span>${(f.size/1024).toFixed(1)} KB</span></div>`
@@ -618,6 +618,7 @@ function swapFrames(a, b) {
 	showFrame(b);
 }
 
+// 把第 from 格移到第 to 格（連 files / previewUrls / frameDelays 一起搬）
 function moveFrame(from, to) {
 	const f = files.splice(from, 1)[0];
 	const u = previewUrls.splice(from, 1)[0];
@@ -630,6 +631,7 @@ function moveFrame(from, to) {
 	showFrame(to);
 }
 
+// 刪除第 i 格，同步調整 currentFrame 位置
 function deleteFrame(i) {
 	pause();
 	URL.revokeObjectURL(previewUrls[i]);
@@ -653,6 +655,7 @@ function deleteFrame(i) {
 	showFrame(currentFrame);
 }
 
+// 切換到第 i 格預覽，同步高亮時間軸和卡片
 function showFrame(i) {
 	if (previewUrls.length === 0) return;
 	currentFrame = i;
@@ -730,8 +733,10 @@ clearBtn.addEventListener('click', () => {
 	previewImg.style.display = 'none';
 	previewInfo.textContent = t('previewEmpty');
 	downloadLink.style.display = 'none';
+	document.getElementById('downloadGifLink').style.display = 'none';
 	status.innerHTML = '';
 	fileInfo.textContent = '';
+	document.getElementById('lineStickerWarnings').innerHTML = '';
 	document.querySelector('.preview-area').style.display = 'none';
 	document.getElementById('fileListGroup').style.display = 'none';
 });
@@ -787,6 +792,37 @@ makeBtn.addEventListener('click', async () => {
 		if (loops > 0) buf = setApngLoops(buf, loops);
 
 		const blob = new Blob([buf], {type: 'image/apng'});
+
+		// LINE 動態貼圖提示（全部生成後才判斷）
+		const warnBox = document.getElementById('lineStickerWarnings');
+		if (warnBox) {
+			const warns = [];
+			const totalMs = dels.reduce((a, b) => a + b, 0);
+			const totalSec = totalMs / 1000;
+			// 1. 總時間不是整數秒（1,2,3,4）
+			if (!Number.isInteger(totalSec)) warns.push(t('lineWarnTimeNotInteger'));
+			// 2. 總時間超過 4 秒
+			if (totalSec > 4) warns.push(t('lineWarnTimeOver4'));
+			// 3. 尺寸：寬或高其中一邊必須為 270px，且在 320×270 以內
+			const sideOk = (w === 270 || h === 270);
+			const withinMax = (w <= 320 && h <= 270);
+			if (!sideOk || !withinMax) warns.push(t('lineWarnSize'));
+			// 4. 影格數量 5～20
+			const nFrames = frames.length;
+			if (nFrames < 5 || nFrames > 20) warns.push(t('lineWarnFrames'));
+			// 5. 播放次數：1～4 次（0 = 無限循環）
+			if (loops === 0 || loops > 4) warns.push(t('lineWarnLoops'));
+			// 6. 檔案大小超過 1MB
+			if (blob.size > 1024 * 1024) warns.push(t('lineWarnFileSize'));
+			// 渲染
+			if (warns.length > 0) {
+				warnBox.innerHTML = `<div class="warn-title"><span class="cat cat-030"></span>&nbsp;${t('lineWarnTitle')}</div>` +
+					warns.map(w => `<div class="warn-item">${w}</div>`).join('');
+			} else {
+				warnBox.innerHTML = '';
+			}
+		}
+
 		const url = URL.createObjectURL(blob);
 		previewImg.src = url;
 		previewInfo.textContent = t('previewAPNG', {n: frames.length});
@@ -805,7 +841,83 @@ makeBtn.addEventListener('click', async () => {
 		}
 		fileInfo.textContent = t('fileInfo', {w, h, n: frames.length, loopInfo, size: (blob.size/1024).toFixed(1)});
 		status.innerHTML = t('done', {n: frames.length});
-		
+
+		// 順便產生 GIF 版本
+		// GIF 只支援 1-bit 透明：先掃描所有 frame，找一個圖片裡沒用過的顏色當透明色，避免跟圖片撞色
+		const downloadGifLink = document.getElementById('downloadGifLink');
+		if (downloadGifLink && typeof GIF !== 'undefined') {
+			// 第一步：掃所有 frame，收集出現過的 RGB 組合
+			const usedColors = new Set();
+			for (const f of frames) {
+				const d = new Uint8Array(f);
+				for (let p = 0; p < d.length; p += 4) {
+					if (d[p + 3] >= 128) { // 只記錄不透明像素
+						usedColors.add((d[p] << 16) | (d[p + 1] << 8) | d[p + 2]);
+					}
+				}
+			}
+			// 第二步：候選顏色，優先選跟圖片色系差很遠的（量化後才不會撞色）
+			// 洋紅/純紅容易被量化成圖片本來就有的粉色，所以排後面
+			const candidates = [
+				0x00FF00, // 純綠（跟粉色系差最遠）
+				0x0000FF, // 純藍
+				0x00FFFF, // 青色
+				0x00CCFF, // 天藍
+				0xFF00FF, // 洋紅
+				0xFF0000, // 純紅
+				0xFFFF00, // 純黃
+				0xFF00CC, // 粉紅
+				0xCC00FF, // 紫
+			];
+			let transparentColor = 0x00FF00;
+			for (const c of candidates) {
+				if (!usedColors.has(c)) { transparentColor = c; break; }
+			}
+			const tr = (transparentColor >> 16) & 0xFF;
+			const tg = (transparentColor >> 8) & 0xFF;
+			const tb = transparentColor & 0xFF;
+
+			// gif.js repeat: 0=無限, -1=只播一次, n=播 n+1 次
+			// APNG loops: 0=無限, n=播 n 次
+			// 對應: loops=0→repeat=0, loops=1→repeat=-1, loops≥2→repeat=loops-1
+			let gifRepeat;
+			if (loops === 0) gifRepeat = 0;
+			else if (loops === 1) gifRepeat = -1;
+			else gifRepeat = loops - 1;
+			const gif = new GIF({
+				workers: 2,
+				quality: 10,
+				workerScript: 'js/gif.worker.js',
+				transparent: transparentColor,
+				repeat: gifRepeat
+			});
+			for (let i = 0; i < frames.length; i++) {
+				const c = document.createElement('canvas');
+				c.width = w; c.height = h;
+				const ctx = c.getContext('2d');
+				const imgData = new ImageData(new Uint8ClampedArray(frames[i]), w, h);
+				// 把透明像素填成選定的透明色，同時把 alpha 改成 255（不透明）
+				// 否則 gif.js 看不到那個像素（因為 alpha=0），會把背景填成黑色
+				for (let p = 0; p < imgData.data.length; p += 4) {
+					if (imgData.data[p + 3] < 128) {
+						imgData.data[p] = tr;
+						imgData.data[p + 1] = tg;
+						imgData.data[p + 2] = tb;
+						imgData.data[p + 3] = 255; // 改成不透明，gif.js 才看得到
+					}
+				}
+				ctx.putImageData(imgData, 0, 0);
+				gif.addFrame(c, { delay: dels[i], copy: true });
+			}
+			gif.on('finished', function(gifBlob) {
+				const gifUrl = URL.createObjectURL(gifBlob);
+				downloadGifLink.href = gifUrl;
+				downloadGifLink.download = 'eggshell-' + randomId(8) + '.gif';
+				downloadGifLink.style.display = 'inline-block';
+			});
+			gif.render();
+		}
+
 	} catch (err) {
 		status.innerHTML = t('err', {msg: err.message});
 		console.error(err);
@@ -814,3 +926,799 @@ makeBtn.addEventListener('click', async () => {
 		makeBtn.disabled = false;
 	}
 });
+
+// ============================================================
+// PNG 貼圖製作頁面（tab-png）
+// ============================================================
+(function initPngMaker() {
+	const fileInput = document.getElementById('pngFileInput');
+	const dropZone = document.getElementById('pngDropZone');
+	const previewArea = document.getElementById('pngPreviewArea');
+	const canvas = document.getElementById('pngCanvas');
+	const pickBtn = document.getElementById('pngPickBtn');
+	const removeBtn = document.getElementById('pngRemoveBtn');
+	const resetBtn = document.getElementById('pngResetBtn');
+	const toleranceSlider = document.getElementById('pngTolerance');
+	const toleranceVal = document.getElementById('pngToleranceVal');
+	const eraserSizeSlider = document.getElementById('pngEraserSize');
+	const eraserSizeVal = document.getElementById('pngEraserSizeVal');
+	const globalModeCheckbox = document.getElementById('pngGlobalMode');
+	const settingsCard = document.getElementById('pngSettingsCard');
+	const settingsPlaceholder = document.getElementById('pngSettingsPlaceholder');
+	if (!fileInput) return;
+
+	// 記住「吸取顏色」按鈕的原始文字
+	const pickBtnDefaultText = pickBtn.querySelector('span[data-i18n]').textContent;
+
+	const ctx = canvas.getContext('2d');
+	let originalImageData = null;
+	let pickedColor = null;
+	let picking = false;
+	let erasing = false;
+	let erasingActive = false;
+	let history = []; // 撤銷堆疊（最多 20 步）
+
+	function pushHistory() {
+		if (!originalImageData) return;
+		try {
+			const snap = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			history.push(snap);
+			if (history.length > 20) history.shift();
+		} catch (e) {}
+	}
+
+	dropZone.addEventListener('click', () => fileInput.click());
+	['dragenter', 'dragover'].forEach(evt => {
+		dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
+	});
+	['dragleave', 'drop'].forEach(evt => {
+		dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); });
+	});
+	dropZone.addEventListener('drop', (e) => {
+		const file = e.dataTransfer.files[0];
+		if (file) loadImage(file);
+	});
+	fileInput.addEventListener('change', (e) => {
+		const file = e.target.files[0];
+		if (file) loadImage(file);
+	});
+
+	function loadImage(file) {
+		const url = URL.createObjectURL(file);
+		const img = new Image();
+		img.onload = () => {
+			canvas.width = img.width;
+			canvas.height = img.height;
+			ctx.drawImage(img, 0, 0);
+			originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			previewArea.style.display = 'block';
+			settingsCard.style.display = 'block';
+			settingsPlaceholder.style.display = 'none';
+			pickedColor = null;
+			removeBtn.disabled = false;
+			document.getElementById('pngMakeSticker').disabled = false;
+			setZoom(1.0); // 新圖片歸一縮放
+			panX = 0; panY = 0; // 重置平移
+			applyTransform();
+			history = []; // 清空撤銷堆疊
+
+			// 填入原圖尺寸到輸出尺寸欄位
+			const outW = document.getElementById('pngOutW');
+			const outH = document.getElementById('pngOutH');
+			const outGroup = document.getElementById('pngOutSizeGroup');
+			if (outW) outW.value = img.width;
+			if (outH) outH.value = img.height;
+			if (outGroup) outGroup.style.display = 'block';
+			const splitGroup = document.getElementById('pngSplitGroup');
+			if (splitGroup) splitGroup.style.display = 'block';
+			aspectRatio = img.width / img.height;
+		};
+		img.src = url;
+	}
+
+	// 縮放 + 平移功能
+	let zoom = 1.0, panX = 0, panY = 0, aspectRatio = 1;
+	const zoomInBtn = document.getElementById('pngZoomIn');
+	const zoomOutBtn = document.getElementById('pngZoomOut');
+	const zoomLabel = document.getElementById('pngZoomLabel');
+	const previewStage = document.getElementById('pngPreviewStage');
+
+	function applyTransform() {
+		canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+		canvas.style.transformOrigin = 'center center';
+		if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + '%';
+	}
+	function setZoom(newZoom) {
+		zoom = Math.max(0.25, Math.min(5.0, newZoom));
+		applyTransform();
+	}
+	if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom(zoom * 1.25));
+	if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => setZoom(zoom / 1.25));
+
+	// 輸出尺寸：改寬自動算高，改高自動算寬
+	const outW = document.getElementById('pngOutW');
+	const outH = document.getElementById('pngOutH');
+	if (outW && outH) {
+		outW.addEventListener('input', () => {
+			const w = parseInt(outW.value) || 0;
+			if (w > 0) outH.value = Math.round(w / aspectRatio);
+		});
+		outH.addEventListener('input', () => {
+			const h = parseInt(outH.value) || 0;
+			if (h > 0) outW.value = Math.round(h * aspectRatio);
+		});
+	}
+
+	// 畫面分割：水平 / 垂直分割數量 +/-
+	let splitH = 1, splitV = 1;
+	const splitHVal = document.getElementById('pngSplitHVal');
+	const splitVVal = document.getElementById('pngSplitVVal');
+	function updateSplitDisplay() {
+		if (splitHVal) splitHVal.textContent = splitH;
+		if (splitVVal) splitVVal.textContent = splitV;
+	}
+	const hMinus = document.getElementById('pngSplitHMinus');
+	const hPlus = document.getElementById('pngSplitHPlus');
+	const vMinus = document.getElementById('pngSplitVMinus');
+	const vPlus = document.getElementById('pngSplitVPlus');
+	if (hMinus) hMinus.addEventListener('click', () => {
+		splitH = Math.max(0, splitH - 1);
+		updateSplitDisplay();
+		if (hPositions.length > 0) {
+			hPositions.pop();
+		}
+		if (splitVisible) drawSplitOverlay();
+	});
+	if (hPlus) hPlus.addEventListener('click', () => {
+		splitH = Math.min(10, splitH + 1);
+		updateSplitDisplay();
+		if (hPositions.length === 0) {
+			hPositions.push(0.5);
+		} else {
+			const sorted = [...hPositions].sort((a, b) => a - b);
+			let maxGap = -1, bestPos = 0, prev = 0;
+			for (const p of sorted) {
+				const gap = p - prev;
+				if (gap > maxGap) { maxGap = gap; bestPos = prev + gap / 2; }
+				prev = p;
+			}
+			const gap = 1 - prev;
+			if (gap > maxGap) bestPos = prev + gap / 2;
+			hPositions.push(bestPos);
+		}
+		if (splitVisible) drawSplitOverlay();
+	});
+	if (vMinus) vMinus.addEventListener('click', () => {
+		splitV = Math.max(0, splitV - 1);
+		updateSplitDisplay();
+		if (vPositions.length > 0) {
+			vPositions.pop();
+		}
+		if (splitVisible) drawSplitOverlay();
+	});
+	if (vPlus) vPlus.addEventListener('click', () => {
+		splitV = Math.min(10, splitV + 1);
+		updateSplitDisplay();
+		if (vPositions.length === 0) {
+			vPositions.push(0.5);
+		} else {
+			const sorted = [...vPositions].sort((a, b) => a - b);
+			let maxGap = -1, bestPos = 0, prev = 0;
+			for (const p of sorted) {
+				const gap = p - prev;
+				if (gap > maxGap) { maxGap = gap; bestPos = prev + gap / 2; }
+				prev = p;
+			}
+			const gap = 1 - prev;
+			if (gap > maxGap) bestPos = prev + gap / 2;
+			vPositions.push(bestPos);
+		}
+		if (splitVisible) drawSplitOverlay();
+	});
+
+	// 分割線 overlay（疊在 canvas 上，可拖曳）
+	let splitVisible = false;
+	let hPositions = []; // 水平線位置（百分比 0~1）
+	let vPositions = []; // 垂直線位置（百分比 0~1）
+	// 把 canvas 包進 wrapper，overlay 跟 canvas 同尺寸
+	const canvasWrapper = document.createElement('div');
+	canvasWrapper.style.cssText = 'position:relative;display:inline-block;';
+	canvas.parentNode.insertBefore(canvasWrapper, canvas);
+	canvasWrapper.appendChild(canvas);
+	const splitOverlay = document.createElement('div');
+	splitOverlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;display:none;z-index:5;';
+	canvasWrapper.appendChild(splitOverlay);
+
+	function initPositions() {
+		hPositions = [];
+		vPositions = [];
+		for (let i = 1; i <= splitH; i++) hPositions.push(i / (splitH + 1));
+		for (let i = 1; i <= splitV; i++) vPositions.push(i / (splitV + 1));
+	}
+
+	function drawSplitOverlay() {
+		if (!splitVisible) { splitOverlay.style.display = 'none'; return; }
+		splitOverlay.style.display = 'block';
+		let html = '';
+		// 垂直分割線（直線，可左右拖）
+		vPositions.forEach((p, i) => {
+			html += `<div class="split-line-v" data-index="${i}" style='position:absolute;left:${p * 100}%;top:0;bottom:0;border-left:2px dashed #4caf50;cursor:ew-resize;pointer-events:auto;'></div>`;
+		});
+		// 水平分割線（橫線，可上下拖）
+		hPositions.forEach((p, i) => {
+			html += `<div class="split-line-h" data-index="${i}" style='position:absolute;top:${p * 100}%;left:0;right:0;border-top:2px dashed #4caf50;cursor:ns-resize;pointer-events:auto;'></div>`;
+		});
+		splitOverlay.innerHTML = html;
+
+		// 綁定拖曳
+		splitOverlay.querySelectorAll('.split-line-v').forEach(el => {
+			el.addEventListener('mousedown', (e) => {
+				e.stopPropagation();
+				const idx = parseInt(el.dataset.index);
+				const rect = splitOverlay.getBoundingClientRect();
+				function onMove(ev) {
+					const x = (ev.clientX - rect.left) / rect.width;
+					vPositions[idx] = Math.max(0.05, Math.min(0.95, x));
+					drawSplitOverlay();
+				}
+				function onUp() {
+					window.removeEventListener('mousemove', onMove);
+					window.removeEventListener('mouseup', onUp);
+				}
+				window.addEventListener('mousemove', onMove);
+				window.addEventListener('mouseup', onUp);
+			});
+		});
+		splitOverlay.querySelectorAll('.split-line-h').forEach(el => {
+			el.addEventListener('mousedown', (e) => {
+				e.stopPropagation();
+				const idx = parseInt(el.dataset.index);
+				const rect = splitOverlay.getBoundingClientRect();
+				function onMove(ev) {
+					const y = (ev.clientY - rect.top) / rect.height;
+					hPositions[idx] = Math.max(0.05, Math.min(0.95, y));
+					drawSplitOverlay();
+				}
+				function onUp() {
+					window.removeEventListener('mousemove', onMove);
+					window.removeEventListener('mouseup', onUp);
+				}
+				window.addEventListener('mousemove', onMove);
+				window.addEventListener('mouseup', onUp);
+			});
+		});
+	}
+
+	const toggleBtn = document.getElementById('pngSplitToggle');
+	if (toggleBtn) toggleBtn.addEventListener('click', () => {
+		splitVisible = !splitVisible;
+		toggleBtn.style.background = splitVisible ? '#4caf50' : '';
+		toggleBtn.style.color = splitVisible ? '#fff' : '';
+		// 開啟分割線時，關閉刪除顏色與橡皮擦
+		if (splitVisible) {
+			picking = false;
+			erasing = false;
+			pickBtn.style.background = '';
+			pickBtn.style.color = '';
+			removeBtn.style.background = '';
+			removeBtn.style.color = '';
+			document.getElementById('pngPreviewStage').classList.remove('picking', 'erasing');
+			canvas.style.cursor = '';
+		}
+		// 只有第一次開啟且分割線數量大於 0 時才初始化
+		if (splitVisible && splitH > 0 && hPositions.length === 0) {
+			initPositions();
+		}
+		if (splitVisible && splitV > 0 && vPositions.length === 0) {
+			initPositions();
+		}
+		drawSplitOverlay();
+	});
+
+	const equalBtn = document.getElementById('pngSplitEqual');
+	if (equalBtn) equalBtn.addEventListener('click', () => {
+		initPositions();
+		drawSplitOverlay();
+	});
+
+	// 移除所有分割線
+	const clearBtn = document.getElementById('pngSplitClear');
+	if (clearBtn) clearBtn.addEventListener('click', () => {
+		splitVisible = false;
+		hPositions = [];
+		vPositions = [];
+		splitH = 1;
+		splitV = 1;
+		updateSplitDisplay();
+		toggleBtn.style.background = '';
+		toggleBtn.style.color = '';
+		drawSplitOverlay();
+		const thumbs = document.getElementById('pngSplitThumbs');
+		if (thumbs) thumbs.innerHTML = '';
+	});
+
+	// 顯示縮圖：依分割線切出各區塊
+	const previewBtn = document.getElementById('pngSplitPreview');
+	const confirmRow = document.getElementById('pngConfirmRow');
+	const resultArea = document.getElementById('pngResultArea');
+	const resultError = document.getElementById('pngResultError');
+	let splitThumbsData = []; // 存每個縮圖的裁切 canvas
+
+	if (previewBtn) previewBtn.addEventListener('click', () => {
+		const thumbs = document.getElementById('pngSplitThumbs');
+		if (!thumbs) return;
+		thumbs.innerHTML = '';
+		splitThumbsData = [];
+		const w = canvas.width, h = canvas.height;
+		const xs = [0, ...vPositions.slice().sort((a, b) => a - b).map(p => Math.round(p * w)), w];
+		const ys = [0, ...hPositions.slice().sort((a, b) => a - b).map(p => Math.round(p * h)), h];
+		let num = 1;
+		for (let yi = 0; yi < ys.length - 1; yi++) {
+			for (let xi = 0; xi < xs.length - 1; xi++) {
+				const sx = xs[xi], sy = ys[yi], sw = xs[xi + 1] - sx, sh = ys[yi + 1] - sy;
+				const tc = document.createElement('canvas');
+				tc.width = sw;
+				tc.height = sh;
+				tc.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
+				splitThumbsData.push(tc);
+				const div = document.createElement('div');
+				div.className = 'split-thumb';
+				const img = document.createElement('img');
+				img.src = tc.toDataURL();
+				const numLabel = document.createElement('span');
+				numLabel.className = 'split-thumb-num';
+				numLabel.textContent = num;
+				const del = document.createElement('button');
+				del.className = 'split-thumb-del';
+				del.innerHTML = '<span class="cat cat-017"></span>';
+				del.addEventListener('click', () => {
+					const idx = splitThumbsData.indexOf(tc);
+					if (idx >= 0) splitThumbsData.splice(idx, 1);
+					div.remove();
+					// 重新編號
+					thumbs.querySelectorAll('.split-thumb-num').forEach((n, i) => n.textContent = i + 1);
+				});
+				div.appendChild(img);
+				div.appendChild(numLabel);
+				div.appendChild(del);
+				thumbs.appendChild(div);
+				num++;
+			}
+		}
+		confirmRow.style.display = 'block';
+		resultArea.style.display = 'none';
+		resultError.style.display = 'none';
+	});
+
+	// 確認圖片：必須只剩 1 張，產生 240x240 和 96x74
+	const confirmBtn = document.getElementById('pngConfirmBtn');
+	if (confirmBtn) confirmBtn.addEventListener('click', () => {
+		if (splitThumbsData.length !== 1) {
+			resultError.innerHTML = (typeof I18N !== 'undefined' && currentLang && I18N[currentLang])
+				? I18N[currentLang].pngConfirmError : '請只保留 1 張縮圖';
+			resultError.style.display = 'block';
+			resultArea.style.display = 'none';
+			return;
+		}
+		resultError.style.display = 'none';
+		const src = splitThumbsData[0];
+		// 240x240：等比縮放到最大可用寬度/高度，置中
+		const c240 = document.getElementById('pngResult240');
+		const ctx240 = c240.getContext('2d');
+		c240.width = 240; c240.height = 240;
+		ctx240.clearRect(0, 0, 240, 240);
+		const scale240 = Math.min(240 / src.width, 240 / src.height);
+		const dw240 = src.width * scale240, dh240 = src.height * scale240;
+		ctx240.drawImage(src, (240 - dw240) / 2, (240 - dh240) / 2, dw240, dh240);
+		document.getElementById('pngResult240Info').textContent = `${src.width}×${src.height} → 240×240`;
+		// 96x74：等比縮放到最大可用寬度，高度自適應
+		const c96 = document.getElementById('pngResult96');
+		const ctx96 = c96.getContext('2d');
+		c96.width = 96; c96.height = 74;
+		ctx96.clearRect(0, 0, 96, 74);
+		const scale96 = Math.min(96 / src.width, 74 / src.height);
+		const dw96 = src.width * scale96, dh96 = src.height * scale96;
+		ctx96.drawImage(src, (96 - dw96) / 2, (74 - dh96) / 2, dw96, dh96);
+		document.getElementById('pngResult96Info').textContent = `${src.width}×${src.height} → 96×74`;
+		resultArea.style.display = 'block';
+	});
+
+	// 下載 ZIP
+	const zipBtn = document.getElementById('pngDownloadZip');
+	if (zipBtn) zipBtn.addEventListener('click', async () => {
+		const zip = new JSZip();
+		const c240 = document.getElementById('pngResult240');
+		const c96 = document.getElementById('pngResult96');
+		// 轉成 PNG blob
+		const b240 = await new Promise(r => c240.toBlob(r, 'image/png'));
+		const b96 = await new Promise(r => c96.toBlob(r, 'image/png'));
+		zip.file('240x240.png', b240);
+		zip.file('96x74.png', b96);
+		const blob = await zip.generateAsync({ type: 'blob' });
+		const a = document.createElement('a');
+		const name = 'egg-' + Math.random().toString(36).slice(2, 8) + '.zip';
+		a.href = URL.createObjectURL(blob);
+		a.download = name;
+		a.click();
+		URL.revokeObjectURL(a.href);
+	});
+
+	// 拖曳平移（分割線模式開啟時鎖定，不拖曳圖片）
+	let dragging = false, dragStartX = 0, dragStartY = 0;
+	if (previewStage) {
+		previewStage.addEventListener('mousedown', (e) => {
+			if (picking || erasing) return; // 吸取/橡皮擦模式不拖曳
+			if (splitVisible) return; // 分割線模式鎖定圖片
+			dragging = true;
+			dragStartX = e.clientX - panX;
+			dragStartY = e.clientY - panY;
+			previewStage.style.cursor = 'grabbing';
+		});
+		window.addEventListener('mousemove', (e) => {
+			if (!dragging) return;
+			panX = e.clientX - dragStartX;
+			panY = e.clientY - dragStartY;
+			applyTransform();
+		});
+		window.addEventListener('mouseup', () => {
+			dragging = false;
+			previewStage.style.cursor = '';
+		});
+	}
+
+	// 吸取顏色模式
+	pickBtn.addEventListener('click', () => {
+		picking = !picking;
+		// 互斥：開啟吸取顏色時，取消橡皮擦與分割線
+		if (picking) {
+			erasing = false;
+			removeBtn.style.background = '';
+			removeBtn.style.color = '';
+			canvas.style.cursor = 'default';
+			// 關閉分割線模式
+			if (splitVisible) {
+				splitVisible = false;
+				toggleBtn.style.background = '';
+				toggleBtn.style.color = '';
+				drawSplitOverlay();
+			}
+		}
+		document.getElementById('pngPreviewStage').classList.toggle('picking', picking);
+		document.getElementById('pngPreviewStage').classList.remove('erasing');
+		pickBtn.style.background = picking ? '#4caf50' : '';
+		pickBtn.style.color = picking ? '#fff' : '';
+	});
+
+	// 即時滑鼠顏色預覽
+	canvas.addEventListener('mousemove', (e) => {
+		if (!originalImageData) return;
+		const rect = canvas.getBoundingClientRect();
+		const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width);
+		const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height);
+		if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
+		const idx = (y * canvas.width + x) * 4;
+		// 讀 canvas 目前狀態（含已刪除的透明區域）
+		const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+		const r = currentData[idx], g = currentData[idx+1], b = currentData[idx+2], a = currentData[idx+3];
+		const liveRgb = document.getElementById('pngLiveRgb');
+		const liveCat = document.getElementById('pngLiveCat');
+		if (liveRgb) liveRgb.textContent = `RGB(${r},${g},${b})`;
+		if (liveCat) {
+			if (a === 0) {
+				// 透明區域：顯示紅色 cat-017
+				liveCat.className = 'cat cat-017';
+				liveCat.style.color = '';
+			} else {
+				// 有顏色：顯示 cat-133 並著色
+				liveCat.className = 'cat cat-133';
+				liveCat.style.color = `rgb(${r},${g},${b})`;
+			}
+		}
+	});
+
+	// 點 canvas 取色 + 刪除（局部 flood fill 或全域掃描）
+	canvas.addEventListener('click', (e) => {
+		if (!picking || !originalImageData) return;
+		const rect = canvas.getBoundingClientRect();
+		const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width);
+		const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height);
+		const idx = (y * canvas.width + x) * 4;
+		const data = originalImageData.data;
+		pickedColor = [data[idx], data[idx+1], data[idx+2]];
+		const tol = parseInt(toleranceSlider.value) || 0;
+		pushHistory(); // 記錄刪除前的狀態
+		const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const w = canvas.width, h = canvas.height;
+		const [tr, tg, tb] = pickedColor;
+		const isGlobal = globalModeCheckbox && globalModeCheckbox.checked;
+		if (isGlobal) {
+			// 全域掃描：所有同色像素都刪
+			for (let yy = 0; yy < h; yy++) {
+				for (let xx = 0; xx < w; xx++) {
+					const cidx = (yy * w + xx) * 4;
+					const r = imgData.data[cidx], g = imgData.data[cidx+1], b = imgData.data[cidx+2];
+					const diff = Math.abs(r - tr) + Math.abs(g - tg) + Math.abs(b - tb);
+					if (diff <= tol * 3) imgData.data[cidx + 3] = 0;
+				}
+			}
+		} else {
+			// 局部 flood fill
+			const visited = new Uint8Array(w * h);
+			const stack = [[x, y]];
+			while (stack.length) {
+				const [cx, cy] = stack.pop();
+				if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+				if (visited[cy * w + cx]) continue;
+				const cidx = (cy * w + cx) * 4;
+				const r = imgData.data[cidx], g = imgData.data[cidx+1], b = imgData.data[cidx+2];
+				const diff = Math.abs(r - tr) + Math.abs(g - tg) + Math.abs(b - tb);
+				if (diff <= tol * 3) {
+					visited[cy * w + cx] = 1;
+					imgData.data[cidx + 3] = 0;
+					stack.push([cx+1, cy], [cx-1, cy], [cx, cy+1], [cx, cy-1]);
+				}
+			}
+		}
+		ctx.putImageData(imgData, 0, 0);
+	});
+
+	// 容許度滑桿
+	toleranceSlider.addEventListener('input', () => {
+		toleranceVal.textContent = toleranceSlider.value;
+	});
+	eraserSizeSlider.addEventListener('input', () => {
+		eraserSizeVal.textContent = eraserSizeSlider.value;
+	});
+
+	// 橡皮擦：切換模式
+	removeBtn.addEventListener('click', () => {
+		if (!originalImageData) return;
+		erasing = !erasing;
+		picking = false;
+		pickBtn.style.background = '';
+		pickBtn.style.color = '';
+		document.getElementById('pngPreviewStage').classList.remove('picking');
+		document.getElementById('pngPreviewStage').classList.toggle('erasing', erasing);
+		removeBtn.style.background = erasing ? '#4caf50' : '';
+		removeBtn.style.color = erasing ? '#fff' : '';
+		canvas.style.cursor = erasing ? 'crosshair' : 'default';
+		// 開啟橡皮擦時關閉分割線模式
+		if (erasing && splitVisible) {
+			splitVisible = false;
+			toggleBtn.style.background = '';
+			toggleBtn.style.color = '';
+			drawSplitOverlay();
+		}
+	});
+
+	// 橡皮擦：在 canvas 上拖曳擦除
+	function eraserAt(x, y) {
+		const size = parseInt(eraserSizeSlider.value) || 10;
+		const radius = size / 2;
+		const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		const w = canvas.width, h = canvas.height;
+		const minX = Math.max(0, Math.floor(x - radius));
+		const maxX = Math.min(w - 1, Math.ceil(x + radius));
+		const minY = Math.max(0, Math.floor(y - radius));
+		const maxY = Math.min(h - 1, Math.ceil(y + radius));
+		for (let cy = minY; cy <= maxY; cy++) {
+			for (let cx = minX; cx <= maxX; cx++) {
+				const dx = cx - x, dy = cy - y;
+				if (dx * dx + dy * dy <= radius * radius) {
+					const idx = (cy * w + cx) * 4;
+					imgData.data[idx + 3] = 0;
+				}
+			}
+		}
+		ctx.putImageData(imgData, 0, 0);
+	}
+	canvas.addEventListener('mousedown', (e) => {
+		if (!erasing || !originalImageData) return;
+		pushHistory(); // 記錄橡皮擦開始前的狀態
+		erasingActive = true;
+		const rect = canvas.getBoundingClientRect();
+		const x = (e.clientX - rect.left) * canvas.width / rect.width;
+		const y = (e.clientY - rect.top) * canvas.height / rect.height;
+		eraserAt(x, y);
+	});
+	canvas.addEventListener('mousemove', (e) => {
+		if (!erasingActive || !erasing) return;
+		const rect = canvas.getBoundingClientRect();
+		const x = (e.clientX - rect.left) * canvas.width / rect.width;
+		const y = (e.clientY - rect.top) * canvas.height / rect.height;
+		eraserAt(x, y);
+	});
+	window.addEventListener('mouseup', () => { erasingActive = false; });
+
+	// 撤銷：回到上一個動作
+	const undoBtn = document.getElementById('pngUndo');
+	if (undoBtn) {
+		undoBtn.addEventListener('click', () => {
+			if (history.length === 0) return;
+			const prev = history.pop();
+			ctx.putImageData(prev, 0, 0);
+		});
+	}
+
+	// 還原：回到圖片剛載入的樣子
+	const restoreBtn = document.getElementById('pngReset');
+	if (restoreBtn) {
+		restoreBtn.addEventListener('click', () => {
+			if (!originalImageData) return;
+			pushHistory(); // 記錄還原前狀態（這樣還原後還能撤銷回去）
+			ctx.putImageData(originalImageData, 0, 0);
+		});
+	}
+
+	// 生成靜態貼圖：顯示 LINE 限制提醒 + 縮圖預覽
+	const makeStickerBtn = document.getElementById('pngMakeSticker');
+	const warnBox = document.getElementById('pngStickerWarn');
+	const stickerPreview = document.getElementById('pngStickerPreview');
+	const stickerPreviewImg = document.getElementById('pngStickerPreviewImg');
+	const stickerPreviewInfo = document.getElementById('pngStickerPreviewInfo');
+	const dlPngBtn = document.getElementById('pngDownloadPng');
+	let stickerCanvas = null; // 最終輸出用 canvas
+
+	if (makeStickerBtn) makeStickerBtn.addEventListener('click', () => {
+		// 顯示警告框
+		if (warnBox) warnBox.style.display = 'block';
+
+		// 讀取輸出寬高設定
+		const outW = parseInt(document.getElementById('pngOutW')?.value) || 0;
+		const outH = parseInt(document.getElementById('pngOutH')?.value) || 0;
+
+		// 建立輸出 canvas
+		if (outW && outH) {
+			stickerCanvas = document.createElement('canvas');
+			stickerCanvas.width = outW;
+			stickerCanvas.height = outH;
+			const sctx = stickerCanvas.getContext('2d');
+			sctx.clearRect(0, 0, outW, outH);
+			// 等比縮放：以寬或高為限制，置中
+			const scale = Math.min(outW / canvas.width, outH / canvas.height);
+			const dw = canvas.width * scale, dh = canvas.height * scale;
+			sctx.drawImage(canvas, (outW - dw) / 2, (outH - dh) / 2, dw, dh);
+		} else {
+			// 留空 = 原圖大小
+			stickerCanvas = document.createElement('canvas');
+			stickerCanvas.width = canvas.width;
+			stickerCanvas.height = canvas.height;
+			stickerCanvas.getContext('2d').drawImage(canvas, 0, 0);
+		}
+
+		const dataUrl = stickerCanvas.toDataURL('image/png');
+		stickerPreviewImg.src = dataUrl;
+		const base64 = dataUrl.split(',')[1];
+		const bytes = Math.round(base64.length * 0.75);
+		const kb = (bytes / 1024).toFixed(1);
+		const sizeStr = stickerCanvas.width + '×' + stickerCanvas.height + 'px';
+		stickerPreviewInfo.textContent = sizeStr + ' · ' + kb + ' KB';
+		stickerPreview.style.display = 'block';
+		dlPngBtn.style.display = 'inline-block';
+
+		// 條件檢查：只顯示不通過的
+		const W = stickerCanvas.width, H = stickerCanvas.height;
+		const t = (typeof I18N !== 'undefined' && I18N[currentLang]) ? I18N[currentLang] : {};
+		let warns = [];
+		// 1. 寬高上限
+		if (W > 370 || H > 320) {
+			warns.push((t.pngWarnSizeFail || '圖片超過上限：370×320px（目前 {w}×{h}）').replace('{w}', W).replace('{h}', H));
+		}
+		// 2. 檔案大小 1MB
+		if (bytes > 1024 * 1024) {
+			const mb = (bytes / 1024 / 1024).toFixed(2);
+			warns.push((t.pngWarnFileFail || '檔案超過 1MB（目前 {mb} MB）').replace('{mb}', mb));
+		}
+		// 3. 偶數
+		if (W % 2 !== 0 || H % 2 !== 0) {
+			warns.push((t.pngWarnEvenFail || '寬高需為偶數（目前 {w}×{h}）').replace('{w}', W).replace('{h}', H));
+		}
+		// 動態生成警告條
+		if (warnBox) {
+			if (warns.length === 0) {
+				// 全部通過 → 不顯示警告框
+				warnBox.style.display = 'none';
+			} else {
+				warnBox.style.display = 'block';
+				const titleEl = warnBox.querySelector('.warn-title');
+				warnBox.innerHTML = '';
+				if (titleEl) warnBox.appendChild(titleEl);
+				warns.forEach(msg => {
+					const div = document.createElement('div');
+					div.className = 'warn-item';
+					div.textContent = msg;
+					warnBox.appendChild(div);
+				});
+			}
+		}
+	});
+
+	// 清空：等同右邊重置按鈕
+	const clearAllBtn = document.getElementById('pngClear');
+	if (clearAllBtn) clearAllBtn.addEventListener('click', () => {
+		resetBtn.click();
+		// 同時隱藏生成結果
+		warnBox.style.display = 'none';
+		stickerPreview.style.display = 'none';
+		dlPngBtn.style.display = 'none';
+	});
+
+	// 下載 PNG：下載目前 canvas
+	if (dlPngBtn) dlPngBtn.addEventListener('click', () => {
+		if (!stickerCanvas) return;
+		const a = document.createElement('a');
+		a.href = stickerCanvas.toDataURL('image/png');
+		a.download = 'sticker-' + Math.random().toString(36).slice(2, 8) + '.png';
+		a.click();
+	});
+
+	// 重設：還原去背 + 清空整張圖片
+	resetBtn.addEventListener('click', () => {
+		// 1. 先還原像素
+		if (originalImageData) {
+			ctx.putImageData(originalImageData, 0, 0);
+		}
+		// 2. 清空 canvas
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// 3. 隱藏預覽區和設定面板，恢復預設提示
+		document.getElementById('pngPreviewArea').style.display = 'none';
+		document.getElementById('pngSettingsCard').style.display = 'none';
+		document.getElementById('pngSettingsPlaceholder').style.display = 'block';
+		// 4. 清空狀態
+		pickedColor = null;
+		originalImageData = null;
+		img = null;
+		removeBtn.disabled = true;
+		document.getElementById('pngMakeSticker').disabled = true;
+		fileInput.value = '';
+		pickBtn.querySelector('span[data-i18n]').textContent = pickBtnDefaultText;
+		picking = false;
+		erasing = false;
+		document.getElementById('pngPreviewStage').classList.remove('picking');
+		document.getElementById('pngPreviewStage').classList.remove('erasing');
+		pickBtn.style.background = '';
+		pickBtn.style.color = '';
+		removeBtn.style.background = '';
+		removeBtn.style.color = '';
+		// 5. 清空即時顏色顯示
+		const liveRgb = document.getElementById('pngLiveRgb');
+		if (liveRgb) liveRgb.textContent = 'RGB(-,-,-)';
+		const liveCat = document.getElementById('pngLiveCat');
+		if (liveCat) {
+			liveCat.className = 'cat cat-017';
+			liveCat.style.color = '';
+		}
+		// 6. 復原設定面板：全域刪除取消、容許度回預設
+		const globalChk = document.getElementById('pngGlobalMode');
+		if (globalChk) globalChk.checked = false;
+		const tolSlider = document.getElementById('pngTolerance');
+		const tolVal = document.getElementById('pngToleranceVal');
+		if (tolSlider) tolSlider.value = 15;
+		if (tolVal) tolVal.textContent = '15';
+		// 橡皮擦大小復原為 10
+		const eraserSlider = document.getElementById('pngEraserSize');
+		const eraserVal = document.getElementById('pngEraserSizeVal');
+		if (eraserSlider) eraserSlider.value = 10;
+		if (eraserVal) eraserVal.textContent = '10';
+		// 橡皮擦模式關閉
+		erasing = false;
+		removeBtn.style.background = '';
+		removeBtn.style.color = '';
+		canvas.style.cursor = 'default';
+		// 7. 重置分割線狀態
+		splitVisible = false;
+		hPositions = [];
+		vPositions = [];
+		splitH = 1;
+		splitV = 1;
+		updateSplitDisplay();
+		if (toggleBtn) {
+			toggleBtn.style.background = '';
+			toggleBtn.style.color = '';
+		}
+		drawSplitOverlay();
+		// 清空縮圖區
+		const thumbs = document.getElementById('pngSplitThumbs');
+		if (thumbs) thumbs.innerHTML = '';
+	});
+})();

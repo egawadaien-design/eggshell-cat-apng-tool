@@ -1,7 +1,7 @@
 <!--
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 10
+	@Correction: 13
 	蛋殼喵 APNG 工具 — 多國語言版
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 -->
@@ -21,7 +21,9 @@
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="js/i18n.js"></script>
 </head>
 <body>
@@ -55,11 +57,11 @@
 		<button class="tab-btn active" data-tab="tab-app">
 			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabApp">APNG</small>
 		</button>
+		<button class="tab-btn" data-tab="tab-png">
+			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabPng">PNG</small>
+		</button>
 		<button class="tab-btn" data-tab="tab-help">
 			<small class="cat cat-029"></small>&nbsp;<small data-i18n="tabHelp">Help</small>
-		</button>
-		<button class="tab-btn" data-tab="tab-emoji">
-			<small class="cat cat-020"></small>&nbsp;<small data-i18n="tabEmoji">Emoji</small>
 		</button>
 		<button class="tab-btn" data-tab="tab-meme">
 			<small class="cat cat-026"></small>&nbsp;<small data-i18n="tabMeme">Meme</small>
@@ -104,13 +106,13 @@
 					<button id="lastBtn" data-i18n-title="lastFrame" title="到最後一格">
 						<small class="cat cat-2x cat-color05 cat-087"></small>
 					</button>
-					<div class="playback-info">
+					<div class="playback-info cat">
 						<div id="framePosText">FPS: 0.0</div>
 						<div id="totalTimeText">00:00.00</div>
 					</div>
 				</div>
 				<div class="timeline" id="timeline"></div>
-
+				
 				<div class="frame-manager">
 					<div class="sort-bar">
 						<button class="sort-btn active" data-sort="manual">
@@ -142,19 +144,25 @@
 				</button>
 				<a id="downloadLink" style="display:none;text-decoration:none">
 					<button class="secondary">
-						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadBtn">下載 PNG</small>
+						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadBtn">下載 APNG</small>
+					</button>
+				</a>
+				<a id="downloadGifLink" style="display:none;text-decoration:none">
+					<button class="secondary">
+						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadGifBtn">下載 GIF</small>
 					</button>
 				</a>
 			</div>
 
 			<div id="status"></div>
 			<div id="fileInfo"></div>
+			<div id="lineStickerWarnings" class="warning-box"></div>
 		</div>
 
 		<div class="right-panel">
 			<div class="settings-group">
 				<h3>
-					<cat class="cat cat-color10 cat-209"></cat>&nbsp;<cat data-i18n="basicSettings">基本設定</cat>
+					<cat class="cat cat-209"></cat>&nbsp;<cat data-i18n="basicSettings">基本設定</cat>
 				</h3>
 				<label data-i18n="loopLabel">循環次數（0 = 無限）</label>
 				<select id="loops">
@@ -174,7 +182,7 @@
 
 			<div class="settings-group">
 				<h3>
-					<cat class="cat cat-color10 cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
+					<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
 				</h3>
 				<label data-i18n="outW">輸出寬度（px）</label>
 				<input type="number" id="outW" min="1">
@@ -185,13 +193,190 @@
 
 			<div class="settings-group" id="fileListGroup" style="display:none">
 				<h3>
-					<cat class="cat cat-color10 cat-207"></cat>&nbsp;<cat data-i18n="fileList">檔案清單</cat>
+					<cat class="cat cat-207"></cat>&nbsp;<cat data-i18n="fileList">檔案清單</cat>
 				</h3>
 				<div class="file-list" id="fileList"></div>
 			</div>
 		</div>
 	</div>
 </main>
+
+<!-- ===== Tab: PNG ===== -->
+<section id="tab-png" class="tab-panel">
+	<div class="main-layout">
+		<div class="left-panel">
+			<div class="drop-zone" id="pngDropZone">
+				<p><strong data-i18n="pngDropHint">把 JPG / PNG / GIF / WEBP 圖片拖曳到這裡</strong></p>
+				<p data-i18n="pngDropOrClick">或點此選擇檔案</p>
+				<input type="file" id="pngFileInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+			</div>
+			<div id="pngPreviewArea" class="preview-area" style="display:none">
+				<div class="preview-stage" id="pngPreviewStage">
+					<canvas id="pngCanvas"></canvas>
+				</div>
+				<div class="png-color-preview">
+					<span class="cat cat-133" id="pngLiveCat"></span>
+					<span id="pngLiveRgb" class="cat">RGB(-,-,-)</span>
+				</div>
+				<div class="png-toolbar-row">
+					<button id="pngZoomIn" class="secondary" title="放大">
+						<small class="cat cat-145"></small><small data-i18n="pngZoomIn">放大</small>
+					</button>
+					<button id="pngZoomOut" class="secondary" title="縮小">
+						<small class="cat cat-146"></small><small data-i18n="pngZoomOut">縮小</small>
+					</button>
+					<span id="pngZoomLabel" class="png-zoom-label">100%</span>
+					<button id="pngUndo" class="secondary" title="撤銷">
+						<small class="cat cat-134"></small><small data-i18n="pngUndo">撤銷</small>
+					</button>
+					<button id="pngReset" class="secondary" title="還原">
+						<small class="cat cat-147"></small><small data-i18n="pngRestore">還原</small>
+					</button>
+				</div>
+			</div>
+			<div class="actions">
+				<button id="pngMakeSticker" disabled>
+					<small class="cat cat-033"></small>&nbsp;<small data-i18n="pngMakeSticker">生成靜態貼圖</small>
+				</button>
+				<button id="pngClear" class="secondary">
+					<small class="cat cat-094"></small>&nbsp;<small data-i18n="pngClear">清空</small>
+				</button>
+				<button id="pngDownloadPng" class="secondary" style="display:none">
+					<small class="cat cat-022"></small>&nbsp;<small data-i18n="pngDownloadPng">下載 PNG</small>
+				</button>
+			</div>
+			<div id="pngStickerPreview" class="png-sticker-preview" style="display:none">
+				<img id="pngStickerPreviewImg">
+				<p class="muted" id="pngStickerPreviewInfo"></p>
+			</div>
+			<div id="pngStickerWarn" class="warning-box" style="display:none">
+				<div class="warn-title"><small class="cat cat-030"></small>&nbsp;<span data-i18n="pngStickerWarnTitle">LINE 靜態貼圖限制</span></div>
+				<div class="warn-item" data-i18n="pngWarn1">圖片上限 370×320px，請將尺寸設為偶數。</div>
+				<div class="warn-item" data-i18n="pngWarn2">每張圖片的檔案大小須小於 1MB。</div>
+				<div class="warn-item" data-i18n="pngWarn3">請為圖片進行去背透明處理。</div>
+			</div>
+		</div>
+		<div class="right-panel">
+			<!-- 预设隐藏 -->
+			<div class="settings-group" id="pngSettingsCard" style="display:none">
+				<h3><!-- 预设隐藏 -->
+					<cat class="cat cat-209"></cat>&nbsp;<cat data-i18n="pngSettings">圖像設置</cat>
+				</h3>
+				<div class="png-settings-row">
+					<label data-i18n="pngTolerance">容許度</label>
+					<input type="range" id="pngTolerance" min="0" max="100" value="15" style="flex:1">
+					<span id="pngToleranceVal">15</span>
+				</div>
+				<div class="png-settings-row">
+					<button id="pngPickBtn" style="width:100%">
+						<span class="cat cat-135"></span>&nbsp;<span data-i18n="pngEraseColor">刪除顏色</span>
+					</button>
+				</div>
+				<div class="png-settings-row">
+					<label>
+						<input type="checkbox" id="pngGlobalMode">
+						<span data-i18n="pngGlobalMode">全域刪除</span>
+					</label>
+				</div>
+				<div class="png-settings-row">
+					<button id="pngRemoveBtn" style="width:100%">
+						<span class="cat cat-136"></span>&nbsp;<span data-i18n="pngEraser">橡皮擦</span>
+					</button>
+				</div>
+				<div class="png-settings-row">
+					<label data-i18n="pngEraserSize">橡皮擦大小</label>
+					<input type="range" id="pngEraserSize" min="1" max="50" value="10" style="flex:1">
+					<span id="pngEraserSizeVal">10</span>
+				</div>
+				<div class="png-settings-row">
+					<button id="pngResetBtn" class="secondary" style="width:100%">
+						<span class="cat cat-134"></span>&nbsp;<span data-i18n="pngReset">重設</small>
+					</button>
+				</div>
+
+				<div class="settings-group" id="pngOutSizeGroup" style="display:none">
+					<h3><!-- 輸出尺寸 -->
+						<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
+					</h3>
+					<label data-i18n="outW">輸出寬度（px）</label>
+					<input type="number" id="pngOutW" min="1">
+					<label data-i18n="outH">輸出高度（px）</label>
+					<input type="number" id="pngOutH" min="1">
+					<small data-i18n="outHint">設其一，另一邊自動等比</small>
+				</div>
+				
+				<div class="settings-group" id="pngSplitGroup" style="display:none">
+					<h3><!-- 畫面分割 -->
+						<cat class="cat cat-219"></cat>&nbsp;<cat data-i18n="pngSplitTitle">畫面分割</cat>
+					</h3>
+					<div class="png-settings-row">
+						<button id="pngSplitToggle" style="width:100%">
+							<span class="cat cat-150"></span>&nbsp;<span data-i18n="pngSplitToggle">加入分割線</span>
+						</button>
+					</div>
+					<div class="png-settings-row">
+						<label data-i18n="pngSplitH">水平分割</label>
+						<div class="stepper">
+							<button id="pngSplitHMinus"><span class="cat cat-color08 cat-149"></span></button>
+							<span id="pngSplitHVal">1</span>
+							<button id="pngSplitHPlus"><span class="cat cat-color08 cat-148"></span></button>
+						</div>
+					</div>
+					<div class="png-settings-row">
+						<label data-i18n="pngSplitV">垂直分割</label>
+						<div class="stepper">
+							<button id="pngSplitVMinus"><span class="cat cat-color08 cat-149"></span></button>
+							<span id="pngSplitVVal">1</span>
+							<button id="pngSplitVPlus"><span class="cat cat-color08 cat-148"></span></button>
+						</div>
+					</div>
+					<div class="png-settings-row">
+						<button id="pngSplitEqual" class="secondary" style="width:100%">
+							<span class="cat cat-150"></span>&nbsp;<span data-i18n="pngSplitEqual">均分分割線</span>
+						</button>
+					</div>
+					<div class="png-settings-row">
+						<button id="pngSplitClear" class="secondary" style="width:100%">
+							<span class="cat cat-094"></span>&nbsp;<span data-i18n="pngSplitClear">移除分割線</span>
+						</button>
+					</div>
+					<div class="png-settings-row">
+						<button id="pngSplitPreview" class="secondary" style="width:100%">
+							<span class="cat cat-025"></span>&nbsp;<span data-i18n="pngSplitPreview">顯示縮圖</span>
+						</button>
+					</div>
+					<small class="muted" data-i18n="pngSplitHint">拖曳虛線可調整分割位置</small>
+					<div id="pngSplitThumbs" class="split-thumbs"></div>
+					<div class="png-settings-row" id="pngConfirmRow" style="display:none;margin-top:12px">
+						<button id="pngConfirmBtn" class="secondary" style="width:100%">
+							<span class="cat cat-018"></span>&nbsp;<span data-i18n="pngConfirm">確認圖片</span>
+						</button>
+					</div>
+					<div id="pngResultArea" class="png-result-area" style="display:none">
+						<div class="png-result-item">
+							<canvas id="pngResult240"></canvas>
+							<p class="muted" id="pngResult240Info"></p>
+						</div>
+						<div class="png-result-item">
+							<canvas id="pngResult96"></canvas>
+							<p class="muted" id="pngResult96Info"></p>
+						</div>
+						<button id="pngDownloadZip" class="secondary" style="width:100%;margin-top:8px">
+							<span class="cat cat-022"></span>&nbsp;<span data-i18n="pngDownloadZip">下載 ZIP</span>
+						</button>
+					</div>
+					<div id="pngResultError" class="png-error" style="display:none"></div>
+				</div>
+				
+			</div>
+
+			<div class="settings-group" id="pngSettingsPlaceholder">
+				<p class="muted" data-i18n="pngSettingsHint">上傳圖片後顯示</p>
+			</div>
+
+		</div>
+	</div>
+</section>
 
 <!-- ===== Tab: README ===== -->
 <section id="tab-readme" class="tab-panel">
@@ -211,12 +396,21 @@
 			<li data-i18n="helpStep6">點「生成 APNG」→「下載 PNG」</li>
 		</ol>
 		<h2><span class="cat cat-230"></span>&nbsp;<span data-i18n="helpTip">小提示</span></h2>
-		<ul>
+		<ol>
 			<li data-i18n="helpTip1">拖入現成的 APNG / GIF 會自動拆成影格並還原時間</li>
 			<li data-i18n="helpTip2">右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣</li>
 			<li data-i18n="helpTip3">所有圖片都在你瀏覽器本機處理，不會上傳</li>
 			<li data-i18n="helpTip4">輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動</li>
-		</ul>
+		</ol>
+		<h2><span class="cat cat-230"></span>&nbsp;<span data-i18n="lineTitle">LINE 動態貼圖限制</span></h2>
+		<ol>
+			<li data-i18n="lineRule1">動畫播放時間必須是整數秒（1、2、3、4 秒）</li>
+			<li data-i18n="lineRule2">動畫播放時間不可超過 4 秒</li>
+			<li data-i18n="lineRule3">圖片寬或高其中一邊必須為 270px，且在 320×270 以內</li>
+			<li data-i18n="lineRule4">影格數量限制為 5～20 格</li>
+			<li data-i18n="lineRule5">重複播放次數：每張動態貼圖 1～4 次</li>
+			<li data-i18n="lineRule6">每張圖片的檔案大小須小於 1MB</li>
+		</ol>
 	</div>
 </section>
 
@@ -265,11 +459,19 @@
 		</button>
 		<span class="footer-copy">© 2026 EggshellCat Studio</span>
 	</div>
+	<div class="footer-group footer-group-brand">
+		<button data-tab="tab-emoji" class="footer-github">
+			<span class="cat cat-1x5 cat-143"></span><span data-i18n="tabEmoji">EggshellCat Emoji</span>
+		</button>
+		<button data-tab="tab-readme" class="footer-github">
+			<span class="cat cat-1x5 cat-141"></span><span data-i18n="tabReadme">APNG TOOL 修改記錄</span>
+		</button>
+	</div>
 	<div class="footer-group footer-group-legal">
 		<span class="footer-brand"><span class="cat cat-1x5 cat-111"></span>&nbsp;EggshellCat APNG Tool</span>
 		<span class="footer-note" data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</span>
-		<button data-tab="tab-readme" class="footer-github">
-			<small data-i18n="tabReadme">APNG TOOL 修改記錄</small>
+		<button class="footer-github" disabled title="">
+			<span class="cat cat-1x5 cat-140"></span><span data-i18n="supportBtn">支持我們</span>
 		</button>
 	</div>
 </footer>

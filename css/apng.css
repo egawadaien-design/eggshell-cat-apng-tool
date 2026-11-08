@@ -1,7 +1,7 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 14
+	@Correction: 17
 	蛋殼喵 APNG 工具 — 樣式表
 	粉色系主題，RWD 手機版在最下面
 */
@@ -174,6 +174,309 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	margin: 6px 0 0;
 	font-family: monospace;
 }
+
+/* PNG 貼圖製作頁面 */
+.png-toolbar {
+	display: flex;
+	gap: 8px;
+	margin: 16px 0;
+}
+.png-empty {
+	padding: 60px 20px;
+	text-align: center;
+	color: #aaa;
+	font-size: 14px;
+	background: #faf5f7;
+	border-radius: 12px;
+	margin-top: 16px;
+}
+#pngCanvas {
+	max-width: 100%;
+	border: 1px solid #f0d8e0;
+	border-radius: 8px;
+	cursor: crosshair;
+}
+#pngCropList {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 16px;
+}
+.png-crop-item {
+	background: #fff5f8;
+	border-radius: 8px;
+	padding: 10px;
+	text-align: center;
+}
+.png-crop-item canvas {
+	width: 120px;
+	height: 120px;
+	object-fit: contain;
+}
+.png-crop-item p {
+	font-size: 11px;
+	color: #888;
+	margin: 6px 0 0;
+}
+
+/* PNG 貼圖製作頁面 */
+#pngPreviewArea {
+	margin-top: 16px;
+}
+#pngPreviewStage {
+	background: repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%) 50% / 20px 20px;
+	border-radius: 12px;
+	padding: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 200px;
+	overflow: hidden;
+	cursor: grab;
+}
+#pngPreviewImg, #pngCanvas {
+	max-width: 100%;
+	max-height: 400px;
+	object-fit: contain;
+}
+#pngCanvas {
+	cursor: crosshair;
+	transition: transform 0.15s ease;
+}
+.png-zoom-label {
+	font-size: 12px;
+	color: #888;
+	min-width: 45px;
+	text-align: center;
+	line-height: 32px;
+}
+.stepper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	flex: 1;
+}
+.stepper button {
+	width: auto;
+	height: auto;
+	padding: 2px;
+	font-size: 16px;
+	line-height: 1;
+	background: transparent;
+	border: none;
+	outline: none;
+	cursor: pointer;
+}
+.stepper button:hover { background: transparent; opacity: 0.6; }
+.stepper .cat { font-size: 16px; }
+.stepper span {
+	min-width: 24px;
+	text-align: center;
+	font-weight: bold;
+}
+/* 分割後縮圖 */
+.split-thumbs {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+	gap: 10px;
+	margin-top: 12px;
+}
+.split-thumb {
+	position: relative;
+	border: 2px solid #d4708a;
+	border-radius: 8px;
+	overflow: hidden;
+	background: repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+	aspect-ratio: 1;
+}
+.split-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+.split-thumb-num {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	background: #d4708a;
+	color: #fff;
+	font-size: 11px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+}
+.split-thumb-del {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	font-size: 14px;
+	line-height: 1;
+}
+.split-thumb-del .cat { color: #e53935; }
+/* 確認結果區 */
+.png-result-area {
+	margin-top: 12px;
+	padding: 12px;
+	background: #fff5f8;
+	border-radius: 8px;
+}
+.png-result-item {
+	margin-bottom: 12px;
+	text-align: center;
+}
+.png-result-item canvas {
+	background: repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+	max-width: 100%;
+}
+.png-result-item p {
+	margin: 6px 0 0;
+	font-size: 12px;
+	color: #888;
+}
+.png-error {
+	margin-top: 8px;
+	padding: 8px 12px;
+	background: #ffebee;
+	color: #c62828;
+	border-radius: 6px;
+	font-size: 13px;
+}
+/* LINE 貼圖警告框（黃色） */
+.png-warn {
+	margin-top: 12px;
+	padding: 10px 14px;
+	background: #fff8e1;
+	border-left: 4px solid #ffb300;
+	border-radius: 4px;
+	font-size: 13px;
+	color: #8d6e00;
+}
+.png-warn strong { color: #e65100; display: block; margin-bottom: 4px; }
+.png-warn p { margin: 0; }
+/* 生成靜態貼圖縮圖預覽 */
+.png-sticker-preview {
+	margin-top: 12px;
+	padding: 12px;
+	background: #fff5f8;
+	border-radius: 8px;
+	text-align: center;
+}
+.png-sticker-preview img {
+	max-width: 100%;
+	max-height: 200px;
+	background: repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+	border-radius: 4px;
+}
+.png-sticker-preview p { margin: 8px 0 0; font-size: 12px; color: #888; }
+#pngPreviewStage.picking {
+	outline: 2px solid #d4708a;
+}
+#pngPreviewStage.erasing {
+	outline: 2px solid #4caf50;
+}
+.png-toolbar-row {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+	justify-content: flex-end;
+}
+/*工作區按鈕*/
+.png-toolbar-row button {
+	font-size: 18px;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	padding: 8px 14px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+/*「放大」「縮小」*/
+#pngZoomIn, #pngZoomOut {
+	background: rgb(83, 83, 83);
+}
+/*「撤銷」按鈕*/
+#pngUndo {
+	background: rgb(0, 89, 130);
+}
+/*「還原」按鈕*/
+#pngReset {
+	background: rgb(126, 0, 67);
+}
+.color-swatch {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	border: 1px solid rgba(0,0,0,0.2);
+	vertical-align: middle;
+	margin-left: 8px;
+}
+.png-color-preview {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 12px;
+	font-size: 14px;
+	color: #666;
+	font-family: monospace;
+	letter-spacing: 0.15em; /* 字距加寬，跟 FPS 顯示一樣 */
+}
+.png-color-preview .color-swatch {
+	margin-left: 0;
+	width: 28px;
+	height: 28px;
+}
+.png-settings-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	margin: 12px 0;
+}
+.png-settings-row button {
+	font-size: 16px;
+	padding: 12px 20px;
+}
+.png-settings-row button small {
+	color: #fff;
+}
+.png-settings-row label {
+	font-size: 12px;
+	color: #888;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	white-space: nowrap;
+	flex-wrap: nowrap;
+}
+.png-settings-row label input[type=checkbox] {
+	margin: 0;
+	flex-shrink: 0;
+}
+.png-settings-row input[type=range] {
+	flex: 1;
+}
+.png-tolerance-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+	font-size: 12px;
+	color: #888;
+}
+
 .big-link {
 	display: inline-block;
 	margin: 16px 0;
@@ -302,11 +605,35 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	color: #806070;
 	line-height: 1.5;
 	text-align: right;
+	letter-spacing: 0.15em; /* 字距加寬，搭配自訂數字字體 */
 }
 .playback-info #totalTimeText {
 	font-variant-numeric: tabular-nums; /* 數字等寬，跳格時不會晃 */
 	font-weight: bold;
 	color: #d4708a;
+}
+.warning-box {
+	margin: 8px 0;
+}
+.warning-box .warn-item {
+	background: #fff3cd;
+	border-left: 3px solid #ffc107;
+	color: #856404;
+	padding: 8px 12px;
+	margin: 4px 0;
+	border-radius: 4px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.warning-box .warn-title {
+	background: #ffc107;
+	color: #856404;
+	padding: 8px 12px;
+	margin: 4px 0;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: bold;
+	line-height: 1.5;
 }
 .playback-controls button {
 	background: transparent !important;
@@ -430,6 +757,15 @@ button:hover { background: #c06078; }
 button:disabled { background: #d8b8c2; cursor: not-allowed; }
 button.secondary { background: #a08090; }
 button.secondary:hover { background: #8a6a7a; }
+/*下載按鈕專屬顏色*/
+#downloadLink button.secondary, #downloadGifLink button.secondary, #pngDownloadPng,
+#pngSplitPreview, #pngConfirmBtn, #pngDownloadZip {
+	background: rgb(20, 100, 80);
+}
+#downloadLink button.secondary:hover, #downloadGifLink button.secondary:hover, #pngDownloadPng:hover,
+#pngSplitPreview:hover, #pngConfirmBtn:hover, #pngDownloadZip:hover {
+	background: rgb(14, 75, 60);
+}
 
 #status { color: #d4708a; font-size: 13px; min-height: 18px; }
 #fileInfo { font-size: 12px; color: #806070; }
@@ -928,8 +1264,8 @@ button.secondary:hover { background: #8a6a7a; }
 .cat-color05 { color: rgba(228, 0, 127, 1.0); }
 .cat-color06 { color: rgba(0, 102, 204, 1.0); }
 .cat-color07 { color: rgba(102, 51, 153, 1.0); }
-.cat-color08 { color: rgba(191, 64, 191, 1.0); }
-.cat-color09 { color: rgba(0, 204, 153, 1.0); }
+.cat-color08 { color: rgba(241, 158, 194, 1.0); }
+.cat-color09 { color: rgba(181, 206, 129, 1.0); }
 .cat-color10 { color: rgba(153, 0, 51, 1.0); }
 .cat-color00 { color: rgba(255, 255, 255, 1.0); }
 
