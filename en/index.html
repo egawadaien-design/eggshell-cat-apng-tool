@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EggshellCat APNG Tool — Free Online APNG Maker</title>
+<meta name="description" content="Free online APNG animation maker. Turn PNG sequences into APNG / GIF, all in your browser — no upload, no install. Supports LINE animated sticker spec check.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://apng-murex.vercel.app/en/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="EggshellCat APNG Tool — Free Online APNG Maker">
+<meta property="og:description" content="Free online APNG animation maker. Turn PNG sequences into APNG / GIF, all in your browser — no upload, no install. Supports LINE animated sticker spec check.">
+<meta property="og:url" content="https://apng-murex.vercel.app/en/">
+<meta property="og:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EggshellCat APNG Tool">
+<meta name="twitter:description" content="Free online APNG maker, browser-only, LINE animated sticker spec check.">
+<meta name="twitter:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+<link rel="icon" type="image/png" href="../icon/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../icon/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../icon/32x32.png">
+<link rel="stylesheet" href="../css/apng.css">
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// 載入主 index.html 的 body 內容
+fetch('index.html')
+  .then(r => r.text())
+  .then(html => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    // 把 body 內容塞進來
+    document.getElementById('app').innerHTML = doc.body.innerHTML;
+    // 重新執行 body 裡的 script（因為 innerHTML 不會執行 script）
+    const scripts = document.getElementById('app').querySelectorAll('script');
+    scripts.forEach(oldScript => {
+      const s = document.createElement('script');
+      if (oldScript.src) s.src = oldScript.src;
+      else s.textContent = oldScript.textContent;
+      document.body.appendChild(s);
+    });
+  })
+  .catch(e => console.error('load fail', e));
+</script>
+</body>
+</html>

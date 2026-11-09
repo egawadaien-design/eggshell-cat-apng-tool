@@ -1,7 +1,7 @@
 <!--
 	@author: DaiEn
-	@Date: 2026-11-05
-	@Correction: 13
+	@Date: 2026-11-10
+	@Correction: 15
 	蛋殼喵 APNG 工具 — 多國語言版
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 -->
@@ -10,25 +10,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>蛋殼喵 APNG 工具</title>
+
+<!-- ===== SEO ===== -->
+<title>蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具，純本機處理</title>
+<meta name="description" content="免費線上 APNG 動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支援 LINE 動態貼圖規範檢查。">
+<meta name="keywords" content="APNG, animated PNG, LINE sticker, 貼圖, 動畫貼圖, GIF converter, online tool, free">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://apng-murex.vercel.app/">
+
+<!-- hreflang 多語言路由 -->
+<link rel="alternate" hreflang="zh-Hant" href="https://apng-murex.vercel.app/">
+<link rel="alternate" hreflang="zh-Hans" href="https://apng-murex.vercel.app/zh/">
+<link rel="alternate" hreflang="en" href="https://apng-murex.vercel.app/en/">
+<link rel="alternate" hreflang="ja" href="https://apng-murex.vercel.app/ja/">
+<link rel="alternate" hreflang="x-default" href="https://apng-murex.vercel.app/">
+
+<!-- ===== Open Graph / Facebook ===== -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具">
+<meta property="og:description" content="純瀏覽器本機處理、圖片不上傳。支援每格獨立延遲、真實循環次數、LINE 動態貼圖規範檢查。">
+<meta property="og:url" content="https://apng-murex.vercel.app/">
+<meta property="og:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:locale:alternate" content="zh_CN">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+
+<!-- ===== Twitter Card ===== -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="蛋殼喵 APNG 工具">
+<meta name="twitter:description" content="免費線上 APNG 製作工具，純本機處理，支援 LINE 動態貼圖規範。">
+<meta name="twitter:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+
+<!-- ===== JSON-LD 結構化資料 ===== -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "蛋殼喵 APNG 工具",
+  "url": "https://apng-murex.vercel.app/",
+  "description": "免費線上 APNG 動畫製作工具，純瀏覽器本機處理，支援 LINE 動態貼圖規範檢查。",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "TWD"
+  }
+}
+</script>
+
+<!-- 圖示 -->
 <link rel="icon" type="image/png" href="icon/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icon/16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon/32x32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon/192x192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon/512x512.png">
 
+<!-- 樣式 -->
 <link rel="stylesheet" href="css/apng.css">
+
+<!-- 第三方 CDN：APNG / GIF 編碼解碼 -->
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+
+<!-- 第三方 CDN：Markdown / ZIP -->
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<!-- 多國語言 -->
 <script src="js/i18n.js"></script>
+
+<!-- Supabase：JS 庫 + 金鑰設定 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
 </head>
 <body>
 
-<!-- 頁首 -->
+<!-- ============================================================
+     頁首：標題 + 語言切換 + Tab 導覽
+     ============================================================ -->
 <header class="app-header">
 	<div class="app-title">
 		<div class="cat cat-4x cat-112"></div>
@@ -36,7 +99,8 @@
 			<h1 data-i18n="title">蛋殼喵 APNG 工具</h1>
 			<small data-i18n="subtitle">把一序列 PNG、APNG、GIF 打包成動畫 PNG</small>
 		</div>
-		<!-- 語言切換：自訂下拉（可放emoji） -->
+
+		<!-- 語言切換下拉選單 -->
 		<div class="lang-dropdown" id="langDropdown">
 			<button class="lang-btn" id="langBtn" title="語言">
 				<small class="cat cat-033"></small>
@@ -52,7 +116,8 @@
 			</ul>
 		</div>
 	</div>
-	<!-- 四個 tab -->
+
+	<!-- Tab 導覽列 -->
 	<nav class="tab-bar">
 		<button class="tab-btn active" data-tab="tab-app">
 			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabApp">APNG</small>
@@ -69,40 +134,44 @@
 	</nav>
 </header>
 
-<!-- ===== Tab 1: APNG 工具本體 ===== -->
+<!-- ============================================================
+     Tab 1：APNG 動畫製作（主要功能）
+     ============================================================ -->
 <main id="tab-app" class="tab-panel active">
 	<div class="main-layout">
+
+		<!-- 左側：拖曳上傳 + 預覽 + 影格管理 + 操作按鈕 -->
 		<div class="left-panel">
+
+			<!-- 拖曳上傳區 -->
 			<div class="drop-zone" id="dropZone">
 				<p><strong data-i18n="dropHint">把 PNG、APNG、GIF 圖片拖曳到這裡（可多選）</strong></p>
 				<p data-i18n="dropOrClick">或點此選擇檔案</p>
 				<input type="file" id="fileInput" accept="image/png" multiple hidden>
 			</div>
 
+			<!-- 預覽區 -->
 			<div class="preview-area">
 				<div class="preview-stage" id="previewStage">
 					<div class="preview-info" id="previewInfo" data-i18n="previewEmpty">尚無圖片</div>
 					<img id="previewImg" style="display:none">
 					<button id="bgToggle" title="切換背景" class="bg-toggle" data-i18n="bgToggle" data-i18n-title="bgToggleTitle">棋盤格</button>
 				</div>
+
+				<!-- 播放控制列 -->
 				<div class="playback-controls">
-					<!-- class="icon-btn icon-first" -->
 					<button id="firstBtn" data-i18n-title="firstFrame" title="到第一格">
 						<small class="cat cat-2x cat-color01 cat-086"></small>
 					</button>
-					<!--class="icon-btn icon-prev"-->
 					<button id="prevBtn" data-i18n-title="prevFrame" title="上一格">
 						<small class="cat cat-2x cat-color02 cat-084"></small>
 					</button>
-					<!--class="icon-btn icon-play"-->
 					<button id="playBtn" data-i18n-title="playPause" title="播放/暫停">
 						<small class="cat cat-2x cat-color03 cat-083"></small>
 					</button>
-					<!--class="icon-btn icon-next"-->
 					<button id="nextBtn" data-i18n-title="nextFrame" title="下一格">
 						<small class="cat cat-2x cat-color04 cat-085"></small>
 					</button>
-					<!--class="icon-btn icon-last"-->
 					<button id="lastBtn" data-i18n-title="lastFrame" title="到最後一格">
 						<small class="cat cat-2x cat-color05 cat-087"></small>
 					</button>
@@ -111,9 +180,13 @@
 						<div id="totalTimeText">00:00.00</div>
 					</div>
 				</div>
+
+				<!-- 時間軸 -->
 				<div class="timeline" id="timeline"></div>
-				
+
+				<!-- 影格管理區 -->
 				<div class="frame-manager">
+					<!-- 排序按鈕列 -->
 					<div class="sort-bar">
 						<button class="sort-btn active" data-sort="manual">
 							<small class="cat cat-144"></small>&nbsp;<small data-i18n="sortManual">排序順序</small>
@@ -131,10 +204,12 @@
 							<small class="cat cat-068"></small>&nbsp;<small data-i18n="sortDateOld">最早在上</small>
 						</button>
 					</div>
+					<!-- 影格縮圖網格 -->
 					<div class="frame-grid" id="frameGrid"></div>
 				</div>
 			</div>
 
+			<!-- 操作按鈕列 -->
 			<div class="actions">
 				<button id="makeBtn" disabled>
 					<small class="cat cat-033"></small>&nbsp;<small data-i18n="makeBtn">生成 APNG</small>
@@ -152,14 +227,22 @@
 						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadGifBtn">下載 GIF</small>
 					</button>
 				</a>
+				<!-- 分享按鈕：生成成功後才顯示，點擊開啟分享 Modal -->
+				<button id="shareLink" class="secondary share-btn" style="display:none">
+					<small class="cat cat-028"></small>&nbsp;<small data-i18n="shareBtn">分享我的圖片</small>
+				</button>
 			</div>
 
+			<!-- 狀態訊息區 -->
 			<div id="status"></div>
 			<div id="fileInfo"></div>
 			<div id="lineStickerWarnings" class="warning-box"></div>
 		</div>
 
+		<!-- 右側：設定面板 -->
 		<div class="right-panel">
+
+			<!-- 基本設定：循環次數 + 色彩深度 -->
 			<div class="settings-group">
 				<h3>
 					<cat class="cat cat-209"></cat>&nbsp;<cat data-i18n="basicSettings">基本設定</cat>
@@ -180,6 +263,7 @@
 				</select>
 			</div>
 
+			<!-- 輸出尺寸：可等比縮放 -->
 			<div class="settings-group">
 				<h3>
 					<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
@@ -191,6 +275,7 @@
 				<small data-i18n="outHint">設其一，另一邊自動等比</small>
 			</div>
 
+			<!-- 檔案清單（預設隱藏，動態顯示） -->
 			<div class="settings-group" id="fileListGroup" style="display:none">
 				<h3>
 					<cat class="cat cat-207"></cat>&nbsp;<cat data-i18n="fileList">檔案清單</cat>
@@ -201,22 +286,27 @@
 	</div>
 </main>
 
-<!-- ===== Tab: PNG ===== -->
+<!-- ============================================================
+     Tab 2：PNG 靜態貼圖工具
+     ============================================================ -->
 <section id="tab-png" class="tab-panel">
 	<div class="main-layout">
+
+		<!-- 左側：上傳 + 預覽 + 操作按鈕 -->
 		<div class="left-panel">
 			<div class="drop-zone" id="pngDropZone">
 				<p><strong data-i18n="pngDropHint">把 JPG / PNG / GIF / WEBP 圖片拖曳到這裡</strong></p>
 				<p data-i18n="pngDropOrClick">或點此選擇檔案</p>
 				<input type="file" id="pngFileInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
 			</div>
+
 			<div id="pngPreviewArea" class="preview-area" style="display:none">
 				<div class="preview-stage" id="pngPreviewStage">
 					<canvas id="pngCanvas"></canvas>
 				</div>
 				<div class="png-color-preview">
 					<span class="cat cat-133" id="pngLiveCat"></span>
-					<span id="pngLiveRgb" class="cat">RGB(-,-,-)</span>
+					<span class="cat cat-color10">RGB</span><span class="cat" id="pngLiveRgb">(-,-,-)</span>
 				</div>
 				<div class="png-toolbar-row">
 					<button id="pngZoomIn" class="secondary" title="放大">
@@ -234,6 +324,7 @@
 					</button>
 				</div>
 			</div>
+
 			<div class="actions">
 				<button id="pngMakeSticker" disabled>
 					<small class="cat cat-033"></small>&nbsp;<small data-i18n="pngMakeSticker">生成靜態貼圖</small>
@@ -245,10 +336,12 @@
 					<small class="cat cat-022"></small>&nbsp;<small data-i18n="pngDownloadPng">下載 PNG</small>
 				</button>
 			</div>
+
 			<div id="pngStickerPreview" class="png-sticker-preview" style="display:none">
 				<img id="pngStickerPreviewImg">
 				<p class="muted" id="pngStickerPreviewInfo"></p>
 			</div>
+
 			<div id="pngStickerWarn" class="warning-box" style="display:none">
 				<div class="warn-title"><small class="cat cat-030"></small>&nbsp;<span data-i18n="pngStickerWarnTitle">LINE 靜態貼圖限制</span></div>
 				<div class="warn-item" data-i18n="pngWarn1">圖片上限 370×320px，請將尺寸設為偶數。</div>
@@ -256,12 +349,17 @@
 				<div class="warn-item" data-i18n="pngWarn3">請為圖片進行去背透明處理。</div>
 			</div>
 		</div>
+
+		<!-- 右側：PNG 工具設定面板 -->
 		<div class="right-panel">
-			<!-- 预设隐藏 -->
+
+			<!-- 圖像編輯設定（上傳圖片後才顯示） -->
 			<div class="settings-group" id="pngSettingsCard" style="display:none">
-				<h3><!-- 预设隐藏 -->
+				<h3>
 					<cat class="cat cat-209"></cat>&nbsp;<cat data-i18n="pngSettings">圖像設置</cat>
 				</h3>
+
+				<!-- 去背 / 橡皮擦工具 -->
 				<div class="png-settings-row">
 					<label data-i18n="pngTolerance">容許度</label>
 					<input type="range" id="pngTolerance" min="0" max="100" value="15" style="flex:1">
@@ -290,12 +388,13 @@
 				</div>
 				<div class="png-settings-row">
 					<button id="pngResetBtn" class="secondary" style="width:100%">
-						<span class="cat cat-134"></span>&nbsp;<span data-i18n="pngReset">重設</small>
+						<span class="cat cat-134"></span>&nbsp;<span data-i18n="pngReset">重設</span>
 					</button>
 				</div>
 
+				<!-- 輸出尺寸 -->
 				<div class="settings-group" id="pngOutSizeGroup" style="display:none">
-					<h3><!-- 輸出尺寸 -->
+					<h3>
 						<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="outSize">輸出尺寸</cat>
 					</h3>
 					<label data-i18n="outW">輸出寬度（px）</label>
@@ -304,9 +403,10 @@
 					<input type="number" id="pngOutH" min="1">
 					<small data-i18n="outHint">設其一，另一邊自動等比</small>
 				</div>
-				
+
+				<!-- 畫面分割工具 -->
 				<div class="settings-group" id="pngSplitGroup" style="display:none">
-					<h3><!-- 畫面分割 -->
+					<h3>
 						<cat class="cat cat-219"></cat>&nbsp;<cat data-i18n="pngSplitTitle">畫面分割</cat>
 					</h3>
 					<div class="png-settings-row">
@@ -317,17 +417,17 @@
 					<div class="png-settings-row">
 						<label data-i18n="pngSplitH">水平分割</label>
 						<div class="stepper">
-							<button id="pngSplitHMinus"><span class="cat cat-color08 cat-149"></span></button>
+							<button id="pngSplitHMinus"><span class="cat cat-color08 cat-244"></span></button>
 							<span id="pngSplitHVal">1</span>
-							<button id="pngSplitHPlus"><span class="cat cat-color08 cat-148"></span></button>
+							<button id="pngSplitHPlus"><span class="cat cat-color08 cat-243"></span></button>
 						</div>
 					</div>
 					<div class="png-settings-row">
 						<label data-i18n="pngSplitV">垂直分割</label>
 						<div class="stepper">
-							<button id="pngSplitVMinus"><span class="cat cat-color08 cat-149"></span></button>
+							<button id="pngSplitVMinus"><span class="cat cat-color08 cat-244"></span></button>
 							<span id="pngSplitVVal">1</span>
-							<button id="pngSplitVPlus"><span class="cat cat-color08 cat-148"></span></button>
+							<button id="pngSplitVPlus"><span class="cat cat-color08 cat-243"></span></button>
 						</div>
 					</div>
 					<div class="png-settings-row">
@@ -367,23 +467,26 @@
 					</div>
 					<div id="pngResultError" class="png-error" style="display:none"></div>
 				</div>
-				
 			</div>
 
+			<!-- 預留提示：上傳圖片後顯示設定 -->
 			<div class="settings-group" id="pngSettingsPlaceholder">
 				<p class="muted" data-i18n="pngSettingsHint">上傳圖片後顯示</p>
 			</div>
-
 		</div>
 	</div>
 </section>
 
-<!-- ===== Tab: README ===== -->
+<!-- ============================================================
+     Tab：README / 修改記錄（Markdown 動態載入）
+     ============================================================ -->
 <section id="tab-readme" class="tab-panel">
 	<div class="card md-body" id="readmeContent">載入中...</div>
 </section>
 
-<!-- ===== Tab: HELP ===== -->
+<!-- ============================================================
+     Tab：Help 使用說明
+     ============================================================ -->
 <section id="tab-help" class="tab-panel help-panel">
 	<div class="card">
 		<h2><span class="cat cat-229"></span>&nbsp;<span data-i18n="helpTitle">怎麼用</span></h2>
@@ -414,13 +517,14 @@
 	</div>
 </section>
 
-<!-- ===== Tab: SRC ===== -->
+<!-- ============================================================
+     Tab：GitHub 原始碼連結
+     ============================================================ -->
 <section id="tab-src" class="tab-panel">
 	<div class="card src-card">
 		<h2><span class="cat cat-237"></span>&nbsp;<span data-i18n="srcTitle">原始碼</span></h2>
 		<p data-i18n="srcDesc">本工具開源在 GitHub，歡迎 star / issue / PR。</p>
 		<a class="big-link" href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener">
-			<!--img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" class="gh-icon"-->
 			<span class="cat cat-1x5 cat-color00 cat-116"></span>&nbsp;
 			egawadaien-design/eggshell-cat-apng-tool
 		</a>
@@ -428,7 +532,9 @@
 	</div>
 </section>
 
-<!-- ===== Tab: Emoji 字型展示 ===== -->
+<!-- ============================================================
+     Tab：EggshellCat Emoji 字型展示
+     ============================================================ -->
 <section id="tab-emoji" class="tab-panel">
 	<div class="card emoji-card">
 		<h2><span class="cat cat-220"></span>&nbsp;<span data-i18n="emojiTitle">Emoji 字型</span></h2>
@@ -437,7 +543,9 @@
 	</div>
 </section>
 
-<!-- ===== Tab: Meme ===== -->
+<!-- ============================================================
+     Tab：Meme 分享展示牆（Supabase 動態載入）
+     ============================================================ -->
 <section id="tab-meme" class="tab-panel">
 	<div class="card meme-card">
 		<h2><span class="cat cat-226"></span>&nbsp;<span data-i18n="memeTitle">貓咪MEME</span></h2>
@@ -447,17 +555,31 @@
 				<span class="cat cat-068"></span>&nbsp;<span id="memeSortLabel"></span>
 			</button>
 		</div>
+		<div id="memeTagBar" class="meme-tag-bar">
+			<button class="meme-tag-btn active" data-tag="0" type="button" data-i18n="tagAll">全部</button>
+			<button class="meme-tag-btn" data-tag="1" type="button" data-i18n="tag1">開心</button>
+			<button class="meme-tag-btn" data-tag="2" type="button" data-i18n="tag2">傷心</button>
+			<button class="meme-tag-btn" data-tag="3" type="button" data-i18n="tag3">跳舞</button>
+			<button class="meme-tag-btn" data-tag="4" type="button" data-i18n="tag4">加油</button>
+			<button class="meme-tag-btn" data-tag="5" type="button" data-i18n="tag5">生氣</button>
+			<button class="meme-tag-btn" data-tag="6" type="button" data-i18n="tag6">感謝</button>
+			<button class="meme-tag-btn" data-tag="7" type="button" data-i18n="tag7">道歉</button>
+			<button class="meme-tag-btn" data-tag="8" type="button" data-i18n="tag8">好棒</button>
+			<button class="meme-tag-btn" data-tag="9" type="button" data-i18n="tag9">可惜</button>
+		</div>
 		<div id="memeGrid" class="meme-grid"></div>
 	</div>
 </section>
 
-<!-- ===== Footer ===== -->
+<!-- ============================================================
+     Footer 頁尾
+     ============================================================ -->
 <footer class="site-footer">
 	<div class="footer-group footer-group-brand">
 		<button data-tab="tab-src" class="footer-github">
 			<span class="cat cat-1x5 cat-116"></span>&nbsp;Star on GitHub
 		</button>
-		<span class="footer-copy">© 2026 EggshellCat Studio</span>
+		<span class="footer-note" data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</span>
 	</div>
 	<div class="footer-group footer-group-brand">
 		<button data-tab="tab-emoji" class="footer-github">
@@ -469,13 +591,74 @@
 	</div>
 	<div class="footer-group footer-group-legal">
 		<span class="footer-brand"><span class="cat cat-1x5 cat-111"></span>&nbsp;EggshellCat APNG Tool</span>
-		<span class="footer-note" data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</span>
+		<span class="footer-copy">© 2026 EggshellCat Studio</span>
 		<button class="footer-github" disabled title="">
 			<span class="cat cat-1x5 cat-140"></span><span data-i18n="supportBtn">支持我們</span>
 		</button>
 	</div>
 </footer>
 
+<!-- ============================================================
+     分享 Modal：點「分享我的圖片」彈出，上傳到 Supabase
+     ============================================================ -->
+<div id="shareModal" class="share-modal" style="display:none">
+	<div class="share-modal-backdrop" id="shareModalBackdrop"></div>
+	<div class="share-modal-card">
+		<button class="share-modal-close" id="shareModalClose" type="button">×</button>
+		<h3><small class="cat cat-028"></small>&nbsp;<span data-i18n="shareTitle">分享我的 APNG</span></h3>
+
+		<div class="share-modal-body">
+			<div class="share-left">
+				<!-- 預覽圖 -->
+				<div class="share-preview-box">
+					<img id="sharePreviewImg" alt="preview">
+				</div>
+				<div id="shareMeta" class="share-meta"></div>
+
+				<!-- 表單欄位 -->
+				<label data-i18n="shareTitleLabel">標題（選填）</label>
+				<input type="text" id="shareTitle" maxlength="40" placeholder="例如：揮手的蛋殼貓">
+
+				<label data-i18n="shareAuthorLabel">作者暱稱（選填）</label>
+				<input type="text" id="shareAuthor" maxlength="20" placeholder="想怎麼稱呼你？">
+
+				<div class="share-note" data-i18n="shareNote">
+					上傳後圖片會公開顯示在 Meme 展示頁。請確認你有權分享這張圖。
+				</div>
+
+				<div id="shareStatus" class="share-status"></div>
+
+				<div class="share-actions">
+					<button id="shareCancelBtn" class="secondary" type="button"><small class="cat cat-094"></small>&nbsp;<span data-i18n="shareCancel">取消</span></button>
+					<button id="shareSubmitBtn" class="share-btn" type="button"><small class="cat cat-028"></small>&nbsp;<span data-i18n="shareSubmit">確認送出</span></button>
+				</div>
+			</div>
+
+			<div class="share-right">
+				<div class="share-tag-panel">
+					<div class="share-tag-panel-title" data-i18n="shareTagsLabel">分類標籤（可多選）</div>
+					<div id="shareTagBar" class="share-tag-bar">
+						<button class="meme-tag-btn" data-tag="1" type="button" data-i18n="tag1">開心</button>
+						<button class="meme-tag-btn" data-tag="2" type="button" data-i18n="tag2">傷心</button>
+						<button class="meme-tag-btn" data-tag="3" type="button" data-i18n="tag3">跳舞</button>
+						<button class="meme-tag-btn" data-tag="4" type="button" data-i18n="tag4">加油</button>
+						<button class="meme-tag-btn" data-tag="5" type="button" data-i18n="tag5">生氣</button>
+						<button class="meme-tag-btn" data-tag="6" type="button" data-i18n="tag6">感謝</button>
+						<button class="meme-tag-btn" data-tag="7" type="button" data-i18n="tag7">道歉</button>
+						<button class="meme-tag-btn" data-tag="8" type="button" data-i18n="tag8">好棒</button>
+						<button class="meme-tag-btn" data-tag="9" type="button" data-i18n="tag9">可惜</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- ============================================================
+     JS 載入順序：share.js → meme.js → apng.js
+     ============================================================ -->
+<script src="js/share.js"></script>
+<script src="js/meme.js"></script>
 <script src="js/apng.js"></script>
 </body>
 </html>

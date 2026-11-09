@@ -63,7 +63,25 @@ const I18N = {
 		deleteFrame: '刪除此格',
 		sortManual: '排序順序', sortNameAsc: '檔名遞增', sortNameDesc: '檔名遞減',
 		sortDateNew: '最新在上', sortDateOld: '最早在上',
-		makeBtn: '生成動畫', clearBtn: '清空', downloadBtn: '下載 APNG', downloadGifBtn: '下載 GIF',
+		makeBtn: '生成動畫', clearBtn: '清空', downloadBtn: '下載 APNG', downloadGifBtn: '下載 GIF', shareBtn: '分享我的圖片',
+		shareBack: '← 返回製作頁', shareTitle: '分享我的 APNG', sharePreview: '預覽', shareInfo: '填寫分享資訊',
+		shareTitleLabel: '標題（選填）', shareAuthorLabel: '作者暱稱（選填）', shareTagsLabel: '分類標籤（可多選）',
+		shareNote: '上傳後圖片會公開顯示在 Meme 展示頁。請確認你有權分享這張圖。',
+		shareCancel: '取消', shareSubmit: '確認送出',
+		memeBack: '← 返回製作頁', memeTitle: 'Meme 分享區',
+		memeEmpty: '還沒有分享圖片，來當第一個分享的人吧！',
+		memeLoading: '載入中...',
+		memeLoadFail: '載入失敗：',
+		memeUntitled: '(無標題)',
+		memeAnonymous: 'by 匿名',
+		shareNeedGenerate: '請先生成 APNG 再分享',
+		shareNoData: '找不到 APNG 資料',
+		shareSupabaseInit: 'Supabase 未初始化',
+		shareUploading: '上傳中...',
+		shareSuccess: '<span class="cat cat-218"></span>&nbsp;分享成功！即將前往 Meme 頁...',
+		shareFail: '<span class="cat cat-217"></span>&nbsp;上傳失敗：',
+		shareSize: '大小：{size} KB',
+		shareDisabled: '分享功能未啟用',
 		lineWarnTitle: 'LINE動態貼圖限制',
 		lineWarnTimeNotInteger: '動畫播放時間並不是整數（1,2,3,4秒），請確認。',
 		lineWarnTimeOver4: '動畫播放時間超過4秒，請確認。',
@@ -82,7 +100,7 @@ const I18N = {
 		helpTitle: '怎麼用',
 		helpStep1: '把 PNG / APNG / GIF 拖到虛線框（可多選）',
 		helpStep2: '在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）',
-		helpStep3: '用卡片下方的&nbsp;&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;&nbsp;按鈕調整影格順序，<span class="cat cat-color06 cat-017"></span>&nbsp;刪除不需要的格',
+		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按鈕調整影格順序，<span class="cat cat-color06 cat-017"></span>&nbsp;刪除不需要的格',
 		helpStep4: '設定循環次數與色彩深度',
 		helpStep5: '需要縮放才填輸出寬高，留空 = 原圖大小',
 		helpStep6: '點「<span class="cat cat-color06 cat-033"></span>&nbsp;生成動畫」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 GIF」',
@@ -103,10 +121,10 @@ const I18N = {
 		srcTech: '技術：純 HTML / CSS / JS · UPNG.js · pako · omggif · 無框架',
 		emojiTitle: '蛋殼喵 Emoji 字型',
 		emojiDesc: '點擊任何圖示即可複製 class 名稱，貼到 HTML 就能用~',
-		memeTitle: '貓咪 表情包',
 		memeDesc: '這裡放一些蛋殼喵的梗圖和廢文，開心一下~點擊圖片可重新播放',
 		memeSortAsc: '按時間：正序',
 		memeSortDesc: '按時間：反序',
+		loading: '載入中...',
 		// aboutTitle: '修改記錄',
 		// changelogDate1: '2026-11-06',
 		// changelog1_1: '加入泰文（ไทย），支援 5 國語言',
@@ -134,6 +152,9 @@ const I18N = {
 		loopTimes: ' · 共播 {n} 次 = {sec} 秒',
 		loopInfLoop: ' · 無限循環',
 		fps: 'FPS: {fps}',
+		tagAll: '全部',
+		tag1: '開心', tag2: '傷心', tag3: '跳舞', tag4: '加油', tag5: '生氣',
+		tag6: '感謝', tag7: '道歉', tag8: '好棒', tag9: '可惜',
 	},
 
 	'zh-CN': {
@@ -192,7 +213,25 @@ const I18N = {
 		deleteFrame: '删除此帧',
 		sortManual: '排序顺序', sortNameAsc: '文件名递增', sortNameDesc: '文件名递减',
 		sortDateNew: '最新在上', sortDateOld: '最早在上',
-		makeBtn: '生成动画', clearBtn: '清空', downloadBtn: '下载 APNG', downloadGifBtn: '下载 GIF',
+		makeBtn: '生成动画', clearBtn: '清空', downloadBtn: '下载 APNG', downloadGifBtn: '下载 GIF', shareBtn: '分享我的图片',
+		shareBack: '← 返回制作页', shareTitle: '分享我的 APNG', sharePreview: '预览', shareInfo: '填写分享信息',
+		shareTitleLabel: '标题（选填）', shareAuthorLabel: '作者昵称（选填）', shareTagsLabel: '分类标签（可多选）',
+		shareNote: '上传后图片会公开展示在 Meme 展示页。请确认你有权分享这张图。',
+		shareCancel: '取消', shareSubmit: '确认送出',
+		memeBack: '← 返回制作页', memeTitle: 'Meme 分享区',
+		memeEmpty: '还没有分享图片，来当第一个分享的人吧！',
+		memeLoading: '载入中...',
+		memeLoadFail: '载入失败：',
+		memeUntitled: '(无标题)',
+		memeAnonymous: 'by 匿名',
+		shareNeedGenerate: '请先生成 APNG 再分享',
+		shareNoData: '找不到 APNG 资料',
+		shareSupabaseInit: 'Supabase 未初始化',
+		shareUploading: '上传中...',
+		shareSuccess: '<span class="cat cat-218"></span>&nbsp;分享成功！即将前往 Meme 页...',
+		shareFail: '<span class="cat cat-217"></span>&nbsp;上传失败：',
+		shareSize: '大小：{size} KB',
+		shareDisabled: '分享功能未启用',
 		lineWarnTitle: 'LINE动态贴图限制',
 		lineWarnTimeNotInteger: '动画播放时间不是整数（1,2,3,4秒），请确认。',
 		lineWarnTimeOver4: '动画播放时间超过4秒，请确认。',
@@ -211,7 +250,7 @@ const I18N = {
 		helpTitle: '怎么用',
 		helpStep1: '把 PNG / APNG / GIF 拖到虚线框（可多选）',
 		helpStep2: '在每张缩略图卡片上调整该格的延迟毫秒（默认 100ms）',
-		helpStep3: '用卡片下方的&nbsp;&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;&nbsp;按钮调整帧顺序，<span class="cat cat-color06 cat-017"></span>&nbsp;删除不需要的格',
+		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按钮调整帧顺序，<span class="cat cat-color06 cat-017"></span>&nbsp;删除不需要的格',
 		helpStep4: '设置循环次数与色彩深度',
 		helpStep5: '需要缩放才填输出宽高，留空 = 原图大小',
 		helpStep6: '点「<span class="cat cat-color06 cat-033"></span>&nbsp;生成动画」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 GIF」',
@@ -232,10 +271,10 @@ const I18N = {
 		srcTech: '技术：纯 HTML / CSS / JS · UPNG.js · pako · omggif · 无框架',
 		emojiTitle: '蛋壳喵 Emoji 字体',
 		emojiDesc: '点击任何图标即可复制 class 名称，贴到 HTML 就能用~',
-		memeTitle: '猫咪 表情包',
 		memeDesc: '这里放一些蛋壳喵的梗图和废文，开心一下~点击图片可重新播放',
 		memeSortAsc: '按时间：正序',
 		memeSortDesc: '按时间：反序',
+		loading: '加载中...',
 		// aboutTitle: '修改记录',
 		// changelogDate1: '2026-11-06',
 		// changelog1_1: '加入泰文（ไทย），支持 5 国语言',
@@ -263,6 +302,9 @@ const I18N = {
 		loopTimes: ' · 共播 {n} 次 = {sec} 秒',
 		loopInfLoop: ' · 无限循环',
 		fps: 'FPS: {fps}',
+		tagAll: '全部',
+		tag1: '开心', tag2: '伤心', tag3: '跳舞', tag4: '加油', tag5: '生气',
+		tag6: '感谢', tag7: '道歉', tag8: '好棒', tag9: '可惜',
 	},
 
 	'en': {
@@ -321,7 +363,25 @@ const I18N = {
 		deleteFrame: 'Delete frame',
 		sortManual: 'Manual', sortNameAsc: 'Name ↑', sortNameDesc: 'Name ↓',
 		sortDateNew: 'Newest', sortDateOld: 'Oldest',
-		makeBtn: 'Make Animation', clearBtn: 'Clear', downloadBtn: 'Download APNG', downloadGifBtn: 'Download GIF',
+		makeBtn: 'Make Animation', clearBtn: 'Clear', downloadBtn: 'Download APNG', downloadGifBtn: 'Download GIF', shareBtn: 'Share my creation',
+		shareBack: '← Back to editor', shareTitle: 'Share my APNG', sharePreview: 'Preview', shareInfo: 'Share details',
+		shareTitleLabel: 'Title (optional)', shareAuthorLabel: 'Nickname (optional)', shareTagsLabel: 'Tags (multi-select)',
+		shareNote: 'Your image will be publicly shown on the Meme page. Please make sure you have the right to share it.',
+		shareCancel: 'Cancel', shareSubmit: 'Confirm upload',
+		memeBack: '← Back to editor', memeTitle: 'Meme Wall',
+		memeEmpty: 'No images yet. Be the first to share!',
+		memeLoading: 'Loading...',
+		memeLoadFail: 'Failed to load: ',
+		memeUntitled: '(Untitled)',
+		memeAnonymous: 'by anonymous',
+		shareNeedGenerate: 'Please generate APNG before sharing',
+		shareNoData: 'No APNG data found',
+		shareSupabaseInit: 'Supabase not initialized',
+		shareUploading: 'Uploading...',
+		shareSuccess: '<span class="cat cat-218"></span>&nbsp;Shared! Redirecting to Meme page...',
+		shareFail: '<span class="cat cat-217"></span>&nbsp;Upload failed: ',
+		shareSize: 'Size: {size} KB',
+		shareDisabled: 'Sharing is disabled',
 		lineWarnTitle: 'LINE Sticker Limits',
 		lineWarnTimeNotInteger: 'Animation duration is not a whole number (1,2,3,4 seconds). Please check.',
 		lineWarnTimeOver4: 'Animation duration exceeds 4 seconds. Please check.',
@@ -340,7 +400,7 @@ const I18N = {
 		helpTitle: 'How to use',
 		helpStep1: 'Drag PNG / APNG / GIF files into the drop zone (multi-select)',
 		helpStep2: 'Adjust per-frame delay (ms) on each thumbnail card (default 100ms)',
-		helpStep3: 'Use&nbsp;&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;&nbsp;to reorder frames, <span class="cat cat-color06 cat-017"></span>&nbsp;to delete',
+		helpStep3: 'Use&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;to reorder frames, <span class="cat cat-color06 cat-017"></span>&nbsp;to delete',
 		helpStep4: 'Set loop count and color depth',
 		helpStep5: 'Only set output W/H if you need to resize; leave blank = original size',
 		helpStep6: 'Click "<span class="cat cat-color06 cat-033"></span>&nbsp;Make Animation" → "<span class="cat cat-color06 cat-022"></span>&nbsp;Download APNG" or "<span class="cat cat-color06 cat-022"></span>&nbsp;Download GIF"',
@@ -361,10 +421,10 @@ const I18N = {
 		srcTech: 'Tech: vanilla HTML / CSS / JS · UPNG.js · pako · omggif · no framework',
 		emojiTitle: 'EggshellCat Emoji Font',
 		emojiDesc: 'Click any icon to copy its class name, then paste it into your HTML~',
-		memeTitle: 'Cat Memes',
 		memeDesc: 'Some EggshellCat memes and silly stuff to brighten your day~',
 		memeSortAsc: 'Sort: Oldest',
 		memeSortDesc: 'Sort: Newest',
+		loading: 'Loading...',
 		// aboutTitle: 'Changelog',
 		// changelogDate1: '2026-11-06',
 		// changelog1_1: 'Added Thai (ไทย), now supports 5 languages',
@@ -392,6 +452,9 @@ const I18N = {
 		loopTimes: ' · {n} loops = {sec}s',
 		loopInfLoop: ' · Infinite',
 		fps: 'FPS: {fps}',
+		tagAll: 'All',
+		tag1: 'Happy', tag2: 'Sad', tag3: 'Dance', tag4: 'Fighting', tag5: 'Angry',
+		tag6: 'Thanks', tag7: 'Sorry', tag8: 'Great', tag9: 'Shame',
 	},
 
 	'ja': {
@@ -450,7 +513,25 @@ const I18N = {
 		deleteFrame: 'このフレームを削除',
 		sortManual: '手動順序', sortNameAsc: 'ファイル名昇順', sortNameDesc: 'ファイル名降順',
 		sortDateNew: '新しい順', sortDateOld: '古い順',
-		makeBtn: 'アニメーション生成', clearBtn: 'クリア', downloadBtn: 'APNGを保存', downloadGifBtn: 'GIFを保存',
+		makeBtn: 'アニメーション生成', clearBtn: 'クリア', downloadBtn: 'APNGを保存', downloadGifBtn: 'GIFを保存', shareBtn: '作品をシェア',
+		shareBack: '← 編集ページへ戻る', shareTitle: 'APNGをシェア', sharePreview: 'プレビュー', shareInfo: '共有情報を入力',
+		shareTitleLabel: 'タイトル（任意）', shareAuthorLabel: 'ニックネーム（任意）', shareTagsLabel: 'タグ（複数選択可）',
+		shareNote: 'アップロード後、画像はMemeページに公開表示されます。共有する権利があるか確認してください。',
+		shareCancel: 'キャンセル', shareSubmit: 'アップロード',
+		memeBack: '← 編集ページへ戻る', memeTitle: 'Meme シェア',
+		memeEmpty: 'まだ作品がありません。最初にシェアしてみましょう！',
+		memeLoading: '読み込み中...',
+		memeLoadFail: '読み込み失敗：',
+		memeUntitled: '(無題)',
+		memeAnonymous: 'by 匿名',
+		shareNeedGenerate: '先にAPNGを生成してからシェアしてください',
+		shareNoData: 'APNGデータが見つかりません',
+		shareSupabaseInit: 'Supabaseが初期化されていません',
+		shareUploading: 'アップロード中...',
+		shareSuccess: '<span class="cat cat-218"></span>&nbsp;シェア成功！Memeページへ移動します...',
+		shareFail: '<span class="cat cat-217"></span>&nbsp;アップロード失敗：',
+		shareSize: 'サイズ：{size} KB',
+		shareDisabled: 'シェア機能は無効です',
 		lineWarnTitle: 'LINEスタンプ制限',
 		lineWarnTimeNotInteger: 'アニメーション時間が整数（1,2,3,4秒）ではありません。ご確認ください。',
 		lineWarnTimeOver4: 'アニメーション時間が4秒を超えています。ご確認ください。',
@@ -469,7 +550,7 @@ const I18N = {
 		helpTitle: '使い方',
 		helpStep1: 'PNG / APNG / GIF をドロップゾーンにドラッグ（複数可）',
 		helpStep2: '各サムネイルでフレームごとの遅延 ms を調整（既定 100ms）',
-		helpStep3: 'カード下の&nbsp;&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;&nbsp;で並び替え、<span class="cat cat-color06 cat-017"></span>&nbsp;で削除',
+		helpStep3: 'カード下の&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;で並び替え、<span class="cat cat-color06 cat-017"></span>&nbsp;で削除',
 		helpStep4: 'ループ回数と色数を設定',
 		helpStep5: 'リサイズが必要な場合のみ幅/高さを入力（空欄 = 原寸）',
 		helpStep6: '「<span class="cat cat-color06 cat-033"></span>&nbsp;アニメーション生成」→「<span class="cat cat-color06 cat-022"></span>&nbsp;APNGを保存」または「<span class="cat cat-color06 cat-022"></span>&nbsp;GIFを保存」',
@@ -490,10 +571,10 @@ const I18N = {
 		srcTech: '技術：vanilla HTML / CSS / JS · UPNG.js · pako · omggif · フレームワークなし',
 		emojiTitle: 'エッグシェル・ミャオ Emoji フォント',
 		emojiDesc: 'アイコンをクリックするとクラス名をコピー、HTMLに貼り付けて使えるよ~',
-		memeTitle: '猫ミーム',
 		memeDesc: 'エッグシェル・ミャオのミームや小ネタで癒やされよう~',
 		memeSortAsc: '並び替え：昇順',
 		memeSortDesc: '並び替え：降順',
+		loading: '読み込み中...',
 		// aboutTitle: '変更履歴',
 		// changelogDate1: '2026-11-06',
 		// changelog1_1: 'タイ語（ไทย）を追加、5言語対応',
@@ -521,6 +602,9 @@ const I18N = {
 		loopTimes: ' · {n} 周 = {sec} 秒',
 		loopInfLoop: ' · 無限ループ',
 		fps: 'FPS: {fps}',
+		tagAll: 'すべて',
+		tag1: '嬉しい', tag2: '悲しい', tag3: 'ダンス', tag4: '頑張れ', tag5: '怒り',
+		tag6: '感謝', tag7: 'ごめんね', tag8: 'すごい', tag9: '残念',
 	},
 
 	'th': {
@@ -579,7 +663,25 @@ const I18N = {
 		deleteFrame: 'ลบเฟรมนี้',
 		sortManual: 'เรียงลำดับเอง', sortNameAsc: 'ชื่อ A-Z', sortNameDesc: 'ชื่อ Z-A',
 		sortDateNew: 'ใหม่สุด', sortDateOld: 'เก่าสุด',
-		makeBtn: 'สร้างภาพเคลื่อนไหว', clearBtn: 'ล้าง', downloadBtn: 'ดาวน์โหลด APNG', downloadGifBtn: 'ดาวน์โหลด GIF',
+		makeBtn: 'สร้างภาพเคลื่อนไหว', clearBtn: 'ล้าง', downloadBtn: 'ดาวน์โหลด APNG', downloadGifBtn: 'ดาวน์โหลด GIF', shareBtn: 'แชร์ผลงานของฉัน',
+		shareBack: '← กลับไปหน้าสร้าง', shareTitle: 'แชร์ APNG ของฉัน', sharePreview: 'ตัวอย่าง', shareInfo: 'กรอกข้อมูลการแชร์',
+		shareTitleLabel: 'ชื่อเรื่อง (ไม่บังคับ)', shareAuthorLabel: 'ชื่อเล่น (ไม่บังคับ)', shareTagsLabel: 'แท็ก (เลือกได้หลายอัน)',
+		shareNote: 'หลังอัปโหลด ภาพจะแสดงบนหน้า Meme สาธารณะ โปรดตรวจสอบว่าคุณมีสิทธิ์แชร์ภาพนี้',
+		shareCancel: 'ยกเลิก', shareSubmit: 'ยืนยันอัปโหลด',
+		memeBack: '← กลับไปหน้าสร้าง', memeTitle: 'Meme แชร์',
+		memeEmpty: 'ยังไม่มีภาพมาแชร์ มาเป็นคนแรกกันเถอะ!',
+		memeLoading: 'กำลังโหลด...',
+		memeLoadFail: 'โหลดไม่สำเร็จ：',
+		memeUntitled: '(ไม่มีชื่อ)',
+		memeAnonymous: 'by ไม่ระบุชื่อ',
+		shareNeedGenerate: 'กรุณาสร้าง APNG ก่อนแชร์',
+		shareNoData: 'ไม่พบข้อมูล APNG',
+		shareSupabaseInit: 'Supabase ยังไม่พร้อมใช้งาน',
+		shareUploading: 'กำลังอัปโหลด...',
+		shareSuccess: '<span class="cat cat-218"></span>&nbsp;แชร์สำเร็จ! กำลังไปหน้า Meme...',
+		shareFail: '<span class="cat cat-217"></span>&nbsp;อัปโหลดไม่สำเร็จ：',
+		shareSize: 'ขนาด：{size} KB',
+		shareDisabled: 'ฟังก์ชันแชร์ถูกปิดใช้งาน',
 		lineWarnTitle: 'ข้อจำกัดสติกเกอร์ LINE',
 		lineWarnTimeNotInteger: 'เวลาแอนิเมชันไม่ใช่เลขจำนวนเต็ม (1,2,3,4 วินาที) โปรดตรวจสอบ',
 		lineWarnTimeOver4: 'เวลาแอนิเมชันเกิน 4 วินาที โปรดตรวจสอบ',
@@ -598,7 +700,7 @@ const I18N = {
 		helpTitle: 'วิธีใช้',
 		helpStep1: 'ลากไฟล์ PNG / APNG / GIF มาวางในกรอบเส้นประ (เลือกหลายไฟล์ได้)',
 		helpStep2: 'ปรับเวลาหน่วงต่อเฟรม (ms) การ์ดภาพขนาดย่อ (ค่าเริ่มต้น 100ms)',
-		helpStep3: 'ใช้&nbsp;&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;&nbsp;จัดลำดับเฟรม <span class="cat cat-color06 cat-017"></span>&nbsp;ลบเฟรมที่ไม่ต้องการ',
+		helpStep3: 'ใช้&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;จัดลำดับเฟรม <span class="cat cat-color06 cat-017"></span>&nbsp;ลบเฟรมที่ไม่ต้องการ',
 		helpStep4: 'ตั้งจำนวนรอบและจำนวนสี',
 		helpStep5: 'กรอกขนาดส่งออกเฉพาะตอนต้องการปรับขนาด เว้นว่าง = ขนาดเดิม',
 		helpStep6: 'กด «<span class="cat cat-color06 cat-033"></span>&nbsp;สร้างภาพเคลื่อนไหว» → «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด APNG» หรือ «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด GIF»',
@@ -619,10 +721,10 @@ const I18N = {
 		srcTech: 'เทคโนโลยี: HTML / CSS / JS ล้วนๆ · UPNG.js · pako · omggif · ไม่มีเฟรมเวิร์ก',
 		emojiTitle: 'ฟอนต์ Emoji EggshellCat',
 		emojiDesc: 'คลิกไอคอนเพื่อคัดลอกชื่อ class แล้ววางใน HTML ได้เลย~',
-		memeTitle: 'มีมแมว',
 		memeDesc: 'มีมและเรื่องขบขันของ EggshellCat มาดูกัน~',
 		memeSortAsc: 'เรียง: เก่าสุด',
 		memeSortDesc: 'เรียง: ใหม่สุด',
+		loading: 'กำลังโหลด...',
 		// aboutTitle: 'ประวัติการแก้ไข',
 		// changelogDate1: '2026-11-06',
 		// changelog1_1: 'เพิ่มภาษาไทย รองรับ 5 ภาษา',
@@ -650,6 +752,9 @@ const I18N = {
 		loopTimes: ' · ทั้งหมด {n} รอบ = {sec} วิ',
 		loopInfLoop: ' · วนไม่จำกัด',
 		fps: 'FPS: {fps}',
+		tagAll: 'ทั้งหมด',
+		tag1: 'มีความสุข', tag2: 'เศร้า', tag3: 'เต้น', tag4: 'สู้ๆ', tag5: 'โกรธ',
+		tag6: 'ขอบคุณ', tag7: 'ขอโทษ', tag8: 'เยี่ยมมาก', tag9: 'น่าเสียดาย',
 	},
 };
 
@@ -658,11 +763,25 @@ const I18N = {
 // ============================================================
 let currentLang = 'zh-TW';
 
-// 偵測使用者語言：先讀 localStorage，否則讀瀏覽器語言
+// 偵測使用者語言：優先讀 URL 路徑（/ja /en /zh /th），再讀 ?lang= 參數，再讀 localStorage，否則讀瀏覽器語言
 function detectLang() {
-	// 使用者手動選過就用 localStorage 的
+	// 1. URL 路徑優先（SEO 多語言路由）
+	const path = location.pathname;
+	if (path.match(/\/ja(\/|$)/) && I18N['ja']) return 'ja';
+	if (path.match(/\/en(\/|$)/) && I18N['en']) return 'en';
+	if (path.match(/\/zh(\/|$)/) && I18N['zh-CN']) return 'zh-CN';
+	if (path.match(/\/tw(\/|$)/) && I18N['zh-TW']) return 'zh-TW';
+	if (path.match(/\/th(\/|$)/) && I18N['th']) return 'th';
+
+	// 2. ?lang= 參數（給 iframe 用）
+	const urlLang = new URLSearchParams(location.search).get('lang');
+	if (urlLang && I18N[urlLang]) return urlLang;
+
+	// 3. 使用者手動選過就用 localStorage 的
 	const saved = localStorage.getItem('apng-lang');
 	if (saved && I18N[saved]) return saved;
+
+	// 4. 讀瀏覽器語言
 	const nav = (navigator.language || 'zh-TW').toLowerCase();
 	if (nav.startsWith('zh')) {
 		// zh-CN / zh-SG 視為簡中，其餘 zh 視為繁中
@@ -718,6 +837,8 @@ function applyLang(lang) {
 	}
 	// 切換語言後重建影格卡片，讓動態產生的 title 也跟著變
 	if (typeof rebuildPreviews === 'function') rebuildPreviews();
+	// 切換語言後重建 Meme 頁面（空狀態提示等動態文字）
+	if (typeof window.renderMemes === 'function') window.renderMemes();
 }
 
 // 語言切換：自訂下拉（直接綁定，不依賴 DOMContentLoaded）

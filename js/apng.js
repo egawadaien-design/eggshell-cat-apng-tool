@@ -1,10 +1,58 @@
 /*
 	@author: DaiEn
 	@Date: 2026-11-05
-	@Correction: 51
+	@Correction: 55
 	蛋殼喵 APNG 工具 — 前端邏輯
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 */
+
+// ============================================================
+// Supabase 訪客追蹤（背景記錄，不顯示在頁面上）
+// ============================================================
+(function initVisitorTracking() {
+  const cfg = window.SUPABASE_CONFIG;
+  if (!cfg) { console.warn('SUPABASE_CONFIG not loaded, skip visitor tracking'); return; }
+
+  // 動態載入 Supabase JS
+  const tag = document.createElement('script');
+  tag.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  tag.onload = async () => {
+    try {
+      // 注意：區域變數名稱不能跟全域 supabase 撞名（TDZ 問題）
+      const sb = window.supabase.createClient(cfg.url, cfg.anonKey);
+
+      // 產生或取得匿名使用者 ID
+      let userId = localStorage.getItem('visitor_id');
+      if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('visitor_id', userId);
+      }
+
+      // 用「本地日期」而非 UTC，避免晚上 8 點後日期算錯
+      const d = new Date();
+      const today = d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+
+      const visitorData = {
+        user_id: userId,
+        visit_date: today,
+        user_agent: navigator.userAgent,
+        page_url: window.location.href,
+        referrer: document.referrer
+      };
+
+      // 同一天同一使用者 upsert 一筆（背景靜默執行）
+      await sb.from('visitors').upsert(visitorData, {
+        onConflict: 'user_id,visit_date'
+      });
+    } catch (e) {
+      // 靜默失敗，不影響網站功能，也不顯示給使用者
+      console.debug('Visitor tracking skipped:', e.message);
+    }
+  };
+  document.head.appendChild(tag);
+})();
 
 // ============================================================
 // Tab 切換：分頁，按 data-tab 對應 panel id
@@ -108,24 +156,34 @@ function formatSize(bytes) {
 	let memes = [];
 	let asc = true; // 預設正序
 
-	fetch('sample/list.json')
-		.then(r => r.json())
-		.then(data => {
-			memes = data.items || [];
-			renderMemes();
-		})
-		.catch(err => console.warn('Meme list.json 載入失敗:', err));
+	// 未來這裡會改成從 Supabase 讀取：
+	// const { data } = await supabase.from('apng_images').select('*').order('created_at', { ascending: false });
+	// memes = data || [];
 
 	function renderMemes() {
 		grid.innerHTML = '';
 		const list = asc ? memes : [...memes].reverse();
+
+		if (list.length === 0) {
+			const empty = document.createElement('div');
+			empty.style.cssText = 'grid-column:1/-1;text-align:center;padding:60px 20px;color:#a08090;font-size:15px;';
+			const emptyText = (typeof I18N !== 'undefined' && typeof currentLang !== 'undefined' && I18N[currentLang])
+				? I18N[currentLang].memeEmpty || '' : 'No memes yet~';
+			//empty.innerHTML = '<p style="font-size:40px;margin:0 0 12px;">🐾</p><p>' + emptyText + '</p>';
+			empty.innerHTML = '<p>' + emptyText + '</p>';
+			grid.appendChild(empty);
+			return;
+		}
+
 		list.forEach(item => {
 			const div = document.createElement('div');
 			div.className = 'meme-item';
+			const loadingText = (typeof I18N !== 'undefined' && typeof currentLang !== 'undefined' && I18N[currentLang])
+				? I18N[currentLang].loading || 'Loading...' : 'Loading...';
 			div.innerHTML = `
 				<img src="sample/${item.file}" alt="${item.label}" loading="lazy">
 				<p class="meme-caption">${item.label}</p>
-				<p class="meme-meta">載入中...</p>
+				<p class="meme-meta">${loadingText}</p>
 			`;
 			// 點擊重新播放：重新設定 src 強制 APNG 從頭播放
 			div.querySelector('img').addEventListener('click', function () {
@@ -167,6 +225,12 @@ function formatSize(bytes) {
 		// 初始文字
 		updateSortLabel();
 	}
+
+	// 初次渲染（目前 memes 是空陣列，會顯示空狀態提示）
+	renderMemes();
+
+	// 暴露給 applyLang 切換語言時呼叫
+	window.renderMemes = renderMemes;
 })();
 
 // Emoji 字型展示：動態產生 258 個貓咪 emoji
@@ -182,14 +246,42 @@ if (emojiGrid) {
 		`;
 		item.title = `Copy cat-${num}`;
 		item.addEventListener('click', () => {
-			navigator.clipboard.writeText(`cat cat-${num}`).then(() => {
+			const text = `cat cat-${num}`;
+			const showCopied = () => {
 				item.style.background = '#d4708a';
 				item.querySelector('.emoji-name').textContent = 'copied!';
 				setTimeout(() => {
 					item.style.background = '';
 					item.querySelector('.emoji-name').textContent = `cat-${num}`;
 				}, 800);
-			});
+			};
+			const showError = () => {
+				item.style.background = '#c06078';
+				item.querySelector('.emoji-name').textContent = 'copy failed!';
+				setTimeout(() => {
+					item.style.background = '';
+					item.querySelector('.emoji-name').textContent = `cat-${num}`;
+				}, 800);
+			};
+			// 優先用現代 Clipboard API
+			if (navigator.clipboard && window.isSecureContext) {
+				navigator.clipboard.writeText(text).then(showCopied).catch(showError);
+			} else {
+				// Fallback：舊式 execCommand
+				const ta = document.createElement('textarea');
+				ta.value = text;
+				ta.style.position = 'fixed';
+				ta.style.opacity = '0';
+				document.body.appendChild(ta);
+				ta.select();
+				try {
+					document.execCommand('copy');
+					showCopied();
+				} catch (e) {
+					showError();
+				}
+				document.body.removeChild(ta);
+			}
 		});
 		emojiGrid.appendChild(item);
 	}
@@ -734,6 +826,7 @@ clearBtn.addEventListener('click', () => {
 	previewInfo.textContent = t('previewEmpty');
 	downloadLink.style.display = 'none';
 	document.getElementById('downloadGifLink').style.display = 'none';
+	document.getElementById('shareLink').style.display = 'none';
 	status.innerHTML = '';
 	fileInfo.textContent = '';
 	document.getElementById('lineStickerWarnings').innerHTML = '';
@@ -829,6 +922,16 @@ makeBtn.addEventListener('click', async () => {
 		downloadLink.href = url;
 		downloadLink.download = 'eggshell-' + randomId(8) + '.png';
 		downloadLink.style.display = 'inline-block';
+
+		// 分享按鈕：把 blob 存到全域變數，給 modal 用
+		try {
+			window._currentApngBlob = blob;
+			window._currentApngUrl = url;
+			// 只有 Supabase 啟用時才顯示分享按鈕
+			if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.enabled) {
+				document.getElementById('shareLink').style.display = 'inline-block';
+			}
+		} catch (e) { console.warn('share state fail', e); }
 
 		// 算一下總時間顯示給使用者看
 		const loopMs = dels.reduce((a, b) => a + b, 0);
@@ -1402,7 +1505,7 @@ makeBtn.addEventListener('click', async () => {
 		const r = currentData[idx], g = currentData[idx+1], b = currentData[idx+2], a = currentData[idx+3];
 		const liveRgb = document.getElementById('pngLiveRgb');
 		const liveCat = document.getElementById('pngLiveCat');
-		if (liveRgb) liveRgb.textContent = `RGB(${r},${g},${b})`;
+		if (liveRgb) liveRgb.textContent = `(${r},${g},${b})`;
 		if (liveCat) {
 			if (a === 0) {
 				// 透明區域：顯示紅色 cat-017

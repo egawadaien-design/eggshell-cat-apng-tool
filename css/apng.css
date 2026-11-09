@@ -95,7 +95,7 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 .tab-btn {
 	flex: 1;
 	background: transparent;
-	color: #806070;
+	color: #604050;
 	padding: 10px 16px;
 	border-radius: 8px;
 	font-size: 24px;
@@ -766,6 +766,13 @@ button.secondary:hover { background: #8a6a7a; }
 #pngSplitPreview:hover, #pngConfirmBtn:hover, #pngDownloadZip:hover {
 	background: rgb(14, 75, 60);
 }
+/*分享按鈕專屬顏色*/
+#shareLink button.share-btn {
+	background: rgb(243, 152, 0);
+}
+#shareLink button.share-btn:hover {
+	background: rgb(210, 130, 0);
+}
 
 #status { color: #d4708a; font-size: 13px; min-height: 18px; }
 #fileInfo { font-size: 12px; color: #806070; }
@@ -963,7 +970,7 @@ button.secondary:hover { background: #8a6a7a; }
 	font-family: 'CatEmoji';
 	font-style: normal;
 	font-display: block;
-	src: url(../webfonts/EggshellCat.woff2) format("woff2"),
+	src: /*url(../webfonts/EggshellCat.woff2) format("woff2"),*/
 		url(../webfonts/EggshellCat.woff) format("woff"),
 		url(../webfonts/EggshellCat.ttf) format("truetype");
 }
@@ -1260,7 +1267,7 @@ button.secondary:hover { background: #8a6a7a; }
 .cat-color01 { color: rgba(10, 0, 178, 1.0); }
 .cat-color02 { color: rgba(255, 0, 0, 1.0); }
 .cat-color03 { color: rgba(0, 153, 68, 1.0); }
-.cat-color04 { color: rgba(235, 97, 0, 1.0); }
+.cat-color04 { color: rgba(243, 152, 0, 1.0); }
 .cat-color05 { color: rgba(228, 0, 127, 1.0); }
 .cat-color06 { color: rgba(0, 102, 204, 1.0); }
 .cat-color07 { color: rgba(102, 51, 153, 1.0); }
@@ -1291,7 +1298,7 @@ button.secondary:hover { background: #8a6a7a; }
 	border-top: 1px solid #ffe4ec;
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: flex-start;
 	flex-wrap: wrap;
 	gap: 12px;
 	max-width: 900px;
@@ -1346,9 +1353,127 @@ button.secondary:hover { background: #8a6a7a; }
 	margin-top: 2px;
 }
 
-/* 小螢幕：footer 改成上下排列，同組資訊在一起 */
+/* 小螢幕：footer 改成上下排列，全部水平置中 */
 @media (max-width: 600px) {
-	.site-footer { flex-direction: column; text-align: center; }
-	.footer-group { flex-direction: column; gap: 4px; }
+	.site-footer { flex-direction: column; align-items: center; text-align: center; }
+	.footer-group { flex-direction: column; align-items: center; gap: 4px; }
 	.footer-group-brand { align-items: center; }
+	.footer-group-legal { align-items: center; }
+}
+
+/* ============================================================
+   分享頁 / Meme 展示頁
+   ============================================================ */
+.page-wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
+.top-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.top-bar h1 { font-size: 20px; margin: 0; color: #604050; }
+.back-link { color: #a06078; text-decoration: none; font-size: 14px; }
+.back-link:hover { text-decoration: underline; }
+
+.share-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 700px) { .share-container { grid-template-columns: 1fr; } }
+
+.share-preview-card, .share-form-card {
+	background: #fff; border-radius: 12px; padding: 16px;
+	box-shadow: 0 2px 8px rgba(180, 100, 130, 0.1);
+}
+.share-preview-card h3, .share-form-card h3 { margin-top: 0; color: #604050; font-size: 16px; }
+.share-preview-box {
+	background: #faf0f4; border-radius: 8px; padding: 12px;
+	display: flex; align-items: center; justify-content: center; min-height: 200px;
+}
+.share-preview-box img { max-width: 100%; max-height: 280px; }
+.share-meta { font-size: 12px; color: #806070; margin-top: 8px; }
+
+.share-form-card label { display: block; margin: 12px 0 4px; font-size: 13px; color: #604050; }
+.share-form-card input {
+	width: 100%; padding: 8px 10px; border: 1px solid #e0c0cc; border-radius: 6px;
+	font-size: 14px; box-sizing: border-box;
+}
+.share-form-card input:focus { outline: none; border-color: #f39800; }
+.share-note { font-size: 12px; color: #a08090; margin-top: 12px; line-height: 1.5; }
+.share-status { margin-top: 12px; font-size: 13px; min-height: 18px; color: #d4708a; }
+
+.share-actions { display: flex; gap: 10px; margin-top: 16px; }
+.share-actions button { flex: 1; padding: 10px; font-size: 15px; border-radius: 8px; cursor: pointer; color: #fff; }
+button.share-btn { background: rgb(243, 152, 0); }
+button.share-btn:hover { background: rgb(210, 130, 0); }
+button.share-btn:disabled { background: #d8b888; cursor: not-allowed; }
+
+/* Meme 展示頁 */
+.meme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
+.meme-card {
+	background: #fff; border-radius: 12px; padding: 12px;
+	box-shadow: 0 2px 8px rgba(180, 100, 130, 0.1); text-align: center;
+}
+.meme-card img { max-width: 100%; max-height: 220px; border-radius: 8px; }
+.meme-card .meme-title { font-size: 13px; margin-top: 8px; color: #604050; word-break: break-all; }
+.meme-card .meme-author { font-size: 11px; color: #a08090; margin-top: 4px; }
+.meme-pager { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 24px; }
+.meme-pager .meme-page-btn {
+	min-width: 32px; height: 32px; padding: 0; border: none; background: transparent;
+	border-radius: 50%; cursor: pointer; color: #604050; font-size: 14px;
+	display: inline-flex; align-items: center; justify-content: center;
+}
+.meme-pager .meme-page-btn:hover { background: #ffe4ec; }
+.meme-pager .meme-page-btn.active { background: #f39800; color: #fff; font-weight: bold; }
+.meme-pager .meme-page-btn:disabled { opacity: 0.3; cursor: default; }
+.meme-pager .meme-page-btn:disabled:hover { background: transparent; }
+.meme-pager .meme-page-icon { font-size: 16px; }
+.meme-pager .meme-page-dots { color: #a08090; padding: 0 4px; user-select: none; }
+.meme-empty { text-align: center; color: #a08090; padding: 40px; }
+/* ============================================================
+   分享 Modal
+   ============================================================ */
+.share-modal { position: fixed; inset: 0; z-index: 9999; }
+.share-modal-backdrop { position: absolute; inset: 0; background: rgba(80, 30, 50, 0.5); }
+.share-modal-card {
+	position: relative; max-width: 480px; margin: 5vh auto;
+	background: #fff; border-radius: 14px; padding: 20px;
+	box-shadow: 0 10px 40px rgba(80, 30, 50, 0.3);
+	max-height: 90vh; overflow-y: auto;
+}
+.share-modal-card h3 { margin: 0 0 12px; color: #604050; font-size: 18px; }
+.share-modal-close {
+	position: absolute; top: 10px; right: 14px;
+	background: none; border: none; font-size: 24px; cursor: pointer; color: #a08090;
+}
+.share-modal-close:hover { color: #604050; }
+.share-modal-body label { display: block; margin: 10px 0 4px; font-size: 13px; color: #604050; }
+.share-modal-body input {
+	width: 100%; padding: 8px 10px; border: 1px solid #e0c0cc; border-radius: 6px;
+	font-size: 14px; box-sizing: border-box;
+}
+.share-modal-body input:focus { outline: none; border-color: #f39800; }
+/* ============================================================
+   Meme 標籤列
+   ============================================================ */
+.meme-tag-bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.meme-tag-btn {
+	padding: 4px 12px; border: 1px solid #e0c0cc; background: #fff; border-radius: 14px;
+	cursor: pointer; color: #604050; font-size: 13px; font-family: inherit;
+	transition: all 0.15s;
+}
+.meme-tag-btn:hover { background: #ffe4ec; border-color: #f39800; }
+.meme-tag-btn.active { background: #f39800; color: #fff; border-color: #f39800; }
+.share-tag-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+/* ============================================================
+   分享 Modal：左右兩欄
+   ============================================================ */
+.share-modal-body { display: flex; gap: 16px; }
+.share-left { flex: 1; min-width: 0; }
+.share-right { width: 200px; flex-shrink: 0; }
+.share-tag-panel {
+	border: 1px solid #e0c0cc; border-radius: 10px; background: #fff8fa;
+	height: 100%; max-height: 420px; overflow-y: auto; padding: 10px;
+}
+.share-tag-panel-title { font-size: 13px; color: #604050; margin-bottom: 8px; font-weight: 600; }
+.share-tag-bar { display: flex; flex-direction: column; gap: 6px; }
+.share-tag-bar .meme-tag-btn { width: 100%; text-align: left; border-radius: 8px; }
+/* 小螢幕改上下排列 */
+@media (max-width: 600px) {
+	.share-modal-body { flex-direction: column; }
+	.share-right { width: 100%; }
+	.share-tag-bar { flex-direction: row; flex-wrap: wrap; }
+	.share-tag-bar .meme-tag-btn { width: auto; }
 }

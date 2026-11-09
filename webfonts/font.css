@@ -8,7 +8,7 @@
 	font-family: 'CatEmoji';
 	font-style: normal;
 	font-display: block;
-	src: url(EggshellCat.woff2) format("woff2"),
+	src: /*url(EggshellCat.woff2) format("woff2"),*/
 		url(EggshellCat.woff) format("woff"),
 		url(EggshellCat.ttf) format("truetype");
 }

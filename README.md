@@ -23,6 +23,7 @@
 - 🎬 **雙格式輸出** — 同時生成 APNG 與 GIF，任選下載
 - ⚠️ **LINE 貼圖提示** — 生成後自動檢查 6 項 LINE 動態貼圖規範
 - 🐱 **Meme 表情包** — 內建蛋殼喵 APNG，點擊重播，可排序
+- 📤 **一鍵分享** — 生成後可將你的 APNG 上傳到公開 Meme 展示牆（Supabase 儲存）
 - 📑 **分頁記憶** — 重新整理後記住目前頁面
 - 📱 **RWD** — 手機小螢幕也能用
 
@@ -93,6 +94,8 @@ static/
 │   └── apng.css       ← 樣式
 ├── js/
 │   ├── apng.js        ← 工具邏輯
+│   ├── share.js       ← 分享 Modal 與 Supabase 上傳
+│   ├── meme.js       ← Meme 展示牆載入
 │   ├── gif.worker.js  ← 
 │   └── i18n.js        ← 多國語言包
 ├── webfonts/
@@ -123,10 +126,10 @@ UPNG.js 本身不支援 loops 參數，本工具會在編碼後直接修改 APNG
 用 omggif 解碼 GIF，正確處理 partial update 和 disposal，每格時間從 Graphic Control Extension 讀取。
 
 ### Meme 圖片管理
-- 圖片放在 `sample/` 資料夾
-- 索引寫在 `sample/list.json`
-- 新增圖片只要丟檔 + 改 JSON，不用動 HTML
-- 以後可改為從 Supabase 等遠端儲存讀取
+- 內建展示牆從 Supabase 讀取最新 20 筆分享，支援分頁
+- 圖片存放在 Supabase Storage bucket，metadata 寫在 `apng_images` 表
+- 使用者生成 APNG 後點「分享我的圖片」即可一鍵上傳
+- 本地 `sample/list.json` 保留作為離線範本
 
 ---
 
@@ -143,6 +146,14 @@ MIT License — 自由使用、修改、散佈。
 ---
 
 ## 📝 更新紀錄
+
+### 2026-11-10
+- 加入 Supabase 整合：使用者生成 APNG 後可一鍵分享到 Meme 展示頁
+- 分享功能改為同頁 Modal（不再跳轉到獨立頁面），生成的 blob 透過 window 全域變數傳遞
+- Meme 展示頁改為從 Supabase 動態讀取最新 20 筆，支援分頁
+- 分享 Modal 可填寫標題與作者暱稱（皆選填），上傳後自動切到 Meme tab 刷新
+- 新增 `js/share.js`（分享 Modal 邏輯）、`js/meme.js`（Supabase Meme 載入）
+- 修正：移除原本跨頁面 sessionStorage 傳 blob 的做法，改用 SPA 全域變數
 
 ### 2026-11-08
 - 新增「PNG 貼圖製作」頁面：拖曳上傳 JPG / PNG / GIF / WEBP，本機處理

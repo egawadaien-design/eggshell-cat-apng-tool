@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具</title>
+<meta name="description" content="免費線上 APNG 動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支援 LINE 動態貼圖規範檢查。">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://apng-murex.vercel.app/tw/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具">
+<meta property="og:description" content="純瀏覽器本機處理、圖片不上傳。支援每格獨立延遲、真實循環次數、LINE 動態貼圖規範檢查。">
+<meta property="og:url" content="https://apng-murex.vercel.app/tw/">
+<meta property="og:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="蛋殼喵 APNG 工具">
+<meta name="twitter:description" content="免費線上 APNG 製作工具，純本機處理，支援 LINE 動態貼圖規範。">
+<meta name="twitter:image" content="https://apng-murex.vercel.app/icon/128x128.png">
+<link rel="icon" type="image/png" href="../icon/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../icon/16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../icon/32x32.png">
+<link rel="stylesheet" href="../css/apng.css">
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/omggif@1.0.10/omggif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="../js/i18n.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// 載入主 index.html 的 body 內容
+fetch('index.html')
+  .then(r => r.text())
+  .then(html => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    document.getElementById('app').innerHTML = doc.body.innerHTML;
+    const scripts = document.getElementById('app').querySelectorAll('script');
+    scripts.forEach(oldScript => {
+      const s = document.createElement('script');
+      if (oldScript.src) s.src = oldScript.src;
+      else s.textContent = oldScript.textContent;
+      document.body.appendChild(s);
+    });
+  })
+  .catch(e => console.error('load fail', e));
+</script>
+</body>
+</html>
