@@ -62,6 +62,7 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal',
         },
