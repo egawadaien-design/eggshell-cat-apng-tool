@@ -1,5 +1,5 @@
 /**
- * Meme 展示邏輯（嵌在 index.html tab-meme）
+ * 蛋殼喵 APNG 工具 — Meme 展示邏輯（嵌在 index.html tab-meme）
  * @author [DaiEn]
  * @Date: 2026-11-10
  * @Correction: 4

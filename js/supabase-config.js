@@ -1,5 +1,5 @@
 /**
- * Supabase 設定
+ * 蛋殼喵 APNG 工具 — Supabase 設定
  * @author [DaiEn]
  * @Date: 2026-11-10
  * @Correction: 2

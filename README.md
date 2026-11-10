@@ -105,12 +105,15 @@ static/
 ├── css/
 │   └── apng.css            ← 全站樣式
 ├── js/
-│   ├── apng.js             ← APNG 工具主要邏輯（生成/拆圖/PNG去背）
+│   ├── i18n.js             ← 5 國語言包（繁/簡/EN/JA/TH）
 │   ├── share.js            ← 分享 Modal 與上傳流程
 │   ├── meme.js             ← Meme 展示牆載入（Supabase）
-│   ├── supabase-config.js  ← Supabase URL / anon key 設定
-│   ├── gif.worker.js       ← GIF.js 背景編碼 worker
-│   └── i18n.js             ← 5 國語言包（繁/簡/EN/JA/TH）
+│   ├── app-shell.js        ← 頁籤切換 / Emoji 字牆 / README 載入 / 訪客追蹤 / Meme 舊版解析
+│   ├── apng-frames.js      ← 影格管理：檔案匯入、APNG/GIF 拆格、排序、時間軸與卡片渲染、播放控制
+│   ├── apng-encoder.js     ← 編碼輸出：CRC32、acTL 循環次數、UPNG 編碼、GIF 生成、LINE 規範警告
+│   ├── png-editor.js       ← PNG 靜態貼圖：去背、橡皮擦、縮放平移、分割線、240×240 與 96×74 輸出
+│   ├── supabase-config.js  ← Supabase URL / anon key / bucket 設定
+│   └── gif.worker.js       ← GIF.js 背景編碼 worker
 ├── en/ ja/ th/ zh/
 │   └── index.html          ← 各語言 thin page（SEO 用）
 ├── webfonts/
@@ -122,6 +125,11 @@ static/
 ├── images/                 ← 網站圖片資產
 └── icon/                   ← favicon / logo / 各尺寸圖示
 ```
+
+> **`js/` 載入順序（傳統 script，載入順序＝執行順序，不可任意調換）**
+> `i18n.js → supabase-config.js → share.js → meme.js → app-shell.js → apng-frames.js → apng-encoder.js → png-editor.js`
+> `apng-frames.js` 負責宣告全域 DOM 節點與影格狀態（`files` / `frameDelays` 等），必須排在 `apng-encoder.js`、`png-editor.js` 之前，否則會踩 TDZ。
+> 專案根目錄另有 `_backup/`（原 `apng.js` 的完整備份），不在 `static/` 內，不會被上傳或部署。
 
 ---
 
@@ -156,6 +164,22 @@ MIT License — 自由使用、修改、散佈。
 ---
 
 ## 📝 更新紀錄
+
+### 2026-11-11
+- 重構：`js/apng.js`（1908 行）拆分為四支傳統 script，程式邏輯零改動，全靠行號切分
+  - `js/app-shell.js`：頁籤切換與記憶、Emoji 字牆、Meme 舊版解析、README 載入、訪客追蹤
+  - `js/apng-frames.js`：全域 DOM 節點與影格狀態、檔案匯入、APNG/GIF 拆格、排序、時間軸與卡片渲染、播放控制
+  - `js/apng-encoder.js`：CRC32 / `acTL` 循環次數、UPNG 編碼、GIF 輸出、LINE 規範警告、切換語言時重繪結果文字
+  - `js/png-editor.js`：PNG 靜態貼圖編輯器（去背、橡皮擦、縮放平移、分割線、240×240 與 96×74 輸出）
+- 載入順序改為 `i18n → supabase-config → share → meme → app-shell → apng-frames → apng-encoder → png-editor`
+- `apng-frames.js` 必須最先載入（宣告 `files` / `frameDelays` 等全域狀態），否則後兩支會踩 TDZ
+- 維持不引入建置流程：多支傳統 script 直接載入，不編譯、不合併，拖曳部署方式不變
+- 原 `apng.js` 完整備份放在專案根目錄 `_backup/`，不在 `static/` 內，不會被上傳或部署
+- `index.html` 修正次數 15 → 16，並註明本次拆分
+- Help 頁新增「常見問題」7 題（`.faq-list` 搭配 `cat cat-029` 圖標，與 Help 頁樣式一致）
+- 同步補齊 zh-TW / zh-CN / en / ja / th 五語系 `faqTitle`、`faqQ1~7`、`faqA1~7`，共 75 條字串
+- FAQ 內容依實際功能改寫：移除不存在的 Effects / Text Overlay / lossy 壓縮滑桿等描述，文字或濾鏡特效明確標示需先用 Photoshop 等軟體製作
+- `js/i18n.js` 修正次數 12 → 13、`css/apng.css` 17 → 18、`index.html` 16 → 17
 
 ### 2026-11-10
 - README 全面更新：補上 PNG 靜態貼圖去背、自製 Emoji 圖標功能說明

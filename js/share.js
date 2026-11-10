@@ -1,5 +1,5 @@
 /**
- * 分享 Modal 邏輯
+ * 蛋殼喵 APNG 工具 — 分享 Modal 邏輯
  * @author [DaiEn]
  * @Date: 2026-11-10
  * @Correction: 3

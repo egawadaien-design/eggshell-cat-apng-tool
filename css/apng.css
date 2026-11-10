@@ -1,7 +1,8 @@
 /*
-	@author: DaiEn
-	@Date: 2026-11-05
-	@Correction: 17
+	@author: [DaiEn]
+	@Date: 2026-11-11
+	@Correction: 19
+	本次修正：影格卡片導航鈕由 flex:1 改為固定 22×22 正方形，高度維持不變
 	蛋殼喵 APNG 工具 — 樣式表
 	粉色系主題，RWD 手機版在最下面
 */
@@ -137,6 +138,21 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 .card li { margin-bottom: 6px; }
 
 .src-card { text-align: center; }
+
+/* HELP 頁：常見問題（問題列 + 答案段落，沿用 .card 的粉色系） */
+.faq-list { margin-bottom: 12px; }
+.faq-q {
+	margin: 18px 0 4px;
+	font-weight: 700;
+	color: #b4526b;
+	line-height: 1.7;
+}
+.faq-q .cat { vertical-align: middle; }
+.faq-a {
+	margin: 0;
+	color: #555;
+	line-height: 1.8;
+}
 
 /* Meme 頁面 */
 .meme-toolbar {
@@ -929,19 +945,20 @@ button.secondary:hover { background: #8a6a7a; }
 	-webkit-appearance: none;
 	margin: 0;
 }
-/* 卡片底部 4 顆導航鈕 */
+/* 卡片底部 4 顆導航鈕：固定 22×22 正方形，高度維持 22px 不變 */
 .frame-card .frame-nav {
 	display: flex;
-	gap: 4px;
-	justify-content: flex-start;
+	gap: 3px;
+	justify-content: space-between;
 	align-items: center;
 }
 .frame-card .frame-nav button {
-	flex: 1;
+	flex: 0 0 22px;
+	width: 22px;
+	height: 22px;
 	background: #f0d8e0;
 	color: #806070;
 	border: none;
-	height: 22px;
 	border-radius: 4px;
 	font-size: 12px;
 	cursor: pointer;
@@ -949,11 +966,14 @@ button.secondary:hover { background: #8a6a7a; }
 	position: relative;
 }
 .frame-card .frame-nav button:hover { background: #e8c8d2; }
+/* 中間的資訊欄只當彈性間隔用，可壓到 0 寬，避免卡片變窄時按鈕被推出框外 */
 .frame-card .frame-nav-info {
-	flex: 1;
+	flex: 1 1 auto;
+	min-width: 0;
 	font-size: 10px;
 	color: #b090a0;
 	text-align: center;
+	overflow: hidden;
 }
 
 /* 卡片上小按鈕：用貓咪 emoji 字體顯示，不再用 CSS 向量畫箭頭 */

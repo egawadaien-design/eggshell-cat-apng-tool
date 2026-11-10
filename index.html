@@ -1,8 +1,10 @@
 <!--
-	@author: DaiEn
-	@Date: 2026-11-10
-	@Correction: 15
+	@author: [DaiEn]
+	@Date: 2026-11-11
+	@Correction: 17
 	蛋殼喵 APNG 工具 — 多國語言版
+	本次修正：apng.js 拆分為 app-shell / apng-frames / apng-encoder / png-editor 四檔
+	本次修正：Help 頁新增常見問題（7 題，五語系同步）
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 -->
 <!DOCTYPE html>
@@ -514,6 +516,23 @@
 			<li data-i18n="lineRule5">重複播放次數：每張動態貼圖 1～4 次</li>
 			<li data-i18n="lineRule6">每張圖片的檔案大小須小於 1MB</li>
 		</ol>
+		<h2><span class="cat cat-229"></span>&nbsp;<span data-i18n="faqTitle">常見問題</span></h2>
+		<div class="faq-list">
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ1">APNG 跟 GIF 有什麼不同？</span></p>
+			<p class="faq-a" data-i18n="faqA1">APNG（Animated PNG）支援完整透明與 24 位元色彩＋8 位元 alpha；GIF 只有 256 色與 1 位元透明。要做邊緣柔和、帶透明陰影的動畫，APNG 的畫質明顯更好，檔案通常也更小。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ2">怎麼讓輸出的檔案變小？</span></p>
+			<p class="faq-a" data-i18n="faqA2">在「基本設定」把色彩改成 256 色或 128 色（全彩檔案最大）；也可以減少影格數量，或在「輸出尺寸」填比較小的寬高。本工具沒有 lossy 壓縮滑桿，縮小檔案就是靠這三個方式。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ3">我的圖片會被上傳嗎？</span></p>
+			<p class="faq-a" data-i18n="faqA3">生成、拆格、縮放、去背全部在瀏覽器本機用 Canvas 完成，圖片不會離開你的電腦。只有你主動按「分享我的圖片」時，檔案才會上傳到 Meme 展示牆，而且要經過審核才會公開顯示。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ4">可以把現成的 GIF 或 APNG 丟進來改嗎？</span></p>
+			<p class="faq-a" data-i18n="faqA4">可以。拖進現成的 APNG 會逐格讀取 fcTL 的延遲時間拆成影格；GIF 用 omggif 解碼，會依 disposal 方式正確合成，不會出現殘影或斑點。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ5">輸出後在 LINE 上不動或傳不上去？</span></p>
+			<p class="faq-a" data-i18n="faqA5">生成後會自動檢查 6 項 LINE 動態貼圖規範：總時間須為整數秒且不超過 4 秒、寬或高其中一邊須為 270px 且在 320×270 內、影格 5～20 格、播放 1～4 次（不可無限循環）、檔案小於 1MB。沒通過的項目會列在黃色警告列。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ6">可以加文字或濾鏡特效嗎？</span></p>
+			<p class="faq-a" data-i18n="faqA6">目前不支援。本工具只處理延遲、尺寸、色彩深度與循環次數；PNG 分頁可做去背、橡皮擦，並切出 LINE 用的 240×240 與 96×74。需要文字或濾鏡特效時，請先用其他軟件製作，例如 Photoshop，再把成品匯入這裡合成動畫。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ7">需要註冊嗎？支援哪些語言？</span></p>
+			<p class="faq-a" data-i18n="faqA7">完全免費、免註冊，也不用安裝。介面支援繁中、簡中、English、日本語、ไทย 五種語言，預設跟隨瀏覽器語言，也可以用右上角選單手動切換。</p>
+		</div>
 	</div>
 </section>
 
@@ -655,10 +674,15 @@
 </div>
 
 <!-- ============================================================
-     JS 載入順序：share.js → meme.js → apng.js
+     JS 載入順序（傳統 script，載入順序 = 執行順序，不可任意調換）
+     share.js → meme.js → app-shell → apng-frames → apng-encoder → png-editor
+     apng-frames 宣告全域 DOM 節點與狀態，必須排在使用它的兩支之前
      ============================================================ -->
 <script src="js/share.js"></script>
 <script src="js/meme.js"></script>
-<script src="js/apng.js"></script>
+<script src="js/app-shell.js"></script>
+<script src="js/apng-frames.js"></script>
+<script src="js/apng-encoder.js"></script>
+<script src="js/png-editor.js"></script>
 </body>
 </html>
