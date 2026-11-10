@@ -4,7 +4,7 @@
  * @Date: 2026-11-10
  * @Correction: 1
  *
- * 前端 POST 圖片到此 Function，Function 內部用 service_role key 上傳
+ * 前端  POST  圖片到此 Function，Function 內部用 service_role key 上傳
  * 前端完全不知道 Supabase 的 URL 和 key
  */
 
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     // 1. 上傳到 Supabase Storage
     const bucket = process.env.SUPABASE_BUCKET || 'apng-uploads';
-    const uploadResponse = await fetch(
+    const uploadResponse = await fetch( 
       `${SUPABASE_URL}/storage/v1/object/${bucket}/${filename}`,
       {
         method: 'POST',
