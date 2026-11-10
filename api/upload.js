@@ -37,8 +37,9 @@ export default async function handler(req, res) {
     const filename = `eggshell-${Math.random().toString(36).slice(2, 10)}.png`;
 
     // 1. 上傳到 Supabase Storage
+    const bucket = process.env.SUPABASE_BUCKET || 'apng-uploads';
     const uploadResponse = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/apng-images/${filename}`,
+      `${SUPABASE_URL}/storage/v1/object/${bucket}/${filename}`,
       {
         method: 'POST',
         headers: {
