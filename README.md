@@ -23,6 +23,8 @@
 - 🎬 **雙格式輸出** — 同時生成 APNG 與 GIF，任選下載
 - ⚠️ **LINE 貼圖提示** — 生成後自動檢查 6 項 LINE 動態貼圖規範
 - 🐱 **Meme 表情包** — 內建蛋殼喵 APNG，點擊重播，可排序
+- 🖼️ **PNG 靜態貼圖製作** — 上傳 JPG/PNG/GIF/WEBP，吸取顏色一鍵去背（flood fill）、全域刪除指定顏色、橡皮擦自由修邊
+- 😺 **自製 Emoji 圖標** — 258 格蛋殼喵 CSS 向量圖示，純 class 複製貼上就能用
 - 📤 **一鍵分享** — 生成後可將你的 APNG 上傳到公開 Meme 展示牆（Supabase 儲存）
 - 📑 **分頁記憶** — 重新整理後記住目前頁面
 - 📱 **RWD** — 手機小螢幕也能用
@@ -60,10 +62,10 @@
 
 | 頁籤 | 功能 |
 |---|---|
-| **生成** | 拖 PNG → 設定參數 → 輸出 APNG / GIF |
+| **生成** | 拖 PNG/APNG/GIF → 設定參數 → 輸出 APNG / GIF |
 | **拆圖** | 把 APNG / GIF 拆回單張 PNG |
-| **PNG** | 貼圖製作：吸取顏色去背、橡皮擦、縮放平移 |
-| **Meme** | 蛋殼喵表情包展示，點擊重播，可排序 |
+| **PNG** | 靜態貼圖製作：吸取顏色去背、全域刪除指定顏色、橡皮擦、縮放平移 |
+| **Meme** | 蛋殼喵表情包展示牆，從 Supabase 動態載入，點擊重播 |
 | **Emoji 字型** | 258 個貓咪 CSS 向量圖示，點擊複製 class |
 | **Help** | 使用說明 |
 | **關於** | 修改記錄 |
@@ -79,7 +81,9 @@
 | [omggif](https://github.com/deanm/omggif) | GIF 解碼 |
 | [gif.js](https://jnordberg.github.io/gif.js/) | GIF 背景編碼 |
 | [marked.js](https://marked.js.org/) | README Markdown 渲染 |
-| Canvas API | 圖片縮放、像素讀取、影格合成 |
+| [Supabase JS](https://supabase.com/) | Meme 展示牆：Storage 存圖 + Postgres 存 metadata |
+| Vercel Serverless Function | `/api/upload` 代理寫入，保護 service_role key 不暴露在前端 |
+| Canvas API | 圖片縮放、像素讀取、影格合成、去背 flood fill |
 | 純 HTML/CSS/JS | 無框架、無建置流程 |
 
 ---
@@ -88,28 +92,35 @@
 
 ```
 static/
-├── index.html         ← 主頁面（多 tab）
+├── index.html              ← 主頁面（多 tab SPA）
 ├── README.md
+├── LICENSE                 ← MIT
+├── vercel.json             ← Vercel 部署設定
+├── robots.txt
+├── sitemap.xml
+├── Supabase 設置說明.md
+├── Vercel 設置說明.md
+├── api/
+│   └── upload.js           ← Vercel Serverless Function：代理 Supabase 上傳
 ├── css/
-│   └── apng.css       ← 樣式
+│   └── apng.css            ← 全站樣式
 ├── js/
-│   ├── apng.js        ← 工具邏輯
-│   ├── share.js       ← 分享 Modal 與 Supabase 上傳
-│   ├── meme.js       ← Meme 展示牆載入
-│   ├── gif.worker.js  ← 
-│   └── i18n.js        ← 多國語言包
+│   ├── apng.js             ← APNG 工具主要邏輯（生成/拆圖/PNG去背）
+│   ├── share.js            ← 分享 Modal 與上傳流程
+│   ├── meme.js             ← Meme 展示牆載入（Supabase）
+│   ├── supabase-config.js  ← Supabase URL / anon key 設定
+│   ├── gif.worker.js       ← GIF.js 背景編碼 worker
+│   └── i18n.js             ← 5 國語言包（繁/簡/EN/JA/TH）
+├── en/ ja/ th/ zh/
+│   └── index.html          ← 各語言 thin page（SEO 用）
 ├── webfonts/
-│   ├── EggshellCat.fcp  ← 原始檔案
-│   ├── EggshellCat.ttf  ← 彩色 ttf 字型
-│   ├── EggshellCat.woff  ← 彩色 woff 字型
-│   ├── EggshellCat.woff2  ← 彩色 woff2 字型
-│   ├── EggshellCatEmoji.html  ← 預覽html
-│   └── font.css  ← 預覽html用的css文件
-├── sample/            ← Meme 圖片範本
-│   ├── list.json      ← 圖片索引
-│   └── *.png / *.gif
-├── images/            ← 圖片
-└── icon/              ← 圖示檔
+│   ├── EggshellCat.fcp     ← FontCore 原始檔
+│   ├── EggshellCat.ttf    ← 彩色 ttf 字型
+│   ├── EggshellCat.woff   ← 彩色 woff 字型
+│   ├── EggshellCatEmoji.html  ← Emoji 預覽頁
+│   └── font.css           ← Emoji class 定義
+├── images/                 ← 網站圖片資產
+└── icon/                   ← favicon / logo / 各尺寸圖示
 ```
 
 ---
@@ -126,10 +137,9 @@ UPNG.js 本身不支援 loops 參數，本工具會在編碼後直接修改 APNG
 用 omggif 解碼 GIF，正確處理 partial update 和 disposal，每格時間從 Graphic Control Extension 讀取。
 
 ### Meme 圖片管理
-- 內建展示牆從 Supabase 讀取最新 20 筆分享，支援分頁
+- 展示牆從 Supabase 讀取已審核（`approved=true`）的圖片，每次載入 6 筆，支援分頁載入更多
 - 圖片存放在 Supabase Storage bucket，metadata 寫在 `apng_images` 表
-- 使用者生成 APNG 後點「分享我的圖片」即可一鍵上傳
-- 本地 `sample/list.json` 保留作為離線範本
+- 使用者生成 APNG 後點「分享我的圖片」即可一鍵上傳（預設 `approved=false`，需後台審核才會顯示）
 
 ---
 
@@ -141,16 +151,19 @@ MIT License — 自由使用、修改、散佈。
 
 ## 💕 關於作者
 
-蛋殼喵工作室 (EggshellCat Studio)
+蛋殼喵DaiEn (EggshellCat DaiEn)
 
 ---
 
 ## 📝 更新紀錄
 
 ### 2026-11-10
+- README 全面更新：補上 PNG 靜態貼圖去背、自製 Emoji 圖標功能說明
+- 技術棧補上 Supabase Storage/Postgres、Vercel Serverless Function
+- 專案結構改為反映實際 static/ 目錄（api/、en/ja/th/zh/ 多語言 thin page、vercel.json 等）
+- Meme 展示牆改為每次讀取 6 筆，並標註需 `approved=true` 才顯示
 - 加入 Supabase 整合：使用者生成 APNG 後可一鍵分享到 Meme 展示頁
 - 分享功能改為同頁 Modal（不再跳轉到獨立頁面），生成的 blob 透過 window 全域變數傳遞
-- Meme 展示頁改為從 Supabase 動態讀取最新 20 筆，支援分頁
 - 分享 Modal 可填寫標題與作者暱稱（皆選填），上傳後自動切到 Meme tab 刷新
 - 新增 `js/share.js`（分享 Modal 邏輯）、`js/meme.js`（Supabase Meme 載入）
 - 修正：移除原本跨頁面 sessionStorage 傳 blob 的做法，改用 SPA 全域變數
