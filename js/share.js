@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — 分享 Modal 邏輯
  * @author [DaiEn]
- * @Date: 2026-11-10
- * @Correction: 3
+ * @Date: 2026-11-11
+ * @Correction: 4
  *
  * 與 index.html 同頁，直接讀 window._currentApngBlob
  */
@@ -25,8 +25,9 @@
 
 	if (!modal || !shareBtn) return;
 
-	// 若 Supabase 未啟用：隱藏分享按鈕，整個功能不運作
-	if (!cfg || !cfg.enabled) {
+	// 不在分享白名單就整個功能不運作（白名單見 supabase-config.js 的 shareHosts）
+	// SHARE_ALLOWED 已經包含「Supabase 未啟用」的判斷，不用再重複檢查 cfg.enabled
+	if (!window.SHARE_ALLOWED) {
 		shareBtn.style.display = 'none';
 		return;
 	}

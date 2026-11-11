@@ -3,7 +3,7 @@
  * PNG CRC32 / acTL 循環次數 / UPNG 編碼 / GIF 輸出 / LINE 規範警告 / 語言重繪
  * @author [DaiEn]
  * @Date: 2026-11-11
- * @Correction: 1
+ * @Correction: 2
  *
  * 由原 apng.js 第 304~360 行與第 859~1088 行原封不動切出，未改動任何邏輯
  * 依賴 apng-frames.js 先載入（使用其 DOM 節點與 files / frameDelays 狀態）
@@ -204,8 +204,8 @@ makeBtn.addEventListener('click', async () => {
 		try {
 			window._currentApngBlob = blob;
 			window._currentApngUrl = url;
-			// 只有 Supabase 啟用時才顯示分享按鈕
-			if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.enabled) {
+			// 只有在分享白名單網域（且 Supabase 啟用）時才顯示分享按鈕
+			if (window.SHARE_ALLOWED) {
 				document.getElementById('shareLink').style.display = 'inline-block';
 			}
 		} catch (e) { console.warn('share state fail', e); }
