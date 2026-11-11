@@ -96,22 +96,14 @@
 
 ```json
 {
-  "version": 2,
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "functions": {
-    "api/*.js": {
-      "maxDuration": 10
-    }
-  }
+  "rewrites": [
+    { "source": "/api/upload", "destination": "/api/upload.js" }
+  ]
 }
 ```
 
 說明：
-- `buildCommand: null`：純靜態網站，不用 build
-- `outputDirectory: "."`：直接用根目錄當輸出
-- `functions.api/*.js`：把 `api/` 資料夾下的 .js 都註冊成 Serverless Function
-- `maxDuration: 10`：Function 最多跑 10 秒（Hobby 方案上限）
+- 這條 `rewrites` 就是**把「沒有副檔名的漂亮路徑」接到「真正的檔案」**
 
 > ⚠️ 不要在 vercel.json 裡寫 `runtime` 欄位，Vercel 會直接報 build failed。
 
@@ -150,7 +142,7 @@
 ### 修改程式碼後怎麼更新？
 
 **拖曳部署**：
-- 改完後重新把 `static` 資料夾拖到 Vercel Dashboard
+- 資料夾拖到 Vercel Dashboard
 - 舊的部署會保留，可隨時回到上一個版本
 
 **GitHub 連結**：
@@ -170,9 +162,6 @@
 ---
 
 ## 常見問題
-
-**Q: 部署後打開網站是 404？**
-A: 確認你拖曳的是 `static` 資料夾本身，不是 `EggshellCatApngTool` 整個專案資料夾。Vercel 要看到根目錄有 `index.html`。
 
 **Q: /api/upload 回傳 500？**
 A: 99% 是環境變數沒設好，或重新部署後才生效。到 Vercel Logs 看詳細錯誤。

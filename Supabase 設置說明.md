@@ -163,4 +163,4 @@ A: Project Settings → Database → Reset database password。但這個密碼�
 A: 建議不要。要改的話，前端 `supabase-config.js`、後端 Vercel Function、實際 bucket 名稱三處要一起改。
 
 **Q: 免費額度用完了怎麼辦？**
-A: 升 Pro 方案 $25/月，或定期在 Storage 刪除不需要的舊圖片。
+A: 升 Pro 方案，或定期在 Storage 刪除不需要的舊圖片。
