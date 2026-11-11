@@ -22,9 +22,10 @@ window.SUPABASE_CONFIG = {
   anonKey: 'sb_publishable_SkZTiwPIwUFsEJ6ADn1meQ_XCLIXEHW',
   bucket: 'apng-uploads',
   shareHosts: [
-    'apng-murex.vercel.app',   // 正式站
-    'localhost:8080',          // 本機 Spring Boot
-    '127.0.0.1:8080'           // 本機另一種寫法
+    'apng-murex.vercel.app',              // 主站（Vercel）
+    'eggshell-cat-apng-tool.edgeone.dev', // 分站（EdgeOne Pages）
+    'localhost:8080',                     // 本機 Spring Boot
+    '127.0.0.1:8080'                      // 本機另一種寫法
   ]
 };
 
