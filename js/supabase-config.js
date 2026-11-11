@@ -2,7 +2,7 @@
  * 蛋殼喵 APNG 工具 — Supabase 設定
  * @author [DaiEn]
  * @Date: 2026-11-11
- * @Correction: 3
+ * @Correction: 4
  *
  * 把下面幾個常數換成你自己 Supabase 專案的值：
  *   - enabled     設 true 才會啟用分享功能（false = 隱藏分享按鈕、不連 Supabase）
@@ -22,11 +22,15 @@ window.SUPABASE_CONFIG = {
   anonKey: 'sb_publishable_SkZTiwPIwUFsEJ6ADn1meQ_XCLIXEHW',
   bucket: 'apng-uploads',
   shareHosts: [
-    'apng-murex.vercel.app',              // 主站（Vercel）
-    'eggshell-cat-apng-tool.edgeone.dev', // 分站（EdgeOne Pages）
-    'localhost:8080',                     // 本機 Spring Boot
-    '127.0.0.1:8080'                      // 本機另一種寫法
-  ]
+    'cat.apng.top',							// vercel站（Vercel）
+	'apng-murex.vercel.app',				// vercel站（Vercel）
+    'apng.top',								// 自訂域名（EdgeOne Pages，不帶 www）
+	'eggshell-cat-apng-tool.edgeone.dev',	// edgeone站（EdgeOne Pages 專案域名）
+	
+    'www.apng.top',							// 自訂域名（帶 www，需先補上 www 的 CNAME）
+    'localhost:8080',						// 本機 Spring Boot
+    '127.0.0.1:8080'						// 本機另一種寫法
+  ],
 };
 
 /**
