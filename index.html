@@ -1,10 +1,23 @@
 <!--
 	@author: [DaiEn]
-	@Date: 2026-11-11
-	@Correction: 17
+	@Date: 2026-11-13
+	@Correction: 33
 	蛋殼喵 APNG 工具 — 多國語言版
-	本次修正：apng.js 拆分為 app-shell / apng-frames / apng-encoder / png-editor 四檔
-	本次修正：Help 頁新增常見問題（7 題，五語系同步）
+	本次修正：Help「怎麼用」新增文字面板說明（第 5 點，原本第 4～6 點順延為 6～8）
+	本次修正：FX／PNG 兩頁的文字面板從右側設定欄搬到左欄，緊貼操作按鈕列上方（樣式比照 APNG 頁）
+	本次修正：影格縮圖那顆「隱藏」鈕收合時，排序列五顆排序鈕一起隱藏（.sort-bar.grid-collapsed）；獨立影格設置的隱藏鈕不影響它們
+	本次修正：排序列右側的「隱藏影格縮圖／顯示」兩顆包成 .sort-bar-right 靠右分組，不再掉到排序列外面自成第二列
+	本次修正：foShowBtn 加上 .fo-show-btn 類別，與獨立影格設置的隱藏鈕統一綠色
+	上次修正：APNG／FX／PNG 三頁都加上「文字」面板（js/text-overlay.js）：十字鍵位移、字體、粗斜體底線、字級、顏色、外框、陰影
+	上次修正：獨立影格設置面板新增「隱藏」鈕（對應的「顯示」鈕在排序列右側）
+	上次修正：排序列最右邊新增「隱藏／顯示」鈕（cat-035 / cat-034），可收合影格縮圖方便操作下方的獨立影格設置
+	上次修正：新增 js/source-frame.js，三個工作框（APNG／FX／PNG）都畫綠色原圖外框；APNG 以第一張圖的尺寸為基準
+	上次修正：Help「怎麼用」新增十字鍵（單格位移）說明
+	上次修正：新增「獨立影格設置」面板（上下左右 2px 位移、中間還原）與 frame-offset.js
+	上次修正：FX 頁播放控制列改為五鍵（首格／上一格／播放暫停／下一格／末格），比照 APNG 頁
+	上次修正：新增 FX 特效頁（tab-fx，41 種特效、只做預覽與送出）；HELP 移到頁尾
+	上次修正：apng.js 拆分為 app-shell / apng-frames / apng-encoder / png-editor 四檔
+	上次修正：Help 頁新增常見問題（7 題，五語系同步）
 	圖片完全在瀏覽器本機處理，不上傳伺服器
 -->
 <!DOCTYPE html>
@@ -122,13 +135,13 @@
 	<!-- Tab 導覽列 -->
 	<nav class="tab-bar">
 		<button class="tab-btn active" data-tab="tab-app">
-			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabApp">APNG</small>
+			<small class="cat cat-151"></small>&nbsp;<small data-i18n="tabApp">APNG</small>
+		</button>
+		<button class="tab-btn" data-tab="tab-fx">
+			<small class="cat cat-152"></small>&nbsp;<small data-i18n="tabFx">FX</small>
 		</button>
 		<button class="tab-btn" data-tab="tab-png">
 			<small class="cat cat-098"></small>&nbsp;<small data-i18n="tabPng">PNG</small>
-		</button>
-		<button class="tab-btn" data-tab="tab-help">
-			<small class="cat cat-029"></small>&nbsp;<small data-i18n="tabHelp">Help</small>
 		</button>
 		<button class="tab-btn" data-tab="tab-meme">
 			<small class="cat cat-026"></small>&nbsp;<small data-i18n="tabMeme">Meme</small>
@@ -137,7 +150,7 @@
 </header>
 
 <!-- ============================================================
-     Tab 1：APNG 動畫製作（主要功能）
+     Tab：APNG 動畫製作（主要功能）
      ============================================================ -->
 <main id="tab-app" class="tab-panel active">
 	<div class="main-layout">
@@ -205,9 +218,55 @@
 						<button class="sort-btn" data-sort="date-old">
 							<small class="cat cat-068"></small>&nbsp;<small data-i18n="sortDateOld">最早在上</small>
 						</button>
+						<!-- 右側兩顆：收合影格縮圖 / 把獨立影格設置叫回來。
+						     包成一組靠右，排序鈕收起來時這一組位置不動，
+						     才不會跟著整排往左跳 -->
+						<div class="sort-bar-right">
+							<button class="sort-btn frame-grid-toggle" id="frameGridToggle" type="button" title="收合／展開影格縮圖">
+								<small class="cat cat-035"></small>&nbsp;<small data-i18n="hideFrames">隱藏</small>
+							</button>
+							<button class="sort-btn fo-show-btn" id="foShowBtn" type="button" style="display:none" title="展開獨立影格設置">
+								<small class="cat cat-034"></small>&nbsp;<small data-i18n="foShow">顯示</small>
+							</button>
+						</div>
 					</div>
 					<!-- 影格縮圖網格 -->
 					<div class="frame-grid" id="frameGrid"></div>
+
+					<!-- 獨立影格設置：只作用在目前選取的那一格（沒有影格時由 JS 收起） -->
+					<div class="frame-offset-panel" id="frameOffsetPanel" style="display:none">
+						<!-- 十字方向鍵：上 / 左 / 中間還原 / 右 / 下，一次走 2px -->
+						<div class="fo-pad" id="foPad">
+							<button class="fo-btn fo-up" data-dir="up" title="往上移動 2 像素" data-i18n-title="foUp"><small class="cat cat-081"></small></button>
+							<button class="fo-btn fo-left" data-dir="left" title="往左移動 2 像素" data-i18n-title="foLeft"><small class="cat cat-082"></small></button>
+							<button class="fo-btn fo-center" data-dir="reset" title="恢復初始狀態" data-i18n-title="foReset"></button>
+							<button class="fo-btn fo-right" data-dir="right" title="往右移動 2 像素" data-i18n-title="foRight"><small class="cat cat-083"></small></button>
+							<button class="fo-btn fo-down" data-dir="down" title="往下移動 2 像素" data-i18n-title="foDown"><small class="cat cat-249"></small></button>
+						</div>
+						<div class="fo-info">
+							<p class="fo-meta">
+								<span id="foFrameText">Frame 1</span>
+								<span id="foName">—</span>
+								<span id="foMs">100ms</span>
+							</p>
+							<div class="fo-fields">
+								<div class="fo-field">
+									<span class="fo-label" data-i18n="foXLabel">X 偏移量</span>
+									<input id="foX" type="number" step="1" value="0">
+								</div>
+								<div class="fo-field">
+									<span class="fo-label" data-i18n="foYLabel">Y 偏移量</span>
+									<input id="foY" type="number" step="1" value="0">
+								</div>
+								<!-- 隱藏鈕：這塊面板占的橫向空間不小，不用時收起來，下方文字面板就往上頂 -->
+								<button type="button" class="fo-hide-btn" id="foHideBtn">
+									<small class="cat cat-035"></small>&nbsp;<small data-i18n="foHide">隱藏</small>
+								</button>
+							</div>
+						</div>
+					</div>
+					<!-- 文字面板（APNG 頁）：面板內容由 js/text-overlay.js 組出來，這裡只留掛載點 -->
+					<div class="text-panel" id="textHostApp"></div>
 				</div>
 			</div>
 
@@ -289,7 +348,109 @@
 </main>
 
 <!-- ============================================================
-     Tab 2：PNG 靜態貼圖工具
+     Tab：FX 動畫特效（只選效果與預覽，編輯交給 APNG 頁）
+     ============================================================ -->
+<section id="tab-fx" class="tab-panel">
+	<div class="main-layout">
+
+		<!-- 左側：檔案選取 + 效果預覽 + 送出 -->
+		<div class="left-panel">
+
+			<!-- 拖曳上傳區（單張圖片） -->
+			<div class="drop-zone" id="fxDropZone">
+				<p><strong data-i18n="fxDropHint">把一張圖片拖曳到這裡（JPG / PNG / GIF / WEBP）</strong></p>
+				<p data-i18n="fxDropOrClick">或點此選擇檔案</p>
+				<input type="file" id="fxFileInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+			</div>
+
+			<!-- 預覽區 -->
+			<div class="preview-area" id="fxPreviewArea" style="display:none">
+				<div class="preview-stage" id="fxPreviewStage">
+					<div class="preview-info" id="fxPreviewInfo" data-i18n="fxPreviewEmpty">尚無預覽</div>
+					<canvas id="fxCanvas"></canvas>
+				</div>
+
+				<!-- 播放控制列（FX 頁自己的播放器，五鍵排法比照 APNG 頁） -->
+				<div class="playback-controls">
+					<button id="fxFirstBtn" data-i18n-title="firstFrame" title="到第一格">
+						<small class="cat cat-2x cat-color01 cat-086"></small>
+					</button>
+					<button id="fxPrevBtn" data-i18n-title="prevFrame" title="上一格">
+						<small class="cat cat-2x cat-color02 cat-084"></small>
+					</button>
+					<button id="fxPlayBtn" data-i18n-title="playPause" title="播放/暫停">
+						<small class="cat cat-2x cat-color03 cat-083"></small>
+					</button>
+					<button id="fxNextBtn" data-i18n-title="nextFrame" title="下一格">
+						<small class="cat cat-2x cat-color04 cat-085"></small>
+					</button>
+					<button id="fxLastBtn" data-i18n-title="lastFrame" title="到最後一格">
+						<small class="cat cat-2x cat-color05 cat-087"></small>
+					</button>
+					<div class="playback-info">
+						<div id="fxFramePosText">0 / 0</div>
+					</div>
+				</div>
+
+				<!-- 影格指示點（FX 頁不顯示縮圖，避免額外記憶體） -->
+				<div class="timeline fx-timeline" id="fxTimeline"></div>
+
+				<!-- 文字面板（FX 頁）：跟 APNG 頁同一套樣式，放在操作按鈕列上方；
+				     這裡的字是燒進影格的，所見即所送 -->
+				<div class="text-panel" id="textHostFx"></div>
+			</div>
+
+			<!-- 操作按鈕列 -->
+			<div class="actions">
+				<button id="fxSendBtn" disabled>
+					<small class="cat cat-033"></small>&nbsp;<small data-i18n="fxSend">送到 APNG 頁</small>
+				</button>
+				<button id="fxClearBtn" class="secondary">
+					<small class="cat cat-094"></small>&nbsp;<small data-i18n="fxClear">清空</small>
+				</button>
+			</div>
+
+			<div id="fxStatus"></div>
+			<div id="fxInfo"></div>
+		</div>
+
+		<!-- 右側：特效選取（可上下滑動）+ 輸出設定 -->
+		<div class="right-panel">
+
+			<div class="settings-group">
+				<h3>
+					<cat class="cat cat-209"></cat>&nbsp;<cat data-i18n="fxEffects">特效</cat>
+				</h3>
+				<div class="fx-effect-list" id="fxEffectList"></div>
+				<small data-i18n="fxEffectHint">可上下滑動選取，點一下就套用</small>
+			</div>
+
+			<div class="settings-group">
+				<h3>
+					<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="fxOutput">輸出設定</cat>
+				</h3>
+
+				<div class="fx-row">
+					<label data-i18n="fxFrames">影格數</label>
+					<input type="range" id="fxFrameCount" min="5" max="40" value="20">
+					<span id="fxFrameCountVal">20</span>
+				</div>
+
+				<div class="fx-row">
+					<label data-i18n="fxIntensity">強度</label>
+					<input type="range" id="fxIntensity" min="0" max="100" value="50">
+					<span id="fxIntensityVal">50%</span>
+				</div>
+
+				<small data-i18n="fxSpecHint">延遲固定 100ms、最長邊 ≤512px、格數 ≤40</small>
+			</div>
+
+		</div>
+	</div>
+</section>
+
+<!-- ============================================================
+     Tab：PNG 靜態貼圖工具
      ============================================================ -->
 <section id="tab-png" class="tab-panel">
 	<div class="main-layout">
@@ -325,6 +486,10 @@
 						<small class="cat cat-147"></small><small data-i18n="pngRestore">還原</small>
 					</button>
 				</div>
+
+				<!-- 文字面板（PNG 頁）：跟 APNG 頁同一套樣式，放在操作按鈕列上方；
+				     240×240 與 96×74 兩張輸出都會燒字 -->
+				<div class="text-panel" id="textHostPng"></div>
 			</div>
 
 			<div class="actions">
@@ -475,6 +640,7 @@
 			<div class="settings-group" id="pngSettingsPlaceholder">
 				<p class="muted" data-i18n="pngSettingsHint">上傳圖片後顯示</p>
 			</div>
+
 		</div>
 	</div>
 </section>
@@ -496,6 +662,17 @@
 			<li data-i18n="helpStep1">把 PNG / APNG / GIF 拖到虛線框（可多選）</li>
 			<li data-i18n="helpStep2">在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）</li>
 			<li data-i18n="helpStep3">用卡片下方的 ⏮ ◀ ▶ ⏭ 按鈕調整影格順序，✕ 刪除不需要的格</li>
+			<p>
+				<img src="images/sample/frame.jpg">
+			</p>
+			<li data-i18n="helpStep3b">點某張卡片選取該格，下方十字鍵可把該格往上／下／左／右各移 2px，中間的鈕還原成剛載入時的樣子，右側也能直接打 X／Y 偏移量（每格各自獨立）</li>
+			<p>
+				<img src="images/sample/xy-zh-TW.jpg" data-i18n-img="images/sample/xy-{lang}.jpg">
+			</p>
+			<li data-i18n="helpText">想加文字就打開「文字」面板，輸入內容並挑字體、字級、顏色，需要再加外框／陰影；「起始格 / 結束格」決定文字從第幾格出現到第幾格（預設第一格到最後一格），勾「淡入淡出」字會在兩端自動淡掉</li>
+			<p>
+				<img src="images/sample/text-zh-TW.jpg" data-i18n-img="images/sample/text-{lang}.jpg">
+			</p>
 			<li data-i18n="helpStep4">設定循環次數與色彩深度</li>
 			<li data-i18n="helpStep5">需要縮放才填輸出寬高，留空 = 原圖大小</li>
 			<li data-i18n="helpStep6">點「生成 APNG」→「下載 PNG」</li>
@@ -520,8 +697,23 @@
 		<div class="faq-list">
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ1">APNG 跟 GIF 有什麼不同？</span></p>
 			<p class="faq-a" data-i18n="faqA1">APNG（Animated PNG）支援完整透明與 24 位元色彩＋8 位元 alpha；GIF 只有 256 色與 1 位元透明。要做邊緣柔和、帶透明陰影的動畫，APNG 的畫質明顯更好，檔案通常也更小。</p>
+			<p class="timeline-help-row">
+				<img src="images/sample/stomp.png"><img class="timeline-help" src="images/sample/stomp-png.jpg">
+			</p>
+			<p class="timeline-help-row">
+				<img src="images/sample/stomp.gif"><img class="timeline-help" src="images/sample/stomp-gif.jpg">
+			</p>
+			<p class="timeline-help-row">
+				<img src="images/sample/wiggle.png"><img class="timeline-help" src="images/sample/wiggle-png.jpg">
+			</p>
+			<p class="timeline-help-row">
+				<img src="images/sample/wiggle.gif"><img class="timeline-help" src="images/sample/wiggle-gif.jpg">
+			</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ2">怎麼讓輸出的檔案變小？</span></p>
 			<p class="faq-a" data-i18n="faqA2">在「基本設定」把色彩改成 256 色或 128 色（全彩檔案最大）；也可以減少影格數量，或在「輸出尺寸」填比較小的寬高。本工具沒有 lossy 壓縮滑桿，縮小檔案就是靠這三個方式。</p>
+			<p>
+				<img src="images/sample/colors-zh-TW.jpg" data-i18n-img="images/sample/colors-{lang}.jpg" alt="">
+			</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ3">我的圖片會被上傳嗎？</span></p>
 			<p class="faq-a" data-i18n="faqA3">生成、拆格、縮放、去背全部在瀏覽器本機用 Canvas 完成，圖片不會離開你的電腦。只有你主動按「分享我的圖片」時，檔案才會上傳到 Meme 展示牆，而且要經過審核才會公開顯示。</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ4">可以把現成的 GIF 或 APNG 丟進來改嗎？</span></p>
@@ -604,6 +796,9 @@
 		<button data-tab="tab-emoji" class="footer-github">
 			<span class="cat cat-1x5 cat-143"></span><span data-i18n="tabEmoji">EggshellCat Emoji</span>
 		</button>
+		<button data-tab="tab-help" class="footer-github">
+			<span class="cat cat-1x5 cat-142"></span><span data-i18n="tabHelp">HELP</span>
+		</button>
 		<button data-tab="tab-readme" class="footer-github">
 			<span class="cat cat-1x5 cat-141"></span><span data-i18n="tabReadme">APNG TOOL 修改記錄</span>
 		</button>
@@ -675,14 +870,22 @@
 
 <!-- ============================================================
      JS 載入順序（傳統 script，載入順序 = 執行順序，不可任意調換）
-     share.js → meme.js → app-shell → apng-frames → apng-encoder → png-editor
+	media-utils → share.js → meme.js → app-shell → source-frame → source-frame → text-overlay → apng-frames → frame-offset → apng-encoder → png-editor → fx.js
+     media-utils 提供 replayImg()，share / meme / app-shell 都會用到，必須最先載入
      apng-frames 宣告全域 DOM 節點與狀態，必須排在使用它的兩支之前
+     frame-offset 要讀 files / previewUrls / currentFrame，必須排在 apng-frames 之後
+	text-overlay 提供 window.TextOverlay，apng-frames / apng-encoder / png-editor / fx 都要用，必須排在最前面
      ============================================================ -->
+<script src="js/media-utils.js"></script>
 <script src="js/share.js"></script>
 <script src="js/meme.js"></script>
 <script src="js/app-shell.js"></script>
+<script src="js/source-frame.js"></script>
+<script src="js/text-overlay.js"></script>
 <script src="js/apng-frames.js"></script>
+<script src="js/frame-offset.js"></script>
 <script src="js/apng-encoder.js"></script>
 <script src="js/png-editor.js"></script>
+<script src="js/fx.js"></script>
 </body>
 </html>

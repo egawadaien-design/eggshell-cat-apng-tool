@@ -2,10 +2,18 @@
  * 蛋殼喵 APNG 工具 — 影格管理
  * 檔案匯入 / APNG-GIF 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 1
+ * @Date: 2026-11-12
+ * @Correction: 9
+ * 2026-11-12 追加：接上 js/text-overlay.js，APNG 頁新增「文字」面板（十字鍵 / 字體 / 粗斜體底線 / 字級 / 顏色 / 外框 / 陰影），
+ *                 預覽用透明 canvas 疊在 .preview-stage 上，實際燒字在 apng-encoder.js
+ * 2026-11-12 追加：影格縮圖收起時，排序列五顆排序鈕一起隱藏（sort-bar.grid-collapsed）
  *
  * 由原 apng.js 第 362~857 行原封不動切出，未改動任何邏輯
+ * 2026-11-12 追加：影格卡片底部中間新增「複製此格」鈕（duplicateFrame），
+ *                 導航鈕改用 class 抓取，不再依賴 querySelectorAll 的索引順序
+ *                 補上與 js/frame-offset.js 的兩個接口（切格同步面板、複製時繼承位移記錄）
+ * 2026-11-12 追加：接上 js/source-frame.js，預覽舞台畫出「第一張圖」的綠色外框（drawSourceFrame）
+ * 2026-11-12 追加：排序列最右邊新增收合鈕（frameGridToggle），可把影格縮圖整片收起來
  * 注意：本檔包含全域狀態（files / previewUrls / frameDelays 等）與 DOM 節點宣告，
  *       必須在 apng-encoder.js、png-editor.js 之前載入
  */
@@ -151,11 +159,52 @@ function sortFrames(mode) {
 
 document.querySelectorAll('.sort-btn').forEach(btn => {
 	btn.addEventListener('click', () => {
+		// 排序列最右邊那顆是「收合影格縮圖」，沒有 data-sort，
+		// 不是排序鈕，直接跳過（不然會把 active 狀態清掉又呼叫 sortFrames(undefined)）
+		if (!btn.dataset.sort) return;
 		document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
 		btn.classList.add('active');
 		sortFrames(btn.dataset.sort);
 	});
 });
+
+// ============================================================
+// 收合／展開影格縮圖（排序列最右邊那顆「隱藏 / 顯示」鈕）
+// 為什麼要有：影格一多，下面的「獨立影格設置」會被推到要捲好幾屏才有，
+//   收掉縮圖網格後十字鍵跟 X / Y 輸入框就直接在眼前，調偏移量順手很多。
+//   只是「看不看得到縮圖」而已，不影響 files / frameDelays / 目前選取的那一格。
+// ============================================================
+const frameGrid = document.getElementById('frameGrid');
+const frameGridToggle = document.getElementById('frameGridToggle');
+// 排序列的五顆排序鈕跟著這顆鈕進退：縮圖收起來時，排序鈕也沒有挑格的依據，一起讓位
+const sortBar = document.querySelector('.sort-bar');
+let frameGridHidden = false; // false = 縮圖展開（預設，跟以前一樣）
+
+function applyFrameGridToggle() {
+	if (!frameGrid || !frameGridToggle) return;
+	frameGrid.classList.toggle('is-hidden', frameGridHidden);
+	if (sortBar) sortBar.classList.toggle('grid-collapsed', frameGridHidden);
+	const iconEl = frameGridToggle.querySelector('.cat');
+	if (iconEl) {
+		// cat-035 是「眼睛閉起來」的貓（隱藏），cat-034 是睜眼（顯示）
+		iconEl.classList.toggle('cat-035', !frameGridHidden);
+		iconEl.classList.toggle('cat-034', frameGridHidden);
+	}
+	const labelEl = frameGridToggle.querySelector('[data-i18n]');
+	if (labelEl) {
+		// data-i18n 也要一起換，否則切換語言時 applyLang 會用舊的 key 把文字蓋回去
+		const key = frameGridHidden ? 'showFrames' : 'hideFrames';
+		labelEl.setAttribute('data-i18n', key);
+		labelEl.textContent = t(key);
+	}
+}
+
+if (frameGridToggle) {
+	frameGridToggle.addEventListener('click', () => {
+		frameGridHidden = !frameGridHidden;
+		applyFrameGridToggle();
+	});
+}
 
 // 掃 PNG chunks，看到 acTL 就是 APNG
 function isAPNG(buf) {
@@ -277,6 +326,7 @@ function rebuildPreviews() {
 	} else {
 		previewImg.style.display = 'none';
 		previewInfo.textContent = '';
+		if (window.SourceFrame) window.SourceFrame.hide(previewStage);
 		document.querySelector('.preview-area').style.display = 'none';
 		document.getElementById('fileListGroup').style.display = 'none';
 		updatePlaybackInfo();
@@ -297,6 +347,9 @@ async function detectFirstImageSize() {
 		sourceH = bitmap.height;
 		outW.value = sourceW;
 		outH.value = sourceH;
+		// 尺寸量到了，綠色外框要用「第一張的原始尺寸」重算一次
+		// （第一次上傳時 showFrame 跑得比這裡早，當下還不知道 sourceW / sourceH）
+		drawSourceFrame();
 	} catch (e) { console.warn(e); }
 }
 
@@ -337,17 +390,18 @@ function renderTimeline() {
 			<div class="frame-nav">
 				<button class="nav-mini nav-first" title="${t('firstFrame')}"><small class="cat cat-086"></small></button>
 				<button class="nav-mini nav-prev" title="${t('prevFrame')}"><small class="cat cat-082"></small></button>
-				<span class="frame-nav-info"></span>
+				<button class="nav-mini nav-dup" title="${t('dupFrame')}"><small class="cat cat-247"></small></button>
 				<button class="nav-mini nav-next" title="${t('nextFrame')}"><small class="cat cat-083"></small></button>
 				<button class="nav-mini nav-last" title="${t('lastFrame')}"><small class="cat cat-087"></small></button>
 			</div>
 		`;
-		// 卡片底部 4 顆導航鈕：到最前 / 前一格 / 後一格 / 到最後
-		const navBtns = card.querySelectorAll('.frame-nav button');
-		navBtns[0].addEventListener('click', (e) => { e.stopPropagation(); if (i === 0) return; moveFrame(i, 0); });
-		navBtns[1].addEventListener('click', (e) => { e.stopPropagation(); if (i === 0) return; swapFrames(i, i - 1); });
-		navBtns[2].addEventListener('click', (e) => { e.stopPropagation(); if (i === files.length - 1) return; swapFrames(i, i + 1); });
-		navBtns[3].addEventListener('click', (e) => { e.stopPropagation(); if (i === files.length - 1) return; moveFrame(i, files.length - 1); });
+		// 卡片底部 5 顆鈕：到最前 / 前一格 / 複製這格插在後面 / 後一格 / 到最後
+		// 用 class 抓按鈕而不是陣列索引，以後中間再插一顆也不會把位置整個錯開
+		card.querySelector('.nav-first').addEventListener('click', (e) => { e.stopPropagation(); if (i === 0) return; moveFrame(i, 0); });
+		card.querySelector('.nav-prev').addEventListener('click', (e) => { e.stopPropagation(); if (i === 0) return; swapFrames(i, i - 1); });
+		card.querySelector('.nav-dup').addEventListener('click', (e) => { e.stopPropagation(); duplicateFrame(i); });
+		card.querySelector('.nav-next').addEventListener('click', (e) => { e.stopPropagation(); if (i === files.length - 1) return; swapFrames(i, i + 1); });
+		card.querySelector('.nav-last').addEventListener('click', (e) => { e.stopPropagation(); if (i === files.length - 1) return; moveFrame(i, files.length - 1); });
 		// 每格延遲即時輸入
 		const delayInput = card.querySelector('.frame-delay-input');
 		delayInput.addEventListener('input', (e) => {
@@ -395,6 +449,30 @@ function moveFrame(from, to) {
 	showFrame(to);
 }
 
+// 複製第 i 格，把副本插在它「後面」一格（圖片內容與延遲時間都照抄）
+function duplicateFrame(i) {
+	pause();                 // 複製途中影格陣列會變長，先暫停播放免得播到一半索引對不上
+	const src = files[i];
+	if (!src) return;
+
+	// 用同一個 Blob 內容重新包成一個 File：檔名、MIME 原樣帶過去，
+	// 這樣 apng-encoder.js 後面那套流程完全不用為「複製出來的格」另開分支。
+	// （File 建構子的第一個參數吃 Blob，直接丟 File 進去也可以）
+	const copy = new File([src], src.name, { type: src.type || 'image/png' });
+
+	// 副本要繼承原本那格的「位移記錄」（原始圖與 dx / dy），
+	// 否則副本按「恢復初始狀態」會還原成位移後的樣子，跟原本那格對不上
+	if (typeof window.inheritFrameMeta === 'function') window.inheritFrameMeta(src, copy);
+
+	files.splice(i + 1, 0, copy);
+	previewUrls.splice(i + 1, 0, URL.createObjectURL(copy));
+	frameDelays.splice(i + 1, 0, frameDelays[i] || 100);
+
+	renderList();
+	renderTimeline();
+	showFrame(i + 1);        // 跳到剛複製出來的那格，讓使用者一眼看到結果
+}
+
 // 刪除第 i 格，同步調整 currentFrame 位置
 function deleteFrame(i) {
 	pause();
@@ -409,6 +487,10 @@ function deleteFrame(i) {
 		document.querySelector('.preview-area').style.display = 'none';
 		makeBtn.disabled = true;
 		updatePlaybackInfo();
+		// 影格全刪光了，獨立影格設置面板也要跟著收起來（它不會經過 showFrame）
+		if (typeof window.refreshFrameOffsetPanel === 'function') window.refreshFrameOffsetPanel();
+		// 沒有影格就沒有原圖，綠色外框一起收掉
+		if (window.SourceFrame) window.SourceFrame.hide(previewStage);
 		return;
 	}
 	// 刪完後要把 currentFrame 調整到合理位置
@@ -430,7 +512,64 @@ function showFrame(i) {
 	document.querySelectorAll('.frame-card').forEach((el, idx) => el.classList.toggle('active', idx === i));
 	document.querySelectorAll('.timeline-item').forEach((el, idx) => el.classList.toggle('active', idx === i));
 	updatePlaybackInfo();
+	// 獨立影格設置面板（js/frame-offset.js）也要跟著換成目前這一格；
+	// 該檔不一定存在，所以先用 typeof 判斷再呼叫
+	if (typeof window.refreshFrameOffsetPanel === 'function') window.refreshFrameOffsetPanel();
+	// 綠色原圖外框：換格時重畫（框固定吃第一張圖的尺寸，所以不會跟著這格一起跳）
+	drawSourceFrame();
 }
+
+// ============================================================
+// 綠色原圖外框（js/source-frame.js）
+// 為什麼框要用「第一張圖」的尺寸，而不是目前這一格的尺寸：
+//   多格匯入時每格可能大小不同，frame-offset.js 又會把位移烘焙進圖片，
+//   如果框貼著每格自己的邊界跑，換格時框也一起變，就看不出「這格比第一張大多少」。
+//   框固定吃第一張的原始尺寸，圖片貼齊框＝與第一張等大，超出框＝比第一張大。
+// ============================================================
+function drawSourceFrame() {
+	if (window.SourceFrame) {
+		if (previewImg.style.display === 'none' || previewUrls.length === 0) {
+			window.SourceFrame.hide(previewStage);
+		} else {
+			window.SourceFrame.aroundFirstSize(previewStage, previewImg, sourceW, sourceH);
+		}
+	}
+	// 文字疊層跟綠色外框吃同一個時機：換格、圖片載入完、視窗縮放都會走到這裡，
+	// 兩層都靠量「目標元素的實際矩形」定位，所以在這裡一起重畫最省事
+	paintTextOverlay();
+}
+
+// ============================================================
+// 文字疊層（js/text-overlay.js）
+// APNG 頁只是「預覽時疊上去」，真正燒進輸出是 apng-encoder.js 那邊的事；
+// 這裡的狀態也只屬於 APNG 頁，FX / PNG 各自 mount 自己那一份
+// ============================================================
+let appText = null;
+(function mountAppTextPanel() {
+	const host = document.getElementById('textHostApp');
+	if (!host || !window.TextOverlay) return;
+	appText = window.TextOverlay.mount(host, {
+		prefix: 'app',
+		onChange: paintTextOverlay
+	});
+})();
+
+function paintTextOverlay() {
+	if (!window.TextOverlay) return;
+	const st = appText ? appText.state : null;
+	// 沒有影格（或預覽是收起來的）就把疊層藏起來，免得字浮在空白舞台上
+	if (!st || previewUrls.length === 0 || previewImg.style.display === 'none') {
+		window.TextOverlay.paintOverlay(previewStage, previewImg, null);
+		return;
+	}
+	// 現在是第幾格也要一併傳，否則「只顯示第 3～8 格」在預覽上不會生效
+	window.TextOverlay.paintOverlay(previewStage, previewImg, st, currentFrame + 1, previewUrls.length);
+}
+
+// 圖片載入完成才知道 naturalWidth（第一次上傳時 sourceW 還是 0，必須等這裡重畫）
+previewImg.addEventListener('load', drawSourceFrame);
+// 視窗尺寸改變 → CSS 的 max-width / max-height 會改變顯示比例，框要跟著重算
+window.addEventListener('resize', drawSourceFrame);
 
 // 右上角資訊列：FPS + 單次循環總時間
 function updatePlaybackInfo() {
@@ -482,7 +621,8 @@ document.getElementById('firstBtn').addEventListener('click', () => { pause(); s
 document.getElementById('lastBtn').addEventListener('click', () => { pause(); showFrame(previewUrls.length - 1); });
 
 // 清空全部
-clearBtn.addEventListener('click', () => {
+// 抽成具名函式：FX 頁按「送到 APNG 頁」時要先清空舊影格再匯入
+function clearAll() {
 	pause();
 	files = [];
 	previewUrls.forEach(u => URL.revokeObjectURL(u));
@@ -496,6 +636,8 @@ clearBtn.addEventListener('click', () => {
 	renderTimeline();
 	previewImg.style.display = 'none';
 	previewInfo.textContent = t('previewEmpty');
+	// 影格清空就沒有「原圖」了，綠色外框也要一起收起來
+	if (window.SourceFrame) window.SourceFrame.hide(previewStage);
 	downloadLink.style.display = 'none';
 	document.getElementById('downloadGifLink').style.display = 'none';
 	document.getElementById('shareLink').style.display = 'none';
@@ -505,4 +647,9 @@ clearBtn.addEventListener('click', () => {
 	lastApngResult = null; // 清空後不保留結果，切換語言才不會把舊文字重繪回來
 	document.querySelector('.preview-area').style.display = 'none';
 	document.getElementById('fileListGroup').style.display = 'none';
-});
+	// 縮圖區回到預設展開：不然清空後再匯入新圖，影格卡會一整個看不到
+	frameGridHidden = false;
+	applyFrameGridToggle();
+}
+
+clearBtn.addEventListener('click', () => clearAll());

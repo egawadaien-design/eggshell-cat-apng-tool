@@ -5,7 +5,7 @@
 
 - 作者：DaiEn
 - 建立：2026-11-11
-- 最後更新：2026-11-11
+- 最後更新：2026-11-12（僅修文件；`upload.js` 本體未改動）
 - 對應平台：EdgeOne Pages（分站 `eggshell-cat-apng-tool.edgeone.dev`）
 
 ---
@@ -33,7 +33,7 @@ base64 會把檔案膨脹約 33%，1MB 上限等於原圖只能 750KB 左右，�
 
 ---
 
-## 與 Vercel 版的差異（只有五處）
+## 與 Vercel 版的介面差異（五處）
 
 | # | Vercel 版 `api/upload.js` | EdgeOne 版（本檔） |
 |---|---|---|
@@ -43,8 +43,13 @@ base64 會把檔案膨脹約 33%，1MB 上限等於原圖只能 750KB 左右，�
 | 4 | 回應 `res.status(500).json(...)` | 回應 `json(data, status)`（內部 `new Response`） |
 | 5 | 位置 `api/` | 位置 `node-functions/api/` |
 
-邏輯本體（Storage 上傳、DB 寫入、檔名產生、回應格式）兩邊**完全一致**，
+成功路徑的邏輯本體（Storage 上傳、DB 寫入、檔名產生、回應格式）兩邊一致，
 所以前端 `fetch('/api/upload')` 不需分辨自己在哪一個站。
+
+但**防護與錯誤處理不等價**：上表五處只是「介面差異」，另外「本版額外補的三道防護」
+是本版獨有（Vercel 版三項都沒有）；而 Vercel 版原本會把未預期錯誤的 `e.message`
+直接回給呼叫者，2026-11-12 已改成通用訊息 `Internal server error`。
+不要只看「五處」就以為兩支程式完全等價。
 
 ---
 
@@ -75,6 +80,10 @@ Content-Type: application/json
 | `author` | string \| null | | 暱稱（前端上限 20 字） |
 | `tags` | number[] | | 分類標籤編號（1～9） |
 
+> ⚠️ 上表的長度與型別**只有前端在擋**（`share.js` 的 `maxlength` 與多選介面），
+> 伺服器端目前**不驗證也不截斷**：用 `curl` 直接送可以塞超長 `title`，或把 `tags` 送成字串。
+> 要真正保證欄位格式，得在 `upload.js` 補 clamp 與型別檢查（尚未實作）。
+
 **成功回應**
 
 ```json
@@ -99,13 +108,20 @@ Content-Type: application/json
 | 400 | `檔案不是有效的 PNG / APNG` | magic number 不符 |
 | 500 | `Storage upload failed: ...` | bucket 名稱錯、bucket 非 public、金鑰失效 |
 | 500 | `Database insert failed: ...` | `apng_images` 欄位缺漏、RLS 阻擋 |
+| 500 | `e.message`（內容不固定） | 其他未預期例外。⚠️ **本版目前仍會把內部訊息回給前端**（已知落差，尚未修） |
 
 **快速驗函數是否活著**：
 
 ```powershell
-Invoke-WebRequest -Uri "https://eggshell-cat-apng-tool.edgeone.dev/api/upload" `
-  -Method Post -ContentType "application/json" -Body '{"x":1}' -UseBasicParsing
+'{"x":1}' | Set-Content -LiteralPath "$env:TEMP\payload.json" -Encoding utf8
+curl.exe -sS -X POST -H "Content-Type: application/json" `
+  --data-binary "@$env:TEMP\payload.json" `
+  "https://eggshell-cat-apng-tool.edgeone.dev/api/upload" -w "`nSTATUS=%{http_code}"
 ```
+
+> 為什麼不直接 `-Body '{"x":1}'`？PowerShell（以及 cmd）的引號會把內嵌 JSON 弄壞，
+> 後端收到的是壞 JSON，會回 `400 Invalid JSON body`，看起來像函數壞掉，其實只是參數被本地 shell 吃掉。
+> 一律先把 payload 寫成檔案，再用 `--data-binary "@檔案"`。
 
 - 回 `400 No image data` → 函數正常、env 也讀到了
 - 回 `500 Server not configured` → 函數正常但 env 空，補完要**重新部署**

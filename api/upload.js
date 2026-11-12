@@ -1,8 +1,8 @@
 /**
  * Vercel Serverless Function: 上傳 APNG 到 Supabase
  * @author [DaiEn]
- * @Date: 2026-11-10
- * @Correction: 2
+ * @Date: 2026-11-12
+ * @Correction: 3
  *
  * 【功能說明】
  * 前端把 APNG 圖片（base64 格式）POST 到這支 Function，
@@ -52,7 +52,9 @@ export default async function handler(req, res) {
     const { blobBase64, title, author, tags } = req.body;
 
     // 沒有圖片資料就拒絕
-    if (!blobBase64) {
+    // 除了「沒有」，也要擋「型別不對」：送數字或物件時，下面 .replace() 會拋 TypeError，
+    // 落到最外層 catch 變成 500，呼叫者分不出是「參數錯」還是「伺服器壞」
+    if (!blobBase64 || typeof blobBase64 !== 'string') {
       return res.status(400).json({ error: 'No image data' });
     }
 
@@ -117,6 +119,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, filename: filename });
   } catch (e) {
     // 任何意外錯誤都在這裡攔截
-    return res.status(500).json({ error: e.message || 'Unknown error' });
+    // 對外只回通用訊息：e.message 會把內部細節（例如「xxx is not a function」）送給呼叫者，
+    // 等於公開程式結構。真正原因只留在 Vercel 後台的函數日誌（Logs → Functions）。
+    console.error('[api/upload] unhandled error:', e);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

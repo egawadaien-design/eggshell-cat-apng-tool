@@ -1,11 +1,12 @@
 /**
  * 蛋殼喵 APNG 工具 — 應用外殼
- * 頁籤切換 / Emoji 字牆 / Meme 舊版解析 / README 載入 / 訪客追蹤
+ * 頁籤切換 / Emoji 字牆 / Meme 舊版解析 / README 載入 / 訪客追蹤 / Help 示意動畫重播
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 1
+ * @Date: 2026-11-12
+ * @Correction: 3
  *
  * 由原 apng.js 第 9~302 行原封不動切出，未改動任何邏輯
+ * 2026-11-12 追加：Help 頁的示意動畫支援「點一下從第一格重新播放」
  */
 
 // ============================================================
@@ -187,11 +188,10 @@ function formatSize(bytes) {
 				<p class="meme-caption">${item.label}</p>
 				<p class="meme-meta">${loadingText}</p>
 			`;
-			// 點擊重新播放：重新設定 src 強制 APNG 從頭播放
+			// 點擊重新播放：改用共用的 replayImg()（js/media-utils.js），
+			// 以前直接「src = '' 再設回」，會讓圖片閃一下、偶爾還不重播
 			div.querySelector('img').addEventListener('click', function () {
-				const src = this.src;
-				this.src = '';
-				this.src = src;
+				replayImg(this);
 			});
 			grid.appendChild(div);
 
@@ -302,3 +302,40 @@ fetch('https://raw.githubusercontent.com/egawadaien-design/eggshell-cat-apng-too
 		document.getElementById('readmeContent').innerHTML =
 			'<p style="color:#c06078"><span class="cat cat-030"></span>&nbsp;Failed to load README: ' + err.message + '</p>';
 	});
+
+// ============================================================
+// Help 頁示意圖：點一下從第一格重新播放
+// ------------------------------------------------------------
+// 重播的實作統一放在 js/media-utils.js 的 replayImg()（換帶時間戳的網址逼瀏覽器重新解碼），
+// 這裡只負責「挑出該綁的圖」跟「加上可點的視覺提示」。
+// 只綁 .gif / .png：靜態的 jpg 對照圖點了也沒有動畫可以播，不必給游標提示。
+// ============================================================
+(function initHelpReplay() {
+	const helpPanel = document.getElementById('tab-help');
+	if (!helpPanel) return;   // 沒有 Help 頁（例如被移掉）就直接跳過
+
+	// 提示文字跟著語系走；i18n 尚未載入時退回中文，避免顯示 key 名稱
+	const hint = (typeof t === 'function') ? t('helpReplayHint') : '點一下重新播放';
+
+	helpPanel.querySelectorAll('img').forEach(function (image) {
+		const originalSrc = image.getAttribute('src') || '';
+		if (!/\.(gif|png)(\?|#|$)/i.test(originalSrc)) return;   // 只處理會動的檔
+
+		image.classList.add('replayable');
+		image.title = hint;
+		image.setAttribute('role', 'button');       // 讓輔助工具知道它可以按
+		image.tabIndex = 0;                          // 鍵盤也搆得到
+
+		// 點一下、或鍵盤 Enter／空白鍵，都交給共用的 replayImg 重播
+		image.addEventListener('click', function () {
+			replayImg(image);
+		});
+		// Enter / 空白鍵跟滑鼠點擊行為一致（空白鍵要擋掉頁面捲動）
+		image.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				replayImg(image);
+			}
+		});
+	});
+})();

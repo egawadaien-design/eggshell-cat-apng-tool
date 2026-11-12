@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — 分享 Modal 邏輯
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 4
+ * @Date: 2026-11-12
+ * @Correction: 6
  *
  * 與 index.html 同頁，直接讀 window._currentApngBlob
  */
@@ -74,11 +74,16 @@
 		}
 		previewImg.src = url;
 		previewImg.style.cursor = 'pointer';
-		// 點擊預覽圖：清空 src 再設回，強制重新播放 APNG
+		// 點擊預覽圖重播：這裡的 src 是 blob: 網址（記憶體裡的 APNG），
+		// 不能像一般網址那樣在後面加 ?r= 時間戳 —— 加了會變成無效網址、圖片直接消失。
+		// 所以改用 replayBlobImg()：向 Blob 重新要一個 object URL，網址不同就一定重新解碼。
 		previewImg.onclick = () => {
-			const src = previewImg.src;
-			previewImg.src = '';
-			previewImg.src = src;
+			const blob = window._currentApngBlob;
+			if (blob && typeof replayBlobImg === 'function') {
+				replayBlobImg(previewImg, blob);
+			} else {
+				replayImg(previewImg);   // 備援：拿不到 blob 時退回一般網址的重播方式
+			}
 		};
 		metaBox.textContent = t('shareSize', { size: (blob.size / 1024).toFixed(1) });
 		statusBox.innerHTML = '';

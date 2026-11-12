@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — Meme 展示邏輯（嵌在 index.html tab-meme）
  * @author [DaiEn]
- * @Date: 2026-11-10
- * @Correction: 4
+ * @Date: 2026-11-12
+ * @Correction: 5
  *
  * 提供 window.loadMemePage(page) 給 share.js 呼叫
  * 每次顯示最新 20 筆，底部分頁
@@ -136,11 +136,9 @@
 				img.alt = row.title || 'APNG';
 				img.loading = 'lazy';
 				img.style.cursor = 'pointer';
-				img.addEventListener('click', () => {
-					const src = img.src;
-					img.src = '';
-					img.src = src;
-				});
+				// 點一下重播：實作在 js/media-utils.js 的 replayImg()，
+				// 以前是「src = '' 再設回」的老招，會閃一下且偶爾不重播，已統一改掉
+				img.addEventListener('click', () => replayImg(img));
 
 				const title = document.createElement('div');
 				title.className = 'meme-title';

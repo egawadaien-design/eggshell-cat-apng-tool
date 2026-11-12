@@ -1,9 +1,16 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-11
-	@Correction: 13
+	@Date: 2026-11-12
+	@Correction: 26
+	本次修正：新增 helpText（Help「怎麼用」的文字面板那一步），五語系同步
+	上次修正：新增 tpFade（顯示格範圍的淡入淡出勾選），五語系同步
+	上次修正：新增 tpFrom / tpFromHint / tpTo / tpToHint（文字顯示格範圍），五語系同步
+	上次修正：新增 tpLoadFonts / tpFontGroup / tpFontDone / tpFontDenied（讀取本機字體用），五語系同步
+	上次修正：新增文字面板字串（tpPlaceholder / tpBold / textFont* 等）與 foHide、foShow，五語系同步
 	蛋殼喵 APNG 工具 — 多國語言包
 	支援 zh-TW / zh-CN / en / ja / th，自動跟隨瀏覽器，可手動切換
+	本次修正：新增 hideFrames / showFrames（收合／展開影格縮圖鈕，五語系同步）
+	上次修正：新增 data-i18n-img 支援（圖片路徑可寫 {lang} 佔位符，跟隨語系換圖）
 */
 
 const I18N = {
@@ -61,8 +68,14 @@ const I18N = {
 		firstFrame: '到第一格', prevFrame: '上一格', playPause: '播放/暫停',
 		nextFrame: '下一格', lastFrame: '到最後一格',
 		deleteFrame: '刪除此格',
+		dupFrame: '複製此格（插在後面）',
+		foFrame: 'Frame {n}', foXLabel: 'X 偏移量', foYLabel: 'Y 偏移量',
+		foUp: '往上移動 2 像素', foDown: '往下移動 2 像素',
+		foLeft: '往左移動 2 像素', foRight: '往右移動 2 像素',
+		foReset: '恢復初始狀態（回到載入時的樣子）',
 		sortManual: '排序順序', sortNameAsc: '檔名遞增', sortNameDesc: '檔名遞減',
 		sortDateNew: '最新在上', sortDateOld: '最早在上',
+		hideFrames: '隱藏', showFrames: '顯示',
 		makeBtn: '生成動畫', clearBtn: '清空', downloadBtn: '下載 APNG', downloadGifBtn: '下載 GIF', shareBtn: '分享我的圖片',
 		shareBack: '← 返回製作頁', shareTitle: '分享我的 APNG', sharePreview: '預覽', shareInfo: '填寫分享資訊',
 		shareTitleLabel: '標題（選填）', shareAuthorLabel: '作者暱稱（選填）', shareTagsLabel: '分類標籤（可多選）',
@@ -101,6 +114,8 @@ const I18N = {
 		helpStep1: '把 PNG / APNG / GIF 拖到虛線框（可多選）',
 		helpStep2: '在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）',
 		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按鈕調整影格順序，<span class="cat cat-color06 cat-017"></span>&nbsp;刪除不需要的格',
+		helpStep3b: '點某張卡片選取該格，下方十字鍵&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;可把該格往上／下／左／右各移 2px，中間那顆鈕還原成剛載入時的樣子，右側也能直接打 X／Y 偏移量（每格各自獨立）',
+		helpText: '想加文字就打開「文字」面板，輸入內容並挑字體、字級、顏色，需要再加外框／陰影；「起始格 / 結束格」決定文字從第幾格出現到第幾格（預設第一格到最後一格），勾「淡入淡出」字會在兩端自動淡掉',
 		helpStep4: '設定循環次數與色彩深度',
 		helpStep5: '需要縮放才填輸出寬高，留空 = 原圖大小',
 		helpStep6: '點「<span class="cat cat-color06 cat-033"></span>&nbsp;生成動畫」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 GIF」',
@@ -214,8 +229,14 @@ const I18N = {
 		firstFrame: '到第一格', prevFrame: '上一格', playPause: '播放/暂停',
 		nextFrame: '下一格', lastFrame: '到最后一格',
 		deleteFrame: '删除此帧',
+		dupFrame: '复制此帧（插在后面）',
+		foFrame: 'Frame {n}', foXLabel: 'X 偏移量', foYLabel: 'Y 偏移量',
+		foUp: '往上移动 2 像素', foDown: '往下移动 2 像素',
+		foLeft: '往左移动 2 像素', foRight: '往右移动 2 像素',
+		foReset: '恢复初始状态（回到载入时的样子）',
 		sortManual: '排序顺序', sortNameAsc: '文件名递增', sortNameDesc: '文件名递减',
 		sortDateNew: '最新在上', sortDateOld: '最早在上',
+		hideFrames: '隐藏', showFrames: '显示',
 		makeBtn: '生成动画', clearBtn: '清空', downloadBtn: '下载 APNG', downloadGifBtn: '下载 GIF', shareBtn: '分享我的图片',
 		shareBack: '← 返回制作页', shareTitle: '分享我的 APNG', sharePreview: '预览', shareInfo: '填写分享信息',
 		shareTitleLabel: '标题（选填）', shareAuthorLabel: '作者昵称（选填）', shareTagsLabel: '分类标签（可多选）',
@@ -254,6 +275,8 @@ const I18N = {
 		helpStep1: '把 PNG / APNG / GIF 拖到虚线框（可多选）',
 		helpStep2: '在每张缩略图卡片上调整该格的延迟毫秒（默认 100ms）',
 		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按钮调整帧顺序，<span class="cat cat-color06 cat-017"></span>&nbsp;删除不需要的格',
+		helpStep3b: '点某张卡片选中该影格，下方十字键&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;可把该格往上／下／左／右各移 2px，中间那颗钮还原成刚载入时的样子，右侧也能直接打 X／Y 偏移量（每格各自独立）',
+		helpText: '想加文字就打开「文字」面板，输入内容并挑选字体、字号、颜色，需要再加外框／阴影；「起始格 / 结束格」决定文字从第几格出现到第几格（默认第一格到最后一格），勾上「淡入淡出」文字会在两端自动淡出',
 		helpStep4: '设置循环次数与色彩深度',
 		helpStep5: '需要缩放才填输出宽高，留空 = 原图大小',
 		helpStep6: '点「<span class="cat cat-color06 cat-033"></span>&nbsp;生成动画」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 GIF」',
@@ -367,8 +390,14 @@ const I18N = {
 		firstFrame: 'First frame', prevFrame: 'Previous', playPause: 'Play / Pause',
 		nextFrame: 'Next', lastFrame: 'Last frame',
 		deleteFrame: 'Delete frame',
+		dupFrame: 'Duplicate this frame below',
+		foFrame: 'Frame {n}', foXLabel: 'X offset', foYLabel: 'Y offset',
+		foUp: 'Move up 2px', foDown: 'Move down 2px',
+		foLeft: 'Move left 2px', foRight: 'Move right 2px',
+		foReset: 'Reset to the original image',
 		sortManual: 'Manual', sortNameAsc: 'Name ↑', sortNameDesc: 'Name ↓',
 		sortDateNew: 'Newest', sortDateOld: 'Oldest',
+		hideFrames: 'Hide', showFrames: 'Show',
 		makeBtn: 'Make Animation', clearBtn: 'Clear', downloadBtn: 'Download APNG', downloadGifBtn: 'Download GIF', shareBtn: 'Share my creation',
 		shareBack: '← Back to editor', shareTitle: 'Share my APNG', sharePreview: 'Preview', shareInfo: 'Share details',
 		shareTitleLabel: 'Title (optional)', shareAuthorLabel: 'Nickname (optional)', shareTagsLabel: 'Tags (multi-select)',
@@ -407,6 +436,8 @@ const I18N = {
 		helpStep1: 'Drag PNG / APNG / GIF files into the drop zone (multi-select)',
 		helpStep2: 'Adjust per-frame delay (ms) on each thumbnail card (default 100ms)',
 		helpStep3: 'Use&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;to reorder frames, <span class="cat cat-color06 cat-017"></span>&nbsp;to delete',
+		helpStep3b: 'Select a frame, then use the cross keys&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;below to nudge it up / down / left / right by 2px. The middle key restores that frame to how it looked when loaded, and you can type exact X / Y offsets on the right — every frame keeps its own offset.',
+		helpText: 'To add text, open the "Text" panel, type your content, then pick a font, size and color — turn on outline / shadow if you need them. "From frame" and "To frame" decide which frames the text appears on (default: first to last), and "Fade in / out" makes it softly fade at both ends.',
 		helpStep4: 'Set loop count and color depth',
 		helpStep5: 'Only set output W/H if you need to resize; leave blank = original size',
 		helpStep6: 'Click "<span class="cat cat-color06 cat-033"></span>&nbsp;Make Animation" → "<span class="cat cat-color06 cat-022"></span>&nbsp;Download APNG" or "<span class="cat cat-color06 cat-022"></span>&nbsp;Download GIF"',
@@ -520,8 +551,14 @@ const I18N = {
 		firstFrame: '先頭へ', prevFrame: '前へ', playPause: '再生 / 一時停止',
 		nextFrame: '次へ', lastFrame: '最後へ',
 		deleteFrame: 'このフレームを削除',
+		dupFrame: 'このフレームを複製（後ろに挿入）',
+		foFrame: 'フレーム {n}', foXLabel: 'X オフセット', foYLabel: 'Y オフセット',
+		foUp: '上へ 2px 移動', foDown: '下へ 2px 移動',
+		foLeft: '左へ 2px 移動', foRight: '右へ 2px 移動',
+		foReset: '初期状態に戻す',
 		sortManual: '手動順序', sortNameAsc: 'ファイル名昇順', sortNameDesc: 'ファイル名降順',
 		sortDateNew: '新しい順', sortDateOld: '古い順',
+		hideFrames: '非表示', showFrames: '表示',
 		makeBtn: 'アニメーション生成', clearBtn: 'クリア', downloadBtn: 'APNGを保存', downloadGifBtn: 'GIFを保存', shareBtn: '作品をシェア',
 		shareBack: '← 編集ページへ戻る', shareTitle: 'APNGをシェア', sharePreview: 'プレビュー', shareInfo: '共有情報を入力',
 		shareTitleLabel: 'タイトル（任意）', shareAuthorLabel: 'ニックネーム（任意）', shareTagsLabel: 'タグ（複数選択可）',
@@ -560,6 +597,8 @@ const I18N = {
 		helpStep1: 'PNG / APNG / GIF をドロップゾーンにドラッグ（複数可）',
 		helpStep2: '各サムネイルでフレームごとの遅延 ms を調整（既定 100ms）',
 		helpStep3: 'カード下の&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;で並び替え、<span class="cat cat-color06 cat-017"></span>&nbsp;で削除',
+		helpStep3b: 'フレームを選ぶと、下の十字キー&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;で上下左右へ 2px ずつ動かせます。中央のキーで読み込み時の状態に戻り、右側で X / Y オフセットを直接入力することもできます（設定はフレームごとに独立）。',
+		helpText: '文字を入れたいときは「テキスト」パネルを開いて内容を入力し、フォント・サイズ・色を選びます。必要なら縁取り／影もオンに。「開始フレーム」「終了フレーム」で表示するフレームの範囲を決め（既定は最初から最後まで）、「フェードイン・アウト」にチェックすると両端が自然に薄れます。',
 		helpStep4: 'ループ回数と色数を設定',
 		helpStep5: 'リサイズが必要な場合のみ幅/高さを入力（空欄 = 原寸）',
 		helpStep6: '「<span class="cat cat-color06 cat-033"></span>&nbsp;アニメーション生成」→「<span class="cat cat-color06 cat-022"></span>&nbsp;APNGを保存」または「<span class="cat cat-color06 cat-022"></span>&nbsp;GIFを保存」',
@@ -673,8 +712,14 @@ const I18N = {
 		firstFrame: 'เฟรมแรก', prevFrame: 'ก่อนหน้า', playPause: 'เล่น / หยุด',
 		nextFrame: 'ถัดไป', lastFrame: 'เฟรมสุดท้าย',
 		deleteFrame: 'ลบเฟรมนี้',
+		dupFrame: 'ทำสำเนาเฟรมนี้ (แทรกด้านหลัง)',
+		foFrame: 'เฟรม {n}', foXLabel: 'X ออฟเซ็ต', foYLabel: 'Y ออฟเซ็ต',
+		foUp: 'เลื่อนขึ้น 2px', foDown: 'เลื่อนลง 2px',
+		foLeft: 'เลื่อนซ้าย 2px', foRight: 'เลื่อนขวา 2px',
+		foReset: 'คืนค่าเริ่มต้น',
 		sortManual: 'เรียงลำดับเอง', sortNameAsc: 'ชื่อ A-Z', sortNameDesc: 'ชื่อ Z-A',
 		sortDateNew: 'ใหม่สุด', sortDateOld: 'เก่าสุด',
+		hideFrames: 'ซ่อน', showFrames: 'แสดง',
 		makeBtn: 'สร้างภาพเคลื่อนไหว', clearBtn: 'ล้าง', downloadBtn: 'ดาวน์โหลด APNG', downloadGifBtn: 'ดาวน์โหลด GIF', shareBtn: 'แชร์ผลงานของฉัน',
 		shareBack: '← กลับไปหน้าสร้าง', shareTitle: 'แชร์ APNG ของฉัน', sharePreview: 'ตัวอย่าง', shareInfo: 'กรอกข้อมูลการแชร์',
 		shareTitleLabel: 'ชื่อเรื่อง (ไม่บังคับ)', shareAuthorLabel: 'ชื่อเล่น (ไม่บังคับ)', shareTagsLabel: 'แท็ก (เลือกได้หลายอัน)',
@@ -713,6 +758,8 @@ const I18N = {
 		helpStep1: 'ลากไฟล์ PNG / APNG / GIF มาวางในกรอบเส้นประ (เลือกหลายไฟล์ได้)',
 		helpStep2: 'ปรับเวลาหน่วงต่อเฟรม (ms) การ์ดภาพขนาดย่อ (ค่าเริ่มต้น 100ms)',
 		helpStep3: 'ใช้&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;จัดลำดับเฟรม <span class="cat cat-color06 cat-017"></span>&nbsp;ลบเฟรมที่ไม่ต้องการ',
+		helpStep3b: 'เลือกเฟรมแล้วใช้ปุ่มลูกศร&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;ด้านล่างเลื่อนขึ้น／ลง／ซ้าย／ขวาได้ครั้งละ 2px ปุ่มตรงกลางคืนค่าเป็นตอนที่โหลดเข้ามา และพิมพ์ค่า X / Y เองได้ทางด้านขวา (แยกกันในแต่ละเฟรม)',
+		helpText: 'ถ้าต้องการใส่ข้อความ ให้เปิดแผง «ข้อความ» แล้วพิมพ์เนื้อหา เลือกฟอนต์ ขนาด และสี จะเปิดเส้นขอบ／เงาด้วยก็ได้ «เฟรมเริ่มต้น» กับ «เฟรมสิ้นสุด» กำหนดว่าจะให้ข้อความแสดงตั้งแต่เฟรมไหนถึงเฟรมไหน (ค่าเริ่มต้นคือเฟรมแรกถึงเฟรมสุดท้าย) และถ้าติ๊ก «เลือนเข้า–ออก» ข้อความจะค่อย ๆ จางที่หัวและท้าย',
 		helpStep4: 'ตั้งจำนวนรอบและจำนวนสี',
 		helpStep5: 'กรอกขนาดส่งออกเฉพาะตอนต้องการปรับขนาด เว้นว่าง = ขนาดเดิม',
 		helpStep6: 'กด «<span class="cat cat-color06 cat-033"></span>&nbsp;สร้างภาพเคลื่อนไหว» → «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด APNG» หรือ «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด GIF»',
@@ -774,6 +821,317 @@ const I18N = {
 };
 
 // ============================================================
+// FX 特效頁字串（集中在此，避免動到上面五大語系區塊的既有內容）
+// 特效名稱本身維持英文（Shine Sweep、RGB Glitch 等屬技術／品牌名，不翻譯）
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	tabFx: 'FX',
+	fxDropHint: '把一張圖片拖曳到這裡（JPG / PNG / GIF / WEBP）',
+	fxDropOrClick: '或點此選擇檔案',
+	fxPreviewEmpty: '尚無預覽',
+	fxEffects: '特效',
+	fxEffectHint: '可上下滑動選取，點一下就套用',
+	fxOutput: '輸出設定',
+	fxFrames: '影格數',
+	fxIntensity: '強度',
+	fxSpecHint: '延遲固定 100ms、最長邊 ≤512px、格數 ≤40',
+	fxSend: '送到 APNG 頁',
+	fxClear: '清空',
+	fxGenerating: '產生影格中… {n}%',
+	fxReady: '共 {n} 格 · {w}×{h} · 100ms',
+	fxNeedImage: '請先選一張圖片',
+	fxNeedEffect: '請先選一個特效',
+	fxReplaceConfirm: '送到 APNG 頁會取代目前的影格，確定嗎？',
+	fxSent: '已送出 {n} 格到 APNG 頁',
+	fxSendFail: '送出失敗：{msg}',
+	fxUnsupported: '不支援的檔案格式，請選圖片',
+	fxFramePos: '{i} / {n}'
+});
+
+Object.assign(I18N['zh-CN'], {
+	tabFx: 'FX',
+	fxDropHint: '把一张图片拖到这里（JPG / PNG / GIF / WEBP）',
+	fxDropOrClick: '或点此选择文件',
+	fxPreviewEmpty: '尚无预览',
+	fxEffects: '特效',
+	fxEffectHint: '可上下滑动选取，点一下就套用',
+	fxOutput: '输出设置',
+	fxFrames: '帧数',
+	fxIntensity: '强度',
+	fxSpecHint: '延迟固定 100ms、最长边 ≤512px、帧数 ≤40',
+	fxSend: '送到 APNG 页',
+	fxClear: '清空',
+	fxGenerating: '正在生成帧… {n}%',
+	fxReady: '共 {n} 帧 · {w}×{h} · 100ms',
+	fxNeedImage: '请先选一张图片',
+	fxNeedEffect: '请先选一个特效',
+	fxReplaceConfirm: '送到 APNG 页会替换目前的帧，确定吗？',
+	fxSent: '已送出 {n} 帧到 APNG 页',
+	fxSendFail: '送出失败：{msg}',
+	fxUnsupported: '不支持的格式，请选择图片',
+	fxFramePos: '{i} / {n}'
+});
+
+Object.assign(I18N['en'], {
+	tabFx: 'FX',
+	fxDropHint: 'Drop an image here (JPG / PNG / GIF / WEBP)',
+	fxDropOrClick: 'or click to choose a file',
+	fxPreviewEmpty: 'No preview yet',
+	fxEffects: 'Effects',
+	fxEffectHint: 'Scroll to browse, click to apply',
+	fxOutput: 'Output settings',
+	fxFrames: 'Frames',
+	fxIntensity: 'Intensity',
+	fxSpecHint: 'Fixed 100ms delay, longest side ≤512px, ≤40 frames',
+	fxSend: 'Send to APNG',
+	fxClear: 'Clear',
+	fxGenerating: 'Rendering frames… {n}%',
+	fxReady: '{n} frames · {w}×{h} · 100ms',
+	fxNeedImage: 'Choose an image first',
+	fxNeedEffect: 'Choose an effect first',
+	fxReplaceConfirm: 'Sending will replace the frames currently in the APNG tab. Continue?',
+	fxSent: 'Sent {n} frames to the APNG tab',
+	fxSendFail: 'Send failed: {msg}',
+	fxUnsupported: 'Unsupported file type. Please choose an image.',
+	fxFramePos: '{i} / {n}'
+});
+
+Object.assign(I18N['ja'], {
+	tabFx: 'FX',
+	fxDropHint: '画像をここにドラッグ（JPG / PNG / GIF / WEBP）',
+	fxDropOrClick: 'またはクリックしてファイルを選択',
+	fxPreviewEmpty: 'プレビューはまだありません',
+	fxEffects: 'エフェクト',
+	fxEffectHint: '上下にスクロールして選択、クリックで適用',
+	fxOutput: '出力設定',
+	fxFrames: 'フレーム数',
+	fxIntensity: '強度',
+	fxSpecHint: '遅延は 100ms 固定・長辺 ≤512px・40 フレームまで',
+	fxSend: 'APNG へ送る',
+	fxClear: 'クリア',
+	fxGenerating: 'フレームを生成中… {n}%',
+	fxReady: '{n} フレーム · {w}×{h} · 100ms',
+	fxNeedImage: '先に画像を選んでください',
+	fxNeedEffect: '先にエフェクトを選んでください',
+	fxReplaceConfirm: 'APNG 側のフレームは置き換えられます。よろしいですか？',
+	fxSent: '{n} フレームを APNG へ送りました',
+	fxSendFail: '送信に失敗しました：{msg}',
+	fxUnsupported: '未対応の形式です。画像を選んでください。',
+	fxFramePos: '{i} / {n}'
+});
+
+Object.assign(I18N['th'], {
+	tabFx: 'FX',
+	fxDropHint: 'ลากรูปภาพมาวางที่นี่ (JPG / PNG / GIF / WEBP)',
+	fxDropOrClick: 'หรือคลิกเพื่อเลือกไฟล์',
+	fxPreviewEmpty: 'ยังไม่มีตัวอย่าง',
+	fxEffects: 'เอฟเฟกต์',
+	fxEffectHint: 'เลื่อนขึ้นลงเพื่อเลือก แตะเพื่อใช้งาน',
+	fxOutput: 'ตั้งค่าผลลัพธ์',
+	fxFrames: 'จำนวนเฟรม',
+	fxIntensity: 'ความเข้ม',
+	fxSpecHint: 'ดีเลย์คงที่ 100ms · ด้านยาว ≤512px · ไม่เกิน 40 เฟรม',
+	fxSend: 'ส่งไปหน้า APNG',
+	fxClear: 'ล้าง',
+	fxGenerating: 'กำลังสร้างเฟรม… {n}%',
+	fxReady: '{n} เฟรม · {w}×{h} · 100ms',
+	fxNeedImage: 'กรุณาเลือกรูปภาพก่อน',
+	fxNeedEffect: 'กรุณาเลือกเอฟเฟกต์ก่อน',
+	fxReplaceConfirm: 'การส่งจะแทนที่เฟรมในหน้า APNG ทั้งหมด ดำเนินการต่อหรือไม่?',
+	fxSent: 'ส่ง {n} เฟรมไปยังหน้า APNG แล้ว',
+	fxSendFail: 'ส่งไม่สำเร็จ: {msg}',
+	fxUnsupported: 'ไฟล์ไม่รองรับ กรุณาเลือกไฟล์รูปภาพ',
+	fxFramePos: '{i} / {n}'
+});
+
+// ============================================================
+// 文字圖層字串（三頁共用同一組 key，面板由 js/text-overlay.js 組出來）
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	textTitle: '文字',
+	tpPlaceholder: '輸入文字',
+	tpUp: '文字往上移動 2%',
+	tpDown: '文字往下移動 2%',
+	tpLeft: '文字往左移動 2%',
+	tpRight: '文字往右移動 2%',
+	tpReset: '文字回到正中央',
+	tpBold: '粗體',
+	tpItalic: '斜體',
+	tpUnderline: '底線',
+	tpSize: '字體大小',
+	tpColor: '顏色',
+	tpOutline: '外框',
+	tpShadow: '陰影',
+	textFontMing: '細明體',
+	textFontHei: '微軟正黑體',
+	textFontPing: '蘋方',
+	textFontNoto: 'Noto Sans TC',
+	textFontKai: '標楷體',
+	textFontSerif: '襯線體',
+	textFontSans: '黑體（無襯線）',
+	foHide: '隱藏',
+	tpFrom: '起始格',
+	tpFromHint: '文字從第幾格開始顯示',
+	tpTo: '結束格',
+	tpToHint: '0 = 一路顯示到最後一格',
+	tpFade: '淡入淡出',
+	tpLoadFonts: '讀取本機字體',
+	tpFontGroup: '本機字體',
+	tpFontDone: '已讀取 {n} 種字體',
+	tpFontDenied: '需要授權才能讀取本機字體',
+	foShow: '顯示'
+});
+
+Object.assign(I18N['zh-CN'], {
+	textTitle: '文字',
+	tpPlaceholder: '输入文字',
+	tpUp: '文字往上移动 2%',
+	tpDown: '文字往下移动 2%',
+	tpLeft: '文字往左移动 2%',
+	tpRight: '文字往右移动 2%',
+	tpReset: '文字回到正中央',
+	tpBold: '粗体',
+	tpItalic: '斜体',
+	tpUnderline: '下划线',
+	tpSize: '字体大小',
+	tpColor: '颜色',
+	tpOutline: '外框',
+	tpShadow: '阴影',
+	textFontMing: '细明体',
+	textFontHei: '微软正黑体',
+	textFontPing: '苹方',
+	textFontNoto: 'Noto Sans TC',
+	textFontKai: '标楷体',
+	textFontSerif: '衬线体',
+	textFontSans: '黑体（无衬线）',
+	foHide: '隐藏',
+	tpFrom: '起始格',
+	tpFromHint: '文字从第几格开始显示',
+	tpTo: '结束格',
+	tpToHint: '0 = 一直显示到最后',
+	tpFade: '淡入淡出',
+	tpLoadFonts: '读取本机字体',
+	tpFontGroup: '本机字体',
+	tpFontDone: '已读取 {n} 种字体',
+	tpFontDenied: '需要授权才能读取本机字体',
+	foShow: '显示'
+});
+
+Object.assign(I18N['en'], {
+	textTitle: 'Text',
+	tpPlaceholder: 'Type your text',
+	tpUp: 'Move text up by 2%',
+	tpDown: 'Move text down by 2%',
+	tpLeft: 'Move text left by 2%',
+	tpRight: 'Move text right by 2%',
+	tpReset: 'Reset text to center',
+	tpBold: 'Bold',
+	tpItalic: 'Italic',
+	tpUnderline: 'Underline',
+	tpSize: 'Font size',
+	tpColor: 'Color',
+	tpOutline: 'Outline',
+	tpShadow: 'Shadow',
+	textFontMing: 'PMingLiU',
+	textFontHei: 'Microsoft JhengHei',
+	textFontPing: 'PingFang',
+	textFontNoto: 'Noto Sans TC',
+	textFontKai: 'DFKai-SB',
+	textFontSerif: 'Serif',
+	textFontSans: 'Sans-serif',
+	foHide: 'Hide',
+	tpFrom: 'From frame',
+	tpFromHint: 'First frame to show text',
+	tpTo: 'To frame',
+	tpToHint: '0 = show until the last frame',
+	tpFade: 'Fade in / out',
+	tpLoadFonts: 'Load local fonts',
+	tpFontGroup: 'Local fonts',
+	tpFontDone: 'Loaded {n} fonts',
+	tpFontDenied: 'Permission required to read local fonts',
+	foShow: 'Show'
+});
+
+Object.assign(I18N['ja'], {
+	textTitle: 'テキスト',
+	tpPlaceholder: 'テキストを入力',
+	tpUp: 'テキストを上へ 2%',
+	tpDown: 'テキストを下へ 2%',
+	tpLeft: 'テキストを左へ 2%',
+	tpRight: 'テキストを右へ 2%',
+	tpReset: 'テキストを中央に戻す',
+	tpBold: '太字',
+	tpItalic: '斜体',
+	tpUnderline: '下線',
+	tpSize: '文字サイズ',
+	tpColor: '色',
+	tpOutline: '縁取り',
+	tpShadow: '影',
+	textFontMing: '明朝体（細明體）',
+	textFontHei: 'Microsoft JhengHei',
+	textFontPing: 'ヒラギノ／蘋方',
+	textFontNoto: 'Noto Sans TC',
+	textFontKai: '楷書体（標楷體）',
+	textFontSerif: 'セリフ体',
+	textFontSans: 'ゴシック体',
+	foHide: '隠す',
+	tpFrom: '開始フレーム',
+	tpFromHint: '何フレーム目から表示するか',
+	tpTo: '終了フレーム',
+	tpToHint: '0 = 最後のフレームまで表示',
+	tpFade: 'フェードイン・アウト',
+	tpLoadFonts: 'ローカルフォントを読込',
+	tpFontGroup: 'ローカルフォント',
+	tpFontDone: '{n} 件のフォントを読み込みました',
+	tpFontDenied: 'ローカルフォントの読み込みには許可が必要です',
+	foShow: '表示'
+});
+
+Object.assign(I18N['th'], {
+	textTitle: 'ข้อความ',
+	tpPlaceholder: 'พิมพ์ข้อความ',
+	tpUp: 'เลื่อนข้อความขึ้น 2%',
+	tpDown: 'เลื่อนข้อความลง 2%',
+	tpLeft: 'เลื่อนข้อความไปซ้าย 2%',
+	tpRight: 'เลื่อนข้อความไปขวา 2%',
+	tpReset: 'กลับไปกลางภาพ',
+	tpBold: 'ตัวหนา',
+	tpItalic: 'ตัวเอียง',
+	tpUnderline: 'ขีดเส้นใต้',
+	tpSize: 'ขนาดตัวอักษร',
+	tpColor: 'สี',
+	tpOutline: 'เส้นขอบ',
+	tpShadow: 'เงา',
+	textFontMing: 'PMingLiU',
+	textFontHei: 'Microsoft JhengHei',
+	textFontPing: 'PingFang',
+	textFontNoto: 'Noto Sans TC',
+	textFontKai: 'DFKai-SB',
+	textFontSerif: 'Serif',
+	textFontSans: 'Sans-serif',
+	foHide: 'ซ่อน',
+	tpFrom: 'เฟรมเริ่มต้น',
+	tpFromHint: 'เริ่มแสดงข้อความที่เฟรมใด',
+	tpTo: 'เฟรมสิ้นสุด',
+	tpToHint: '0 = แสดงจนถึงเฟรมสุดท้าย',
+	tpFade: 'เลือนเข้า–ออก',
+	tpLoadFonts: 'โหลดฟอนต์ในเครื่อง',
+	tpFontGroup: 'ฟอนต์ในเครื่อง',
+	tpFontDone: 'โหลดแล้ว {n} ฟอนต์',
+	tpFontDenied: 'ต้องอนุญาตก่อนจึงจะอ่านฟอนต์ในเครื่องได้',
+	foShow: 'แสดง'
+});
+
+// ============================================================
+// Help 頁示意動畫的重播提示（點圖重新播放時顯示在游標提示）
+// ============================================================
+Object.assign(I18N['zh-TW'], { helpReplayHint: '點一下重新播放' });
+Object.assign(I18N['zh-CN'], { helpReplayHint: '点一下重新播放' });
+Object.assign(I18N['en'], { helpReplayHint: 'Click to replay' });
+Object.assign(I18N['ja'], { helpReplayHint: 'クリックで再生' });
+Object.assign(I18N['th'], { helpReplayHint: 'คลิกเพื่อเล่นซ้ำ' });
+
+// ============================================================
 // 語言切換核心
 // ============================================================
 let currentLang = 'zh-TW';
@@ -833,6 +1191,13 @@ function applyLang(lang) {
 	// 掃 data-i18n-title（按鈕的滑鼠懸停提示）
 	document.querySelectorAll('[data-i18n-title]').forEach(el => {
 		el.title = t(el.dataset.i18nTitle);
+	});
+	// 掃 data-i18n-img：圖片路徑可以寫 {lang} 佔位符，切語言時自動換成對應語系的圖
+	// 例：<img data-i18n-img="images/sample/colors-{lang}.jpg">
+	//     zh-TW → colors-zh-TW.jpg、zh-CN → colors-zh-CN.jpg、en / ja / th 同理
+	// 這樣同一段 HTML 不用為每個語系各寫一個 <img>，也不必多開一堆 i18n key
+	document.querySelectorAll('[data-i18n-img]').forEach(el => {
+		el.src = el.dataset.i18nImg.replace(/\{lang\}/g, currentLang);
 	});
 	// 更新語言下拉的選中狀態
 	const btn = document.getElementById('langBtn');

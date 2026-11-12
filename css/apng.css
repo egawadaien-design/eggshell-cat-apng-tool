@@ -1,8 +1,21 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-11
-	@Correction: 19
-	本次修正：影格卡片導航鈕由 flex:1 改為固定 22×22 正方形，高度維持不變
+	@Date: 2026-11-12
+	@Correction: 37
+	本次修正：文字面板新增 .tp-frames / .tp-check（顯示格範圍與淡入淡出勾選的排版）
+	上次修正：文字面板字體列加上「讀取本機字體」小按鈕與狀態文字（.tp-font-row / .tp-font-local / .tp-font-status）
+	上次修正：文字面板放進 .preview-area 時改回左對齊（FX / PNG 兩頁面板搬到左欄）
+	上次修正：文字面板十字鍵改成與獨立影格設置同尺寸（26px / 3px 間隔）並補上 .tp-up/.tp-left/.tp-center/.tp-right/.tp-down 定位；字色色票移到字級那一列末尾，預設黑色
+	上次修正：排序列右側兩顆收合鈕收進 .sort-bar-right 靠右分組；收合影格縮圖時五顆排序鈕一起隱藏（.sort-bar.grid-collapsed）
+	上次修正：面板「隱藏」鈕與排序列「顯示」鈕（foShowBtn）統一綠色系，兩顆是一組收合／叫回的動作
+	上次修正：獨立影格設置的「隱藏」鈕改為綠色系（#eaf7ec 底 / #b9dfc0 邊 / #3f7a4b 字）
+	上次修正：新增文字面板樣式（.text-panel / .tp-*）與 .fo-hide-btn、.tp-overlay
+	上次修正：新增 .frame-grid.is-hidden / .frame-grid-toggle（收合影格縮圖鈕，靠右對齊）
+	上次修正：新增 .source-frame（三個工作框的綠色原圖外框，DOM 疊層、線寬固定）
+	上次修正：新增獨立影格設置面板樣式（十字方向鍵、格號資訊列、偏移量輸入框）
+	上次修正：影格卡片導航列加入第 5 顆「複製」鈕，按鈕可依卡片寬度微縮；移除已無用的 .frame-nav-info
+	上次修正：Help 頁示意動畫加上可重播的游標與回饋；修正兩張併排時吃不到「一半寬」的選擇器
+	上次修正：FX 影格指示改為方形編號塊、播放鍵改由 JS 切換圖示（cat-083 / cat-080）
 	蛋殼喵 APNG 工具 — 樣式表
 	粉色系主題，RWD 手機版在最下面
 */
@@ -596,6 +609,19 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 	overflow: hidden;
 }
 .preview-stage img { max-width: 100%; max-height: 320px; }
+
+/* 原圖外框：綠色虛線框，標出「匯入的圖片實際佔多大一塊」
+   用 DOM 疊層而不是畫在 canvas 裡，這樣縮放/平移時線寬都維持 2px 不會跟著變細；
+   pointer-events:none 才不會擋到吸取顏色、橡皮擦與拖曳平移（js/source-frame.js 控制） */
+.source-frame {
+	position: absolute;
+	display: none;
+	box-sizing: border-box;
+	border: 2px dashed #4caf50;
+	border-radius: 2px;
+	pointer-events: none;
+	z-index: 1;
+}
 .preview-info {
 	position: absolute;
 	top: 8px;
@@ -721,6 +747,49 @@ h1 { color: #d4708a; margin-bottom: 4px; font-size: 22px; }
 		transparent 3px, transparent 11px,
 		#fff 11px, #fff 14px
 	);
+}
+
+/* HELP 頁示意圖：黑底容器，兩張併排，每張最多一半寬、最高 270px */
+/* 外層：讓兩張圖排在同一行 */
+p.timeline-help-row {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	margin: 12px 0;
+}
+.timeline-help {
+	display: block;              /* 去掉 img 底部那條行內縫隙 */
+	max-width: 100%;             /* 不撐破容器 */
+	height: auto;                /* 讓圖照比例，不要鎖死（你原本的 135px 會拉變形） */
+	padding: 8px;                /* 黑底要露出來就靠這個內距 */
+	background: #000;            /* 黑底 */
+	border: 2px solid #d4708a;   /* 外框顏色，換成你要的色即可 */
+	border-radius: 10px;         /* 四邊圓角 */
+	margin: 12px 0;
+}
+/* 一排裡的每一張圖都吃得到「最多一半寬」的限制
+   （原本寫成 .timeline-help img 是錯的：class 掛在 img 自己身上，沒有子元素可以匹配） */
+p.timeline-help-row img {
+	display: block;
+	max-width: calc(50% - 5px);   /* 扣掉 gap 的一半，兩張才不會擠出去 */
+	max-height: 270px;
+	object-fit: contain;          /* 不變形，多的留黑 */
+}
+
+/* Help 頁可重播的示意動畫：手型游標 + 輕微回饋，讓使用者知道「這裡可以點」 */
+p.timeline-help-row img.replayable {
+	cursor: pointer;
+	transition: transform .12s ease, box-shadow .12s ease;
+}
+p.timeline-help-row img.replayable:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(212, 112, 138, .35);
+}
+p.timeline-help-row img.replayable:active { transform: scale(.98); }
+/* 全站把 outline 關掉了，所以鍵盤聚焦改用 box-shadow 顯示 */
+p.timeline-help-row img.replayable:focus-visible {
+	box-shadow: 0 0 0 3px rgba(212, 112, 138, .45);
 }
 
 /* 上面那條小縮圖列：黑底，flex 自動填滿寬度 */
@@ -860,6 +929,20 @@ button.secondary:hover { background: #8a6a7a; }
 	overflow-y: auto;
 	padding: 4px;
 }
+/* 收合影格縮圖（排序列最右邊那顆鈕）：收起來時整個網格不佔位，
+   下方的「獨立影格設置」就會自動往上頂，方便直接操作 XY 偏移 */
+.frame-grid.is-hidden { display: none; }
+/* 右側兩顆（收合影格縮圖 / 顯示獨立影格設置）自成一個分組，固定靠右；
+   排序鈕被收起來時這一組位置不會跟著跳 */
+.sort-bar-right {
+	display: flex;
+	gap: 6px;
+	margin-left: auto;
+}
+.frame-grid-toggle { margin-left: 0; }
+/* 收起影格縮圖時，五顆排序鈕一起讓位（它們是拿來挑格子的，縮圖看不到就沒用），
+   右側那一組是 .sort-bar-right 裡的一層，不算 .sort-bar 的直系子元素，所以不受影響 */
+.sort-bar.grid-collapsed > .sort-btn { display: none; }
 .frame-card {
 	background: #fff;
 	border: 2px solid transparent;
@@ -945,7 +1028,7 @@ button.secondary:hover { background: #8a6a7a; }
 	-webkit-appearance: none;
 	margin: 0;
 }
-/* 卡片底部 4 顆導航鈕：固定 22×22 正方形，高度維持 22px 不變 */
+/* 卡片底部導航鈕：固定 22×22 正方形；允許在窄卡片時縮到 18px，避免第 5 顆鈕被推出卡片外 */
 .frame-card .frame-nav {
 	display: flex;
 	gap: 3px;
@@ -953,8 +1036,9 @@ button.secondary:hover { background: #8a6a7a; }
 	align-items: center;
 }
 .frame-card .frame-nav button {
-	flex: 0 0 22px;
+	flex: 0 1 22px;
 	width: 22px;
+	min-width: 18px;
 	height: 22px;
 	background: #f0d8e0;
 	color: #806070;
@@ -966,15 +1050,6 @@ button.secondary:hover { background: #8a6a7a; }
 	position: relative;
 }
 .frame-card .frame-nav button:hover { background: #e8c8d2; }
-/* 中間的資訊欄只當彈性間隔用，可壓到 0 寬，避免卡片變窄時按鈕被推出框外 */
-.frame-card .frame-nav-info {
-	flex: 1 1 auto;
-	min-width: 0;
-	font-size: 10px;
-	color: #b090a0;
-	text-align: center;
-	overflow: hidden;
-}
 
 /* 卡片上小按鈕：用貓咪 emoji 字體顯示，不再用 CSS 向量畫箭頭 */
 .nav-mini {
@@ -983,6 +1058,106 @@ button.secondary:hover { background: #8a6a7a; }
 	justify-content: center;
 	font-size: 14px;
 	color: #806070;
+}
+
+/* ===== 獨立影格設置（單格位移微調） =====
+   位置在影格卡片下方、操作按鈕列上方；左邊十字方向鍵、右邊顯示格號與偏移量 */
+.frame-offset-panel {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+	flex-wrap: wrap;
+	margin-top: 14px;
+	padding: 12px 16px;
+	background: #fdf6f9;
+	border: 1px solid #f2dde5;
+	border-radius: 12px;
+}
+/* 十字方向鍵：三欄三列，只有上／左／中／右／下五個格子放按鈕 */
+.fo-pad {
+	display: grid;
+	grid-template-columns: repeat(3, 26px);
+	grid-template-rows: repeat(3, 26px);
+	gap: 3px;
+	flex: 0 0 auto;
+}
+.fo-up { grid-area: 1 / 2; }
+.fo-left { grid-area: 2 / 1; }
+.fo-center { grid-area: 2 / 2; }
+.fo-right { grid-area: 2 / 3; }
+.fo-down { grid-area: 3 / 2; }
+.fo-btn {
+	width: 26px;
+	height: 26px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: #edccd8;
+	color: #69404f;
+	border: none;
+	border-radius: 5px;
+	font-size: 13px;
+	line-height: 1;
+	padding: 0;
+	cursor: pointer;
+}
+.fo-btn:hover { background: #e6c6d4; }
+.fo-btn:active { transform: scale(0.94); }
+/* 中間那顆「還原」鈕依設計不放圖標，用虛線框讓它看起來是可以按的，而不是空一格 */
+.fo-center {
+	background: #fbeef3;
+	border: 1px dashed #dfb9c8;
+}
+.fo-center:hover { background: #f6e1ea; }
+/* 全站 outline 已關閉，聚焦框改用 box-shadow 才看得到 */
+.fo-btn:focus-visible { box-shadow: 0 0 0 2px #f6e1ea; }
+
+/* 右側資訊：格號 / 檔名 / 延遲，以及 X、Y 偏移量輸入框 */
+.fo-info {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 1 1 210px;
+	min-width: 0;
+}
+.fo-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin: 0;
+	align-items: baseline;
+	font-size: 13px;
+	color: #a05f76;
+}
+.fo-meta #foFrameText { font-weight: 600; }
+.fo-meta #foName { color: #8c4a60; }
+.fo-meta #foMs { color: #b0818f; }
+.fo-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+}
+.fo-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.fo-label {
+	font-size: 12px;
+	color: #a05f76;
+}
+.fo-field input {
+	width: 92px;
+	padding: 4px 8px;
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 6px;
+	color: #806070;
+	font-size: 12px;
+}
+.fo-field input:focus {
+	border-color: #e0aec2;
+	box-shadow: 0 0 0 2px #f7e3eb;
 }
 
 /* ===== 蛋殼喵 Emoji 字型（從 webfonts/font.css 移植） ===== */
@@ -1296,6 +1471,107 @@ button.secondary:hover { background: #8a6a7a; }
 .cat-color10 { color: rgba(153, 0, 51, 1.0); }
 .cat-color00 { color: rgba(255, 255, 255, 1.0); }
 
+/* ===== FX 特效頁 ===== */
+/* 右側特效清單：固定高度 + 可上下滑動（使用者要求「滑竿上下移動選取」） */
+.fx-effect-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 380px;
+	overflow-y: auto;
+	padding: 2px 6px 2px 2px;
+	margin-top: 6px;
+	scrollbar-width: thin;
+	scrollbar-color: #e8a0b5 #fef0f4;
+}
+.fx-effect-list::-webkit-scrollbar { width: 8px; }
+.fx-effect-list::-webkit-scrollbar-track { background: #fef0f4; border-radius: 4px; }
+.fx-effect-list::-webkit-scrollbar-thumb { background: #e8a0b5; border-radius: 4px; }
+.fx-effect-list::-webkit-scrollbar-thumb:hover { background: #d4708a; }
+
+.fx-effect-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	text-align: left;
+	background: #fef0f4;
+	color: #4a3340;
+	border: 1px solid #f0d8e0;
+	border-radius: 8px;
+	padding: 7px 10px;
+	font-size: 13px;
+	cursor: pointer;
+	transition: background .15s, border-color .15s, color .15s;
+	flex: 0 0 auto;
+}
+.fx-effect-item:hover { background: #ffe4ec; border-color: #e8a0b5; }
+.fx-effect-item.active { background: #d4708a; border-color: #d4708a; color: #fff; }
+.fx-effect-item .fx-idx {
+	display: block;
+	margin-left: auto;
+	font-size: 11px;
+	opacity: .65;
+	min-width: 18px;
+	text-align: right;
+}
+/* FX 頁播放圖示改由 JS 切換（cat-083 / cat-080），這裡不再壓暗按鈕 */
+
+/* 設定列（沿用 PNG 頁的滑桿風格，但標籤不換行） */
+.fx-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.fx-row label {
+	flex: 0 0 56px;
+	font-size: 12px;
+	color: #806070;
+	margin: 0;
+}
+.fx-row input[type="range"] { flex: 1; min-width: 0; }
+.fx-row span { font-size: 12px; color: #d4708a; min-width: 38px; text-align: right; }
+
+/* 預覽畫布：依容器寬高自適應，不放大超過原始像素 */
+#fxCanvas { display: none; max-width: 100%; max-height: 320px; }
+
+/* 影格指示：方形編號塊（FX 頁不產縮圖、不顯示圖片，只給數字，省記憶體又好點） */
+.fx-timeline {
+	height: auto;
+	min-height: 38px;
+	max-height: 116px;
+	padding: 6px;
+	align-items: flex-start;
+	align-content: flex-start;
+	flex-wrap: wrap;
+	gap: 5px;
+	background: #2d2428;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+.fx-dot {
+	width: 26px;
+	height: 26px;
+	border-radius: 5px;
+	background: #5b4a51;
+	color: #f7e9ee;
+	font-size: 11px;
+	line-height: 26px;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+	cursor: pointer;
+	flex: 0 0 auto;
+	user-select: none;
+	transition: background .12s, color .12s, transform .12s;
+}
+.fx-dot:hover { background: #7a616a; }
+.fx-dot.active {
+	background: #d4708a;
+	color: #fff;
+	font-weight: 700;
+	transform: translateY(-1px);
+	box-shadow: 0 2px 6px rgba(212, 112, 138, .45);
+}
+
+#fxStatus { color: #d4708a; font-size: 13px; min-height: 18px; }
+#fxInfo { font-size: 12px; color: #806070; }
+
 /* ===== 手機版 RWD（一定要放最後，才會覆蓋上面規則） ===== */
 @media (max-width: 768px) {
 	body { padding: 10px; }
@@ -1496,4 +1772,324 @@ button.share-btn:disabled { background: #d8b888; cursor: not-allowed; }
 	.share-right { width: 100%; }
 	.share-tag-bar { flex-direction: row; flex-wrap: wrap; }
 	.share-tag-bar .meme-tag-btn { width: auto; }
+}
+
+/* ============================================================
+   文字面板（APNG / FX / PNG 三頁共用，樣式仿「獨立影格設置」那塊）
+   面板內容由 js/text-overlay.js 組出來，這裡只管外觀
+   ============================================================ */
+.text-panel {
+	padding: 12px 14px;
+	background: #fdf6f9;
+	border: 1px solid #f2dde5;
+	border-radius: 12px;
+	margin-top: 14px;
+}
+/* 第一列：十字鍵 / 文字與字體 / B I U 三顆直排 */
+.tp-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+/* 十字鍵刻意跟「獨立影格設置」那組（.fo-pad / .fo-btn）用同一套尺寸與顏色：
+   26px 方格、3px 間隔、#edccd8 底，兩塊面板擺在同一個畫面時才像同一個人做的 */
+.tp-pad {
+	display: grid;
+	grid-template-columns: repeat(3, 26px);
+	grid-template-rows: repeat(3, 26px);
+	gap: 3px;
+	flex: 0 0 auto;
+}
+/* 五顆各自定位成十字，不然會照順序自動填格，變成上／左／中擠在第一列 */
+.tp-up { grid-area: 1 / 2; }
+.tp-left { grid-area: 2 / 1; }
+.tp-center { grid-area: 2 / 2; }
+.tp-right { grid-area: 2 / 3; }
+.tp-down { grid-area: 3 / 2; }
+.tp-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	background: #edccd8;
+	color: #69404f;
+	border: none;
+	border-radius: 5px;
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
+}
+.tp-btn:hover { background: #e6c6d4; }
+.tp-btn:active { transform: scale(0.94); }
+/* 中間那顆是「回到正中央」，跟獨立影格設置一樣用虛線框表示可以按 */
+.tp-center {
+	background: #fbeef3;
+	border: 1px dashed #dfb9c8;
+}
+.tp-center:hover { background: #f6e1ea; }
+.tp-btn:focus-visible { box-shadow: 0 0 0 2px #f6e1ea; }
+
+/* 字體列：下拉佔滿，右邊掛一顆「讀取本機字體」的小按鈕（只有 Chrome / Edge 會出現） */
+.tp-font-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.tp-font-row .tp-font { flex: 1 1 auto; min-width: 0; }
+.tp-font-local {
+	flex: 0 0 auto;
+	padding: 4px 8px;
+	background: #fff;
+	border: 1px solid #dfb9c8;
+	border-radius: 6px;
+	color: #69404f;
+	font-size: 12px;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all .15s;
+}
+.tp-font-local:hover { background: #ffe4ec; }
+.tp-font-local:disabled { opacity: .45; cursor: default; }
+/* 讀取結果（已讀取 N 種 / 需要授權）只在有話要說時才有內容 */
+.tp-font-status {
+	flex: 0 0 auto;
+	font-size: 11px;
+	color: #b0818f;
+	white-space: nowrap;
+}
+
+/* 中間欄：文字輸入 + 字體下拉 + X / Y 位移 */
+.tp-main {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 1 1 220px;
+	min-width: 0;
+}
+.tp-text {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 6px 10px;
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 8px;
+	color: #806070;
+	font-size: 13px;
+	font-family: inherit;
+}
+.tp-text:focus { border-color: #f39800; }
+.tp-font {
+	align-self: flex-start;
+	padding: 5px 8px;
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 8px;
+	color: #806070;
+	font-size: 12px;
+	font-family: inherit;
+	cursor: pointer;
+}
+.tp-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+.tp-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+/* 顯示格範圍：兩個格號輸入框 + 淡入淡出勾選，自成一小組（PNG 頁會整組藏起來） */
+.tp-frames {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 14px;
+}
+.tp-check {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding-bottom: 5px;
+	font-size: 12px;
+	color: #a05f76;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.tp-label { font-size: 12px; color: #a05f76; }
+.tp-field input {
+	width: 84px;
+	padding: 4px 8px;
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 6px;
+	color: #806070;
+	font-size: 12px;
+	font-family: inherit;
+	box-sizing: border-box;
+}
+
+/* 右側：粗體 / 斜體 / 底線，直排三顆 */
+.tp-style {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex: 0 0 auto;
+}
+.tp-sbtn {
+	width: 32px;
+	height: 28px;
+	padding: 0;
+	background: #fff;
+	border: 1px solid #dfb9c8;
+	border-radius: 6px;
+	color: #69404f;
+	font-size: 14px;
+	font-family: Georgia, "Times New Roman", serif;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.tp-sbtn:hover { background: #ffe4ec; }
+.tp-sbtn.tp-b { font-weight: 700; }
+.tp-sbtn.tp-i { font-style: italic; }
+.tp-sbtn.tp-u { text-decoration: underline; text-decoration-style: dotted; }
+/* 選中時跟全站的 active 一樣吃橘色 */
+.tp-sbtn.active {
+	background: #f39800;
+	border-color: #f39800;
+	color: #fff;
+	text-decoration-color: #fff;
+}
+
+/* 進階設定：字級、顏色、外框、陰影，除顏色外都是滑桿 */
+.tp-adv {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px dashed #f0d8e0;
+}
+.tp-line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 12px;
+	color: #a05f76;
+}
+.tp-line > label { flex: 0 0 64px; }
+.tp-line input[type="range"] {
+	flex: 1 1 auto;
+	min-width: 80px;
+	height: 4px;
+	background: #f2dde5;
+	border-radius: 2px;
+	appearance: none;
+	-webkit-appearance: none;
+	cursor: pointer;
+}
+.tp-line input[type="range"]::-webkit-slider-thumb {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 14px;
+	height: 14px;
+	background: #f39800;
+	border: none;
+	border-radius: 50%;
+}
+.tp-line input[type="range"]::-moz-range-thumb {
+	width: 14px;
+	height: 14px;
+	background: #f39800;
+	border: none;
+	border-radius: 50%;
+}
+.tp-val {
+	flex: 0 0 40px;
+	text-align: right;
+	color: #b0818f;
+}
+.tp-line input[type="color"] {
+	width: 34px;
+	height: 24px;
+	padding: 0;
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 6px;
+	cursor: pointer;
+}
+/* 開關（外框 / 陰影）：勾選框跟標籤同一組，後面才接大小與顏色 */
+.tp-flag > label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: 0 0 64px;
+	color: #a05f76;
+	cursor: pointer;
+}
+/* 沒開外框 / 陰影時，對應的滑桿與色票淡掉（JS 會一起設 disabled） */
+.tp-line input:disabled { opacity: 0.45; cursor: default; }
+
+/* 文字面板放進 .preview-area 裡時（FX / PNG 兩頁），該區塊是 text-align: center，
+   面板內的標籤與數值會被一起置中，所以這裡拉回左對齊 */
+.preview-area .text-panel {
+	text-align: left;
+	margin-top: 14px;
+}
+
+/* 預覽疊層：蓋在預覽舞台上的一層透明 canvas，不擋滑鼠事件
+   z-index 比 .source-frame（綠色原圖外框）高一層，字才不會被框線蓋住 */
+.tp-overlay {
+	position: absolute;
+	display: none;
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* 獨立影格設置面板的隱藏鈕：跟 X / Y 兩個欄位排在同一列。
+   綠色是刻意的：粉色系主題裡粉紅代表「主要動作」、綠色代表「收起／離開」，
+   跟影格縮圖那顆隱藏鈕也對得上。 */
+.fo-hide-btn {
+	align-self: flex-end;
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding: 4px 10px;
+	background: #eaf7ec;
+	border: 1px solid #b9dfc0;
+	border-radius: 8px;
+	color: #3f7a4b;
+	font-size: 12px;
+	font-family: inherit;
+	cursor: pointer;
+	transition: all 0.15s;
+}
+.fo-hide-btn:hover { background: #d8f0dc; border-color: #5c9c6b; }
+.fo-hide-btn:active { transform: scale(0.96); }
+
+/* 排序列上把獨立影格設置叫回來的那顆（foShowBtn）：跟面板裡的隱藏鈕同一套綠色，
+   兩顆是一組動作（一個收起、一個叫回），同色才看得出來是一對 */
+.sort-btn.fo-show-btn {
+	background: #eaf7ec;
+	border-color: #b9dfc0;
+	color: #3f7a4b;
+}
+.sort-btn.fo-show-btn:hover { background: #d8f0dc; border-color: #5c9c6b; }
+
+/* 右側設定卡（FX / PNG）裡不要再疊一層粉底，卡片本身已經是卡片的底色了 */
+.settings-group .text-panel {
+	margin-top: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+}
+
+/* 小螢幕：十字鍵與 B/I/U 各自盤據一整列，滑桿才有寬度 */
+@media (max-width: 600px) {
+	.tp-row { gap: 12px; }
+	.tp-main { flex: 1 1 100%; }
+	.tp-style { flex-direction: row; }
 }

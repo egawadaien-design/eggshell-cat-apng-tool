@@ -5,7 +5,7 @@
 
 - 作者：DaiEn
 - 建立：2026-11-10
-- 最後更新：2026-11-11
+- 最後更新：2026-11-12（`upload.js` 補 `typeof` 檢查、catch 改回通用錯誤訊息）
 - 對應平台：Vercel（主站 `apng-murex.vercel.app`）
 
 ---
@@ -66,7 +66,8 @@ Content-Type: application/json
 | 200 | —（`success:true`） | 成功 |
 | 405 | `Method not allowed` | 方法不是 POST / OPTIONS |
 | 500 | `Supabase env not configured` | 環境變數沒設或設在錯誤環境 |
-| 400 | `No image data` | 沒有 `blobBase64`，或值不是字串 |
+| 400 | `No image data` | 沒有 `blobBase64`，或值不是字串（送數字／物件也會被這道檢查擋下，回 400 而不是 500） |
+| 500 | `Internal server error` | 未預期的例外。**刻意不回 `e.message`**，否則會把內部細節送給呼叫者；真正原因看 Vercel → 專案 → Logs → Functions |
 | 500 | `Storage upload failed: ...` | bucket 名稱不一致（最常見）、bucket 非 public、金鑰失效 |
 | 500 | `Database insert failed: ...` | `apng_images` 欄位缺漏（例如沒有 `tags`）、RLS 阻擋 |
 

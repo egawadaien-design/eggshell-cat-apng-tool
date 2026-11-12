@@ -2,10 +2,13 @@
  * 蛋殼喵 APNG 工具 — PNG 靜態貼圖編輯器
  * 去背（flood fill / 全域刪除）/ 橡皮擦 / 縮放平移 / 分割線 / 240×240 與 96×74 輸出
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 1
+ * @Date: 2026-11-12
+ * @Correction: 4
+ * 2026-11-12 追加：PNG 頁新增「文字」面板；240×240 與 96×74 兩張輸出各自燒字（burnTextToResult），
+ *                 主畫布預覽那一層跟著 applyTransform 重畫（縮放平移時字也貼在圖上）
  *
  * 由原 apng.js 第 1090~1908 行原封不動切出，未改動任何邏輯（自封閉 IIFE）
+ * 2026-11-12：接上 js/source-frame.js，預覽舞台畫出原圖的綠色外框（applyTransform 內更新）
  */
 
 // ============================================================
@@ -113,10 +116,50 @@
 	const zoomLabel = document.getElementById('pngZoomLabel');
 	const previewStage = document.getElementById('pngPreviewStage');
 
+	// ============================================================
+	// 文字（PNG 頁）
+	// 這一頁的字最後會燒進 240×240 與 96×74 兩張輸出，
+	// 主畫布上疊的那一層只是給眼睛看（跟 APNG 頁同一套做法）
+	// ============================================================
+	let pngText = null;
+	(function mountPngTextPanel() {
+		const host = document.getElementById('textHostPng');
+		if (!host || !window.TextOverlay) return;
+		pngText = window.TextOverlay.mount(host, {
+			prefix: 'png',
+			onChange: paintPngText,
+			// PNG 頁只有一張圖，沒有「第幾格到第幾格」這種事，面板上那兩個輸入框會藏起來
+			singleFrame: true
+		});
+	})();
+
+	function paintPngText() {
+		if (!window.TextOverlay) return;
+		const st = pngText ? pngText.state : null;
+		const area = document.getElementById('pngPreviewArea');
+		// 還沒載圖就把疊層收起來，不然字會浮在空白的預覽舞台上
+		if (!st || !area || area.style.display === 'none') {
+			window.TextOverlay.paintOverlay(previewStage, canvas, null);
+			return;
+		}
+		window.TextOverlay.paintOverlay(previewStage, canvas, st);
+	}
+
+	// 燒字到輸出畫布：字級存的是「短邊百分比」，所以 240 與 96 兩張的比例看起來一致
+	function burnTextToResult(ctx, w, h) {
+		if (!window.TextOverlay || !pngText || !pngText.state.text) return;
+		window.TextOverlay.render(ctx, w, h, pngText.state);
+	}
+
 	function applyTransform() {
 		canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
 		canvas.style.transformOrigin = 'center center';
 		if (zoomLabel) zoomLabel.textContent = Math.round(zoom * 100) + '%';
+		// 綠色原圖外框：這裡的縮放／平移都是 CSS transform，canvas 的元素矩形
+		// 已經是最終顯示位置，直接量它最準（js/source-frame.js）
+		if (window.SourceFrame) window.SourceFrame.aroundTarget(previewStage, canvas);
+		// 文字疊層跟外框一樣靠量 canvas 的最終矩形定位，縮放／平移後要重畫
+		paintPngText();
 	}
 	function setZoom(newZoom) {
 		zoom = Math.max(0.25, Math.min(5.0, newZoom));
@@ -400,6 +443,7 @@
 		const scale240 = Math.min(240 / src.width, 240 / src.height);
 		const dw240 = src.width * scale240, dh240 = src.height * scale240;
 		ctx240.drawImage(src, (240 - dw240) / 2, (240 - dh240) / 2, dw240, dh240);
+		burnTextToResult(ctx240, 240, 240);
 		document.getElementById('pngResult240Info').textContent = `${src.width}×${src.height} → 240×240`;
 		// 96x74：等比縮放到最大可用寬度，高度自適應
 		const c96 = document.getElementById('pngResult96');
@@ -409,6 +453,7 @@
 		const scale96 = Math.min(96 / src.width, 74 / src.height);
 		const dw96 = src.width * scale96, dh96 = src.height * scale96;
 		ctx96.drawImage(src, (96 - dw96) / 2, (74 - dh96) / 2, dw96, dh96);
+		burnTextToResult(ctx96, 96, 74);
 		document.getElementById('pngResult96Info').textContent = `${src.width}×${src.height} → 96×74`;
 		resultArea.style.display = 'block';
 	});
@@ -453,6 +498,10 @@
 		window.addEventListener('mouseup', () => {
 			dragging = false;
 			previewStage.style.cursor = '';
+		});
+		// 視窗尺寸改變 → max-width / max-height 會改變顯示比例，外框要重算
+		window.addEventListener('resize', () => {
+			if (window.SourceFrame) window.SourceFrame.aroundTarget(previewStage, canvas);
 		});
 	}
 

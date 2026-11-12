@@ -2,8 +2,10 @@
  * 蛋殼喵 APNG 工具 — 編碼輸出
  * PNG CRC32 / acTL 循環次數 / UPNG 編碼 / GIF 輸出 / LINE 規範警告 / 語言重繪
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 2
+ * @Date: 2026-11-12
+ * @Correction: 4
+ * 2026-11-12 追加：每一格 drawImage 之後、取像素之前先把「文字」燒上去（TextOverlay.instances.app），
+ *                 這樣輸出的 APNG 才會帶字，而不只是預覽看得到
  *
  * 由原 apng.js 第 304~360 行與第 859~1088 行原封不動切出，未改動任何邏輯
  * 依賴 apng-frames.js 先載入（使用其 DOM 節點與 files / frameDelays 狀態）
@@ -144,7 +146,9 @@ makeBtn.addEventListener('click', async () => {
 		// 先讀第一張的尺寸當基準
 		const frames = [];
 		let srcW = 0, srcH = 0;
+		let frameNo = 0;
 		for (const f of files) {
+			frameNo++;
 			const bitmap = await createImageBitmap(f);
 			srcW = bitmap.width; srcH = bitmap.height;
 			break;
@@ -169,6 +173,17 @@ makeBtn.addEventListener('click', async () => {
 			ctx.imageSmoothingEnabled = true;
 			ctx.imageSmoothingQuality = 'high';
 			ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+
+			// 文字（APNG 頁）：先把字燒在這一格上再取像素，
+			// 這樣 UPNG 收到的就已經是有字的畫面；預覽那邊只是疊一層透明 canvas 給眼睛看，
+			// 兩邊都吃同一份 state（短邊 % 的字級），所以「看到什麼就會輸出什麼」
+			const textSt = (window.TextOverlay && window.TextOverlay.instances.app)
+				? window.TextOverlay.instances.app.state : null;
+			// 逐格傳「第幾格 / 共幾格」，只有落在指定範圍的那幾格才燒字
+			if (textSt && textSt.text) {
+				window.TextOverlay.render(ctx, targetW, targetH, textSt, frameNo, files.length);
+			}
+
 			const data = ctx.getImageData(0, 0, targetW, targetH).data;
 			frames.push(new Uint8Array(data).buffer);
 		}
