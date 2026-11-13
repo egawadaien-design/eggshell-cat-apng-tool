@@ -1,9 +1,10 @@
 <!--
 	@author: [DaiEn]
 	@Date: 2026-11-13
-	@Correction: 36
+	@Correction: 37
 	蛋殼喵 APNG 工具 — 多國語言版
-	本次修正：「特效設定」標題改成由 js/fx.js 動態組（有獨立設定時冠上特效名稱），節點移除 data-i18n 避免切語言被蓋回
+	本次修正：FX「輸出設定」的「強度」下方新增一行說明（#fxKHint），內容由 js/fx.js 依目前特效改寫
+	上次修正：「特效設定」標題改成由 js/fx.js 動態組（有獨立設定時冠上特效名稱），節點移除 data-i18n 避免切語言被蓋回
 	上次修正：FX 頁新增「特效設定」一格（放在「輸出設定」上方），參數由特效自己宣告
 	上次修正：特效清單的 h3 圖標沿用設定類的 cat-209，與其他設定群組一致
 	上次修正：Help 常見問題第 6 題改寫為「可以加濾鏡特效嗎？」（現在支援簡單文字與濾鏡），五語系同步
@@ -456,6 +457,9 @@
 					<input type="range" id="fxIntensity" min="0" max="100" value="50">
 					<span id="fxIntensityVal">50%</span>
 				</div>
+
+				<!-- 強度說明：內容由 fx.js 依目前特效寫入（每支特效拿這支滑桿做的事情不同） -->
+				<small class="fx-khint" id="fxKHint">強度影響：整體幅度（位移、變形）</small>
 
 				<small data-i18n="fxSpecHint">延遲固定 100ms、最長邊 ≤512px、格數 ≤40</small>
 			</div>

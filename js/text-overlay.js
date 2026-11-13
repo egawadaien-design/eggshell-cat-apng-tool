@@ -1,8 +1,16 @@
 /**
  * 蛋殼喵 APNG 工具 — 文字圖層（面板 + 繪製核心）
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 5
+ * @Date: 2026-11-13
+ * @Correction: 7
+ * 本次修正：文字面板新增「旋轉」滑桿（0~360 度），以文字區塊的中心點為軸心旋轉。
+ *   實作是「把座標系搬到中心 → 轉 → 搬回來」再沿用原本的繪字程式，
+ *   所以外框、陰影、底線會跟著字一起轉，不必另外處理；
+ *   沒設角度（0 度）時完全不呼叫 rotate，等於零成本。
+ * 本次修正：文字面板的粗體／斜體／底線三顆按鈕改用站內圖示字型
+ *   （cat-002／cat-003／cat-004，即 F0001~F0003），不再用 B／I／U 三個字母偽裝字形。
+ *   連帶把 .tp-b/.tp-i/.tp-u 這三個「字母用」的類別從按鈕上移除——
+ *   斜體與虛線底線那些裝飾套在圖示上只會多出一條雜線。
  *
  * 【這個檔在做什麼】
  *   APNG / FX / PNG 三頁都要能「在圖上打字」，三頁的預覽型態完全不同
@@ -113,6 +121,9 @@
 			underline: false,
 			dx: 0,               // 位置偏移（%）：0 = 置中
 			dy: 0,
+			// 旋轉角度（0~360 度），以「文字區塊的中心」為軸心轉。
+			// 存角度而不是弧度，是因為面板滑桿直接就是度數，不必來回換算
+			rot: 0,
 			// 只在這幾格出現：from 是第幾格開始（1 起算），to 的 0 代表「到最後一格」。
 			// 存的是「格號」不是百分比，所以換圖片尺寸不影響；影格數量變動時
 			// 由 render() 比對當下的總格數決定要不要畫
@@ -190,6 +201,18 @@
 		const cy = H / 2 + H * (Number(st.dy) || 0) / 100;
 		const lineH = fs * 1.25;
 		const totalH = lineH * lines.length;
+
+		// 旋轉：以「文字區塊的中心」(cx, cy) 為軸心。
+		// 做法是把座標系搬過去 → 轉 → 搬回來，之後的繪字、外框、陰影、底線
+		// 全都沿用原本的算式，自然就一起轉了（不必逐個元素另外算旋轉矩陣）。
+		// 0 度時整個 if 都不進去，等於沒有這項功能，不會拖慢每一格。
+		const rotDeg = ((Number(st.rot) || 0) % 360 + 360) % 360;
+		if (rotDeg) {
+			const rad = rotDeg * Math.PI / 180;
+			ctx.translate(cx, cy);
+			ctx.rotate(rad);
+			ctx.translate(-cx, -cy);
+		}
 
 		lines.forEach(function (line, i) {
 			if (!line) return;
@@ -336,9 +359,12 @@
 			+ '    </div>'
 			+ '  </div>'
 			+ '  <div class="tp-style">'
-			+ '    <button type="button" class="tp-sbtn tp-b" id="' + prefix + 'B" title="' + t('tpBold') + '">B</button>'
-			+ '    <button type="button" class="tp-sbtn tp-i" id="' + prefix + 'I" title="' + t('tpItalic') + '">I</button>'
-			+ '    <button type="button" class="tp-sbtn tp-u" id="' + prefix + 'U" title="' + t('tpUnderline') + '">U</button>'
+			// 粗體／斜體／底線改用站內圖示字型（cat-002 / cat-003 / cat-004），
+			// 不再用 B／I／U 三個字母去偽裝字形——字母在 32×28 的小方鈕裡本來就偏擠，
+			// 而且斜體、虛線底線那些 CSS 對「字」有效、對「圖示」只會多出一條雜線
+			+ '    <button type="button" class="tp-sbtn" id="' + prefix + 'B" title="' + t('tpBold') + '"><cat class="cat cat-002"></cat></button>'
+			+ '    <button type="button" class="tp-sbtn" id="' + prefix + 'I" title="' + t('tpItalic') + '"><cat class="cat cat-003"></cat></button>'
+			+ '    <button type="button" class="tp-sbtn" id="' + prefix + 'U" title="' + t('tpUnderline') + '"><cat class="cat cat-004"></cat></button>'
 			+ '  </div>'
 			+ '</div>'
 			+ '<div class="tp-adv">'
@@ -348,6 +374,12 @@
 			+ '    <span class="tp-val" id="' + prefix + 'SizeVal">12%</span>'
 			// 字色緊接在字級後面，跟外框、陰影那兩列的色票一樣落在最右邊，四列右緣對齊
 			+ '    <input type="color" id="' + prefix + 'Color" value="#000000" title="' + t('tpColor') + '" data-i18n-title="tpColor">'
+			+ '  </div>'
+			// 旋轉：0~360 度，軸心是「文字區塊的中心」（正值順時針）
+			+ '  <div class="tp-line">'
+			+ '    <label data-i18n="tpRotate">' + t('tpRotate') + '</label>'
+			+ '    <input type="range" id="' + prefix + 'Rot" min="0" max="360" step="1" value="0">'
+			+ '    <span class="tp-val" id="' + prefix + 'RotVal">0°</span>'
 			+ '  </div>'
 			+ '  <div class="tp-line tp-flag">'
 			+ '    <label><input type="checkbox" id="' + prefix + 'OutlineOn">'
@@ -389,6 +421,8 @@
 		const uBtn = document.getElementById(prefix + 'U');
 		const sizeIn = document.getElementById(prefix + 'Size');
 		const sizeVal = document.getElementById(prefix + 'SizeVal');
+		const rotIn = document.getElementById(prefix + 'Rot');
+		const rotVal = document.getElementById(prefix + 'RotVal');
 		const colorIn = document.getElementById(prefix + 'Color');
 		const oOn = document.getElementById(prefix + 'OutlineOn');
 		const oW = document.getElementById(prefix + 'OutlineW');
@@ -440,7 +474,7 @@
 		// 統一的「改了 → 通知外面」入口：簽章沒變就不重畫，避免拖滑桿時做白工
 		function changed() {
 			const sig = [st.text, st.font, st.size, st.color, st.bold, st.italic, st.underline,
-				st.dx, st.dy, st.from, st.to, st.fade, st.outline, st.outlineW, st.outlineColor,
+				st.dx, st.dy, st.rot, st.from, st.to, st.fade, st.outline, st.outlineW, st.outlineColor,
 				st.shadow, st.shadowSize, st.shadowColor].join('|');
 			if (sig === lastSig) return;
 			lastSig = sig;
@@ -458,6 +492,8 @@
 			uBtn.classList.toggle('active', st.underline);
 			sizeIn.value = st.size;
 			sizeVal.textContent = st.size + '%';
+			if (rotIn) rotIn.value = st.rot;
+			if (rotVal) rotVal.textContent = st.rot + '°';
 			colorIn.value = st.color;
 			oOn.checked = st.outline;
 			oW.value = st.outlineW;
@@ -590,12 +626,21 @@
 			changed();
 		});
 
-		// ---- 字級 / 顏色 ----
+		// ---- 字級 / 旋轉 / 顏色 ----
 		sizeIn.addEventListener('input', function () {
 			st.size = parseInt(sizeIn.value, 10) || 12;
 			sizeVal.textContent = st.size + '%';
 			changed();
 		});
+		if (rotIn) {
+			rotIn.addEventListener('input', function () {
+				// 滑桿本身就只給 0~360，這裡再夾一次是為了避免有人用開發者工具亂改值
+				const v = Math.max(0, Math.min(360, parseInt(rotIn.value, 10) || 0));
+				st.rot = v;
+				if (rotVal) rotVal.textContent = v + '°';
+				changed();
+			});
+		}
 		colorIn.addEventListener('input', function () {
 			st.color = colorIn.value;
 			changed();

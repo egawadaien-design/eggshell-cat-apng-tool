@@ -1,8 +1,18 @@
 /*
 	@author: [DaiEn]
 	@Date: 2026-11-13
-	@Correction: 51
-	本次修正：新增特效「漫畫效果 Comic Ink」的 key——paramDetail（精細度）、paramLineWidth（線條粗細）、paramInk（墨色濃度）、paramPaper（底色）、paperTransparent（透明）、paperWhite（白色）× 五語系，fxName_comic（繁中／簡中）
+	@Correction: 61
+	本次修正：粒子網路補「聚散」——paramCluster（聚散）× 五語系，預設 60%，0% 均勻散佈、100% 縮成四團
+	本次修正：粒子網路補「色相流動」——paramHueFlow（色相流動）、flowOff（固定色）、flowOne（一輪轉一圈）、flowTwo（一輪轉兩圈）× 五語系
+	本次修正：新增特效「粒子網路 Particle Net」的 key——paramLink（連線距離）、pnFront（粒子在圖前）、pnBack（粒子在圖後）× 五語系，fxName_particles（繁中／簡中）；數量／擺動／色相沿用 paramCount／paramWobble／paramHue
+	本次修正：新增特效「火焰邊緣 Burning Edge」的 key——paramFlameLength（火焰高度）、paramFlameDensity（火焰密度）、paramFlameScope（火焰範圍）、flameInside（內焰）、flameOutside（外焰）× 五語系，fxName_flameEdge（繁中／簡中）
+	本次修正：新增特效「滿天愛心 Floating Hearts」的 key——paramWobble（擺動幅度）、hzFront（愛心在圖前）、hzBack（愛心在圖後）× 五語系，fxName_hearts（繁中／簡中）；數量／大小／速度沿用 paramCount／paramSize／paramSpeed
+	本次修正：新增 tpRotate（旋轉）× 五語系——文字面板多一支 0~360 度的旋轉滑桿
+	本次修正：新增特效「煙火 Fireworks」的 key——paramBursts（發數）、paramSparks（火花數）、paramLayer（圖層）、fwFront（煙火在圖前）、fwBack（煙火在圖後）× 五語系，fxName_fireworks（繁中／簡中）
+	本次修正：新增 paramBgDensity（黑底濃度）× 五語系——數碼雨 Matrix Rain 的黑底改成滑桿，0% 完全不蓋底、50% 壓暗一半
+	本次修正：新增「強度說明」12 個 key——fxKHintPrefix／Default／Bright／Glow／Alpha／Multiply／Count／Shadow／Fade／Shade／Size／None × 五語系（FX 頁「強度」下方那行會隨特效換字）
+	本次修正：新增特效「3D 方塊旋轉 Cube Spin」的 key——paramSpinAxis（旋轉軸）、axisRandom／axisX／axisY／axisZ／axisTilt（五種轉軸）、paramEdge（邊線）、paramShade（明暗）、paramBg（背景）、bgDim（暗化原圖）、bgTransparent（透明）× 五語系，fxName_cubeSpin（繁中／簡中）
+	上次修正：新增特效「漫畫效果 Comic Ink」的 key——paramDetail（精細度）、paramLineWidth（線條粗細）、paramInk（墨色濃度）、paramPaper（底色）、paperTransparent（透明）、paperWhite（白色）× 五語系，fxName_comic（繁中／簡中）
 	上次修正：新增特效「切割 Slice Split」的 key——paramCuts（切割數量）× 五語系、fxName_sliceSplit（繁中／簡中）
 	上次修正：再補 paramShadowOffset（陰影距離）、paramSlices（切片數），各五語系
 	上上次修正：再補 paramGrainSize（顆粒大小，各五語系）
@@ -857,6 +867,20 @@ Object.assign(I18N['zh-TW'], {
 	fxFrames: '影格數',
 	fxIntensity: '強度',
 	fxSpecHint: '延遲固定 100ms、最長邊 ≤512px、格數 ≤40',
+	// 「強度」那支滑桿是全域的，但每支特效拿它做的事情不一樣，
+	// 所以面板下方會跟著目前選到的特效換一句說明（對應表在 fx.js 的 K_HINT_MAP）
+	fxKHintPrefix: '強度影響：',
+	fxKHintDefault: '整體幅度（位移、變形）',
+	fxKHintBright: '光帶／閃光亮度',
+	fxKHintGlow: '光暈亮度',
+	fxKHintAlpha: '疊圖濃度',
+	fxKHintMultiply: '濃度 × 下方專屬強度',
+	fxKHintCount: '粒子數量',
+	fxKHintShadow: '陰影濃度',
+	fxKHintFade: '淡出深度',
+	fxKHintShade: '六面明暗（0＝扁平）',
+	fxKHintSize: '馬賽克顆粒大小',
+	fxKHintNone: '此特效不受強度影響',
 	fxParams: '特效設定',
 	// 32 個特效的名稱（只給中文語系用；日／泰／英直接顯示英文原名，所以不必五語系都補）
 	fxName_shineSweep: '斜光掃過',
@@ -974,6 +998,18 @@ Object.assign(I18N['zh-CN'], {
 	fxFrames: '帧数',
 	fxIntensity: '强度',
 	fxSpecHint: '延迟固定 100ms、最长边 ≤512px、帧数 ≤40',
+	fxKHintPrefix: '强度影响：',
+	fxKHintDefault: '整体幅度（位移、变形）',
+	fxKHintBright: '光带／闪光亮度',
+	fxKHintGlow: '光晕亮度',
+	fxKHintAlpha: '叠图浓度',
+	fxKHintMultiply: '浓度 × 下方专属强度',
+	fxKHintCount: '粒子数量',
+	fxKHintShadow: '阴影浓度',
+	fxKHintFade: '淡出深度',
+	fxKHintShade: '六面明暗（0＝扁平）',
+	fxKHintSize: '马赛克颗粒大小',
+	fxKHintNone: '此特效不受强度影响',
 	fxParams: '特效设置',
 	// 32 個特效的名稱（只給中文語系用；其他語系顯示英文原名）
 	fxName_shineSweep: '斜光扫过',
@@ -1091,6 +1127,18 @@ Object.assign(I18N['en'], {
 	fxFrames: 'Frames',
 	fxIntensity: 'Intensity',
 	fxSpecHint: 'Fixed 100ms delay, longest side ≤512px, ≤40 frames',
+	fxKHintPrefix: 'Intensity: ',
+	fxKHintDefault: 'overall amplitude (shift & warp)',
+	fxKHintBright: 'light band / flash brightness',
+	fxKHintGlow: 'glow brightness',
+	fxKHintAlpha: 'overlay opacity',
+	fxKHintMultiply: 'opacity × the strength slider below',
+	fxKHintCount: 'particle count',
+	fxKHintShadow: 'shadow opacity',
+	fxKHintFade: 'fade-out depth',
+	fxKHintShade: 'face shading (0 = flat)',
+	fxKHintSize: 'mosaic block size',
+	fxKHintNone: 'this effect ignores intensity',
 	fxParams: 'Effect settings',
 	paramNone: 'This effect has no extra settings',
 	paramAngle: 'Angle',
@@ -1173,6 +1221,18 @@ Object.assign(I18N['ja'], {
 	fxFrames: 'フレーム数',
 	fxIntensity: '強度',
 	fxSpecHint: '遅延は 100ms 固定・長辺 ≤512px・40 フレームまで',
+	fxKHintPrefix: '強度の影響：',
+	fxKHintDefault: '全体の振れ幅（移動・変形）',
+	fxKHintBright: '光帯・フラッシュの明るさ',
+	fxKHintGlow: 'グローの明るさ',
+	fxKHintAlpha: '重ねる層の濃さ',
+	fxKHintMultiply: '濃さ × 下の専用強度',
+	fxKHintCount: '粒の数',
+	fxKHintShadow: '影の濃さ',
+	fxKHintFade: 'フェードの深さ',
+	fxKHintShade: '六面の明暗（0＝平坦）',
+	fxKHintSize: 'モザイクの粒サイズ',
+	fxKHintNone: 'このエフェクトは強度の影響なし',
 	fxParams: 'エフェクト設定',
 	paramNone: 'このエフェクトに追加設定はありません',
 	paramAngle: '角度',
@@ -1250,6 +1310,18 @@ Object.assign(I18N['th'], {
 	fxFrames: 'จำนวนเฟรม',
 	fxIntensity: 'ความเข้ม',
 	fxSpecHint: 'ดีเลย์คงที่ 100ms · ด้านยาว ≤512px · ไม่เกิน 40 เฟรม',
+	fxKHintPrefix: 'ความเข้มส่งผลต่อ: ',
+	fxKHintDefault: 'ระยะการขยับ/บิดเบือนโดยรวม',
+	fxKHintBright: 'ความสว่างของแถบแสง/แฟลช',
+	fxKHintGlow: 'ความสว่างของเรืองแสง',
+	fxKHintAlpha: 'ความเข้มของชั้นที่ซ้อนทับ',
+	fxKHintMultiply: 'ความเข้มที่ซ้อน × ค่าด้านล่าง',
+	fxKHintCount: 'จำนวนอนุภาค',
+	fxKHintShadow: 'ความเข้มของเงา',
+	fxKHintFade: 'ระดับการจางหาย',
+	fxKHintShade: 'ความสว่าง/มืดของหกด้าน (0 = แบน)',
+	fxKHintSize: 'ขนาดเม็ดโมเสก',
+	fxKHintNone: 'เอฟเฟกต์นี้ไม่ขึ้นกับความเข้ม',
 	fxParams: 'ตั้งค่าเอฟเฟกต์',
 	paramNone: 'เอฟเฟกต์นี้ไม่มีตั้งค่าเพิ่มเติม',
 	paramAngle: 'มุม',
@@ -1336,6 +1408,7 @@ Object.assign(I18N['zh-TW'], {
 	tpItalic: '斜體',
 	tpUnderline: '底線',
 	tpSize: '字體大小',
+	tpRotate: '旋轉',
 	tpColor: '顏色',
 	tpOutline: '外框',
 	tpShadow: '陰影',
@@ -1371,6 +1444,7 @@ Object.assign(I18N['zh-CN'], {
 	tpItalic: '斜体',
 	tpUnderline: '下划线',
 	tpSize: '字体大小',
+	tpRotate: '旋转',
 	tpColor: '颜色',
 	tpOutline: '外框',
 	tpShadow: '阴影',
@@ -1406,6 +1480,7 @@ Object.assign(I18N['en'], {
 	tpItalic: 'Italic',
 	tpUnderline: 'Underline',
 	tpSize: 'Font size',
+	tpRotate: 'Rotate',
 	tpColor: 'Color',
 	tpOutline: 'Outline',
 	tpShadow: 'Shadow',
@@ -1441,6 +1516,7 @@ Object.assign(I18N['ja'], {
 	tpItalic: '斜体',
 	tpUnderline: '下線',
 	tpSize: '文字サイズ',
+	tpRotate: '回転',
 	tpColor: '色',
 	tpOutline: '縁取り',
 	tpShadow: '影',
@@ -1476,6 +1552,7 @@ Object.assign(I18N['th'], {
 	tpItalic: 'ตัวเอียง',
 	tpUnderline: 'ขีดเส้นใต้',
 	tpSize: 'ขนาดตัวอักษร',
+	tpRotate: 'หมุน',
 	tpColor: 'สี',
 	tpOutline: 'เส้นขอบ',
 	tpShadow: 'เงา',
@@ -1507,6 +1584,271 @@ Object.assign(I18N['zh-CN'], { helpReplayHint: '点一下重新播放' });
 Object.assign(I18N['en'], { helpReplayHint: 'Click to replay' });
 Object.assign(I18N['ja'], { helpReplayHint: 'クリックで再生' });
 Object.assign(I18N['th'], { helpReplayHint: 'คลิกเพื่อเล่นซ้ำ' });
+
+// ============================================================
+// FX 特效「3D 方塊旋轉 Cube Spin」的字串
+// 特效名稱只補繁中／簡中（英／日／泰直接顯示英文原名 Cube Spin）
+// 參數標籤五語系都補，不然那四個語系的面板會顯示 key 名稱
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	fxName_cubeSpin: '3D 方塊旋轉',
+	paramSpinAxis: '旋轉軸',
+	axisRandom: '隨機',
+	axisX: 'X 軸（上下翻）',
+	axisY: 'Y 軸（左右轉）',
+	axisZ: 'Z 軸（畫面內轉）',
+	axisTilt: '斜軸',
+	paramEdge: '邊線',
+	paramShade: '明暗',
+	paramBg: '背景',
+	bgDim: '暗化原圖',
+	bgTransparent: '透明'
+});
+Object.assign(I18N['zh-CN'], {
+	fxName_cubeSpin: '3D 方块旋转',
+	paramSpinAxis: '旋转轴',
+	axisRandom: '随机',
+	axisX: 'X 轴（上下翻转）',
+	axisY: 'Y 轴（左右旋转）',
+	axisZ: 'Z 轴（画面内旋转）',
+	axisTilt: '斜轴',
+	paramEdge: '边线',
+	paramShade: '明暗',
+	paramBg: '背景',
+	bgDim: '暗化原图',
+	bgTransparent: '透明'
+});
+Object.assign(I18N['en'], {
+	paramSpinAxis: 'Spin axis',
+	axisRandom: 'Random',
+	axisX: 'X axis (tumble)',
+	axisY: 'Y axis (turn)',
+	axisZ: 'Z axis (flat spin)',
+	axisTilt: 'Tilted axis',
+	paramEdge: 'Edge line',
+	paramShade: 'Shading',
+	paramBg: 'Background',
+	bgDim: 'Dim the photo',
+	bgTransparent: 'Transparent'
+});
+Object.assign(I18N['ja'], {
+	paramSpinAxis: '回転軸',
+	axisRandom: 'ランダム',
+	axisX: 'X軸（縦回転）',
+	axisY: 'Y軸（横回転）',
+	axisZ: 'Z軸（平面回転）',
+	axisTilt: '斜め軸',
+	paramEdge: '輪郭線',
+	paramShade: '明暗',
+	paramBg: '背景',
+	bgDim: '元画像を暗く',
+	bgTransparent: '透明'
+});
+Object.assign(I18N['th'], {
+	paramSpinAxis: 'แกนหมุน',
+	axisRandom: 'สุ่ม',
+	axisX: 'แกน X (พลิกขึ้นลง)',
+	axisY: 'แกน Y (หมุนซ้ายขวา)',
+	axisZ: 'แกน Z (หมุนในระนาบ)',
+	axisTilt: 'แกนเอียง',
+	paramEdge: 'เส้นขอบ',
+	paramShade: 'แสงเงา',
+	paramBg: 'พื้นหลัง',
+	bgDim: 'รูปต้นฉบับแบบมืด',
+	bgTransparent: 'โปร่งใส'
+});
+
+
+// ============================================================
+// FX 特效「數碼雨 Matrix Rain」的字串
+// 只有一個參數要補：黑底濃度（0% = 透明、50% = 壓暗一半）
+// ============================================================
+Object.assign(I18N['zh-TW'], { paramBgDensity: '黑底濃度' });
+Object.assign(I18N['zh-CN'], { paramBgDensity: '黑底浓度' });
+Object.assign(I18N['en'], { paramBgDensity: 'Black backdrop' });
+Object.assign(I18N['ja'], { paramBgDensity: '黒地の濃さ' });
+Object.assign(I18N['th'], { paramBgDensity: 'ความเข้มพื้นดำ' });
+
+
+// ============================================================
+// FX 特效「煙火 Fireworks」的字串
+// 特效名稱只補繁中／簡中（英／日／泰直接顯示英文原名 Fireworks）
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	fxName_fireworks: '煙火',
+	paramBursts: '發數',
+	paramSparks: '火花數',
+	paramLayer: '圖層',
+	fwFront: '煙火在圖前',
+	fwBack: '煙火在圖後'
+});
+Object.assign(I18N['zh-CN'], {
+	fxName_fireworks: '烟花',
+	paramBursts: '发数',
+	paramSparks: '火花数',
+	paramLayer: '图层',
+	fwFront: '烟花在图前',
+	fwBack: '烟花在图后'
+});
+Object.assign(I18N['en'], {
+	paramBursts: 'Bursts',
+	paramSparks: 'Sparks',
+	paramLayer: 'Layer',
+	fwFront: 'Fireworks in front',
+	fwBack: 'Fireworks behind'
+});
+Object.assign(I18N['ja'], {
+	paramBursts: '打ち上げ数',
+	paramSparks: '火花の数',
+	paramLayer: 'レイヤー',
+	fwFront: '花火を前面に',
+	fwBack: '花火を背面に'
+});
+Object.assign(I18N['th'], {
+	paramBursts: 'จำนวนจุด',
+	paramSparks: 'จำนวนประกาย',
+	paramLayer: 'เลย์',
+	fwFront: 'ดอกไม้ไฟด้านหน้า',
+	fwBack: 'ดอกไม้ไฟด้านหลัง'
+});
+
+
+// ============================================================
+// FX 特效「滿天愛心 Floating Hearts」的字串
+// 特效名稱只補繁中／簡中（英／日／泰直接顯示英文原名 Floating Hearts）
+// 數量、大小、速度沿用 sparkle 那組通用 key（paramCount／paramSize／paramSpeed）
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	fxName_hearts: '滿天愛心',
+	paramWobble: '擺動幅度',
+	hzFront: '愛心在圖前',
+	hzBack: '愛心在圖後'
+});
+Object.assign(I18N['zh-CN'], {
+	fxName_hearts: '满天爱心',
+	paramWobble: '摆动幅度',
+	hzFront: '爱心在图前',
+	hzBack: '爱心在图后'
+});
+Object.assign(I18N['en'], {
+	paramWobble: 'Wobble',
+	hzFront: 'Hearts in front',
+	hzBack: 'Hearts behind'
+});
+Object.assign(I18N['ja'], {
+	paramWobble: '揺れ幅',
+	hzFront: 'ハートを前面に',
+	hzBack: 'ハートを背面に'
+});
+Object.assign(I18N['th'], {
+	paramWobble: 'แอมพลิจูด',
+	hzFront: 'หัวใจด้านหน้า',
+	hzBack: 'หัวใจด้านหลัง'
+});
+
+
+// ============================================================
+// FX 特效「火焰邊緣 Burning Edge」的字串
+// 特效名稱只補繁中／簡中（英／日／泰直接顯示英文原名 Burning Edge）
+// 黑底濃度沿用 paramBgDensity
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	fxName_flameEdge: '火焰邊緣',
+	paramFlameLength: '火焰高度',
+	paramFlameDensity: '火焰密度',
+	paramFlameScope: '火焰範圍',
+	flameInside: '內焰（貼齊圖片）',
+	flameOutside: '外焰（往上燒）'
+});
+Object.assign(I18N['zh-CN'], {
+	fxName_flameEdge: '火焰边缘',
+	paramFlameLength: '火焰高度',
+	paramFlameDensity: '火焰密度',
+	paramFlameScope: '火焰范围',
+	flameInside: '内焰（贴齐图片）',
+	flameOutside: '外焰（往上烧）'
+});
+Object.assign(I18N['en'], {
+	paramFlameLength: 'Flame length',
+	paramFlameDensity: 'Flame density',
+	paramFlameScope: 'Flame scope',
+	flameInside: 'Inner (clipped)',
+	flameOutside: 'Outer (beyond edge)'
+});
+Object.assign(I18N['ja'], {
+	paramFlameLength: '炎の長さ',
+	paramFlameDensity: '炎の密度',
+	paramFlameScope: '炎の範囲',
+	flameInside: '内側（画像内のみ）',
+	flameOutside: '外側（輪郭の外へ）'
+});
+Object.assign(I18N['th'], {
+	paramFlameLength: 'ความยาวเปลวไฟ',
+	paramFlameDensity: 'ความหนาแน่นเปลวไฟ',
+	paramFlameScope: 'ขอบเขตเปลวไฟ',
+	flameInside: 'ด้านใน (ตามภาพ)',
+	flameOutside: 'ด้านนอก (ล้นออกมา)'
+});
+
+
+// ============================================================
+// FX 特效「粒子網路 Particle Net」的字串
+// 特效名稱只補繁中／簡中（英／日／泰直接顯示英文原名 Particle Net）
+// 數量、擺動幅度、色相沿用 paramCount／paramWobble／paramHue
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	fxName_particles: '粒子網路',
+	paramLink: '連線距離',
+	paramCluster: '聚散',
+	paramHueFlow: '色相流動',
+	flowOff: '固定色',
+	flowOne: '一輪轉一圈',
+	flowTwo: '一輪轉兩圈',
+	pnFront: '粒子在圖前',
+	pnBack: '粒子在圖後'
+});
+Object.assign(I18N['zh-CN'], {
+	fxName_particles: '粒子网络',
+	paramLink: '连线距离',
+	paramCluster: '聚散',
+	paramHueFlow: '色相流动',
+	flowOff: '固定色',
+	flowOne: '一轮转一圈',
+	flowTwo: '一轮转两圈',
+	pnFront: '粒子在图前',
+	pnBack: '粒子在图后'
+});
+Object.assign(I18N['en'], {
+	paramLink: 'Link distance',
+	paramCluster: 'Clustering',
+	paramHueFlow: 'Hue flow',
+	flowOff: 'Fixed',
+	flowOne: '1 turn per loop',
+	flowTwo: '2 turns per loop',
+	pnFront: 'Particles in front',
+	pnBack: 'Particles behind'
+});
+Object.assign(I18N['ja'], {
+	paramLink: '結線距離',
+	paramCluster: 'かたまり具合',
+	paramHueFlow: '色相の流れ',
+	flowOff: '固定',
+	flowOne: '1周で1回転',
+	flowTwo: '1周で2回転',
+	pnFront: '粒子を前面に',
+	pnBack: '粒子を背面に'
+});
+Object.assign(I18N['th'], {
+	paramLink: 'ระยะเชื่อมเส้น',
+	paramCluster: 'การเกาะกลุ่ม',
+	paramHueFlow: 'การไล่สี',
+	flowOff: 'สีคงที่',
+	flowOne: 'หมุน 1 รอบต่อลูป',
+	flowTwo: 'หมุน 2 รอบต่อลูป',
+	pnFront: 'อนุภาคด้านหน้า',
+	pnBack: 'อนุภาคด้านหลัง'
+});
+
 
 // ============================================================
 // 語言切換核心

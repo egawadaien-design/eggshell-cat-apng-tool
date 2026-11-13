@@ -1,8 +1,11 @@
 /*
 	@author: [DaiEn]
 	@Date: 2026-11-13
-	@Correction: 42
-	本次修正：新增 .fx-param-row select（參數列的下拉選單寬度）
+	@Correction: 45
+		本次修正：樣式鈕改成「裸圖示」——去掉粉框、白底與圓角（padding 2px），選中時橘底只比圖示大一圈；.tp-style 補 align-items: center 免得 flex 把按鈕拉寬讓橘底變成一大條
+		上次修正：B／I／U 三顆樣式鈕改用圖示字型（cat-002／003／004），移除 .tp-b/.tp-i/.tp-u 的字母裝飾，改補 .tp-sbtn .cat 的大小與置中
+		上次修正：新增 .fx-khint（「強度」下方那行說明，左縮排對齊滑桿起點、11px 淡色）
+		上次修正：新增 .fx-param-row select（參數列的下拉選單寬度）
 	上次修正：新增 .fx-param-name（「特效設定」標題後面那個特效名稱，小字＋淡色）
 	上次修正：FX 特效清單高度縮到「剛好露出 8 個」（項目固定 34px、間距 6px、max-height 318px），下方控制選項更有空間
 	上次修正：文字面板新增 .tp-frames / .tp-check（顯示格範圍與淡入淡出勾選的排版）
@@ -1543,6 +1546,16 @@ button.secondary:hover { background: #8a6a7a; }
 .fx-row input[type="range"] { flex: 1; min-width: 0; }
 .fx-row span { font-size: 12px; color: #d4708a; min-width: 38px; text-align: right; }
 
+/* 強度說明：緊貼在「強度」滑桿下方的一行小字，換特效時由 fx.js 重寫內容 */
+.fx-khint {
+	display: block;
+	margin-top: 6px;
+	padding-left: 64px;   /* 對齊滑桿起點（標籤 56px + gap 8px），不要壓在標籤底下 */
+	font-size: 11px;
+	line-height: 1.6;
+	color: #a58a99;
+}
+
 /* 特效自己的參數（在右側「輸出設定」上面那一格） */
 .fx-params { margin-top: 2px; }
 /* 標題後面那個特效名稱：小字＋淡色，當副標用（主標「特效設定」是 20px 粉紅） */
@@ -1973,36 +1986,48 @@ button.share-btn:disabled { background: #d8b888; cursor: not-allowed; }
 	box-sizing: border-box;
 }
 
-/* 右側：粗體 / 斜體 / 底線，直排三顆 */
+/* 右側：粗體 / 斜體 / 底線，直排三顆
+   align-items 一定要寫：flex 直排預設會把子元素「拉滿容器寬」，
+   按鈕一旦被拉寬，選中時的橘底就會横向撐成一大條，不再是「只有圖示那麼大」 */
 .tp-style {
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	gap: 6px;
 	flex: 0 0 auto;
 }
+/* 樣式鈕：只留圖示本身——沒有外框、沒有白底、沒有圓角，
+   寬高隨圖示走（padding 2px 讓選中時的底色只比圖示大一圈） */
 .tp-sbtn {
-	width: 32px;
-	height: 28px;
-	padding: 0;
-	background: #fff;
-	border: 1px solid #dfb9c8;
-	border-radius: 6px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: auto;
+	height: auto;
+	padding: 2px;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
 	color: #69404f;
 	font-size: 14px;
-	font-family: Georgia, "Times New Roman", serif;
+	line-height: 1;
 	cursor: pointer;
-	transition: all 0.15s;
+	transition: color 0.15s, background 0.15s;
 }
-.tp-sbtn:hover { background: #ffe4ec; }
-.tp-sbtn.tp-b { font-weight: 700; }
-.tp-sbtn.tp-i { font-style: italic; }
-.tp-sbtn.tp-u { text-decoration: underline; text-decoration-style: dotted; }
-/* 選中時跟全站的 active 一樣吃橘色 */
+/* 懸停只換顏色、不加底色，畫面才不會又冒出「框」的感覺 */
+.tp-sbtn:hover { color: #f39800; }
+/* 鈕面內容改成圖示字型（cat-002／003／004）：
+   .cat 自己帶 font-family 與 font-weight:300，所以這裡只負責大小與垂直置中，
+   不要再給粗體／斜體／底線那些「字母用」的裝飾，否則圖示會被合成變形而多出雜線 */
+.tp-sbtn .cat {
+	font-size: 16px;
+	line-height: 1;
+	vertical-align: middle;
+}
+/* 選中時跟全站的 active 一樣吃橘色：底色範圍 = 圖示 + 2px，且不帶圓角 */
 .tp-sbtn.active {
 	background: #f39800;
-	border-color: #f39800;
 	color: #fff;
-	text-decoration-color: #fff;
 }
 
 /* 進階設定：字級、顏色、外框、陰影，除顏色外都是滑桿 */

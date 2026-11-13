@@ -1,9 +1,81 @@
 /**
  * 蛋殼喵 APNG 工具 — FX 特效頁
  * @author [DaiEn]
- * @Date: 2026-11-13
- * @Correction: 46
- * 2026-11-13 修正：漫畫效果的「精細度」範圍從 1~10 拉大到 1~20（再細一倍），
+ * @Date: 2026-11-14
+ * @Correction: 63
+ * 2026-11-14 修正：粒子網路（第 39 支）先從右側特效清單隱藏——配方、參數與繪製全部保留在 FX_RECIPES，
+ *   只加一個 hidden: true 旗標，renderEffectList() 遇到就跳過（清單序號改以「看得見的項數」重編，不會跳號），
+ *   初始選取也改成取第一支看得見的配方。改法確定後把旗標拿掉就回來。
+ * 2026-11-14 修正：粒子網路的光點與線段改成七色漸變——原本每顆色相只在基色 ±20° 抖動，整片看下去其實是一個顏色；
+ *   現在改成沿畫面斜向位置內插的七段調色盤（粉→橙→金→綠→青→藍→紫，色相 345/25/50/135/190/245/300），
+ *   色相是連續函式，所以看到的是「漸變」而不是七個色塊；線段兩端各取自己那顆粒子的顏色拉線性漸層，
+ *   兩端差不到 6° 時退回純色（避免每格多建幾千個 gradient）。「色相」滑桿改成整組色相一起轉，預設 0。
+ *   顏色用軌跡中心算、抖動縮到 ±6°，粒子晃動時顏色不會跟著閃。
+ *   三角形面紗從「白 6%」改成跟頂點色相走、濃度壓到 3.5%——白色的話會把底下的彩色線整片蓋成灰白；
+ *   線與點的明度依底色切（深底 62%／68% 發光、淺底 45%／52% 才分得出顏色）。
+ * 2026-11-13 修正：粒子網路改用真 canvas 渲染比對後，合成方式照黑底濃度切換——黑底 ≥15% 時線與粒子用 lighter 發光，
+ *   完全透明底時改用 source-over（加法混合在淺色／亮面上加不上去，線和點會直接消失）。三角形一律 source-over，
+ *   透明度由 0.10 降到 0.06，避免簇狀重疊時糊成一片純白。粒子改成「外圈淡暈 + 實心核」兩層畫，淺底也有光感。
+ * 2026-11-13 修正：粒子網路看過原作實際畫面後補「聚散」滑桿——原作粒子自由漂移、幾顆撞在一起就形成
+ *   「一團密集灰色三角形＋旁邊一大片空白」的簇狀分佈，跟原本均勻灑點的氣質差很多。
+ *   現在先定 4 個群集中心，依聚散程度把每顆粒子的中心往群集中心拉（0%＝完全均勻、100%＝縮進 4 團雲裡），
+ *   擺幅同時收窄，避免粒子晃出團外。預設 60%。
+ * 2026-11-13 修正：粒子網路補上「色相流動」——原作那顆 color.animation 是整片粒子同一個色相同步慢慢轉，
+ *   我們要接格無縫，所以一輪只轉整數圈（例：一輪一圈＝p 由 0 到 1 色相剛好繞 360° 回到原點）。
+ *   選項：固定色／一輪轉一圈（預設）／一輪轉兩圈（更接近原作那種一直在變的感覺），色相在粒子抖動 ±20° 保留。
+ * 2026-11-13 修正：新增第 39 支特效「粒子網路 Particle Net」——仿 tsParticles 那個粒子連線視覺，但自己寫：
+ *   每顆粒子走利薩如軌跡（x 用 sin、y 用 cos，兩軸頻率都取 1~3 的整數），整數頻率讓 p=0 與 p=1 同位置，
+ *   循環接得回去、跳格也不會錯位；每格重算距離，近的連線（越近越亮）、三顆互連則填 10% 淡白三角形，
+ *   三角形用「鄰居清單＋共同鄰居」避開 O(n³)；整層 lighter 疊在深色底上會發亮。
+ *   引入 tsParticles 這件事刻意不做：它是 TS 框架、整包 min.js 只為畫點和線，而且狀態累積跟我們每格獨立算相衝。
+ *   專屬設定：數量、連線距離、擺動幅度、色相、黑底濃度 0–50%、圖層（粒子在圖前／圖後）
+ * 2026-11-13 修正：新增第 38 支特效「火焰邊緣 Burning Edge」——沿著圖片輪廓燒起來，透明區一根火苗都不冒
+ *   邊緣點用 alpha 掃描找（自己不透、鄰居透），依火焰間距分格取樣，並用 alpha 梯度算出「往圖片內部」的方向；
+ *   火苗貼圖只做一次（暖色光斑從寬到窄往上堆），每一格只縮放旋轉貼上、整層 lighter；
+ *   跳動用三條整數頻率正弦疊起來，p=0 與 p=1 完全相同。內焰模式再用 destination-in 打上原圖 alpha，
+ *   保證火焰不出輪廓；外焰模式則一律往上衝、可燒出輪廓外。
+ *   專屬設定：火焰高度、火焰密度、黑底濃度 0–50%、火焰範圍（內焰／外焰）
+ * 2026-11-13 修正：新增第 37 支特效「滿天愛心 Floating Hearts」——把使用者提供的那份 createjs 漂浮愛心
+ *   改寫成不載入外部函式庫、也不留狀態的版本：原作每格只做「y 減一點、x 用 cos(y) 算、rotation 用 sin(y) 算」，
+ *   全部都是高度的函式，所以只要知道這顆現在在哪個高度，左右位置與傾斜就都算得出來；高度本身只跟 p 有關。
+ *   每顆愛心走鋸齒：u = (p × 趟數 + 相位) 的小數部分 → y 從 H+60 升到 −60，跳點落在畫面外，接格無縫。
+ *   專屬設定：數量、大小、擺動幅度、上升速度（換算成整數趟）、黑底濃度 0–50%、圖層（愛心在圖前／圖後）
+ * 2026-11-13 修正：斜光掃過 Shine Sweep 的光帶改成 source-atop，只畫在有圖的像素上——
+ *   去背圖的透明區不再冒出一條白色斜帶（做法與老電視的掃描線一致：只落在已有內容處、保留目的端 alpha）
+ * 2026-11-13 修正：新增第 36 支特效「煙火 Fireworks」——把使用者提供的那份滑鼠煙火精簡成無狀態版本：
+ *   火花軌跡用解析式反推（飛散 1-(1-age)^2 ＋ 重力 age^2），拖尾就沿同一條軌跡往回取 4 個舊位置連折線，
+ *   不必記上一格、不必開離屏畫布；每發煙火有自己的發射時刻，用 (p - p0) mod 1 取時間，
+ *   跨循環點的幾發會接著燒，接回第一格不會突然消失。已移除火箭升空段（使用者指定）。
+ *   專屬設定：發數、火花數、爆炸半徑、黑底濃度 0–50%、圖層（煙火在圖前／圖後）
+ * 2026-11-13 修正：老電視 Old TV 的掃描線與滾動亮帶改成 source-atop，只畫在有圖的像素上——
+ *   原本是整片 fillRect，去背後透明區會冒出滿版黑線與亮帶。source-atop 會保留目的端 alpha，
+ *   半透明羽邊不會被二次乘 alpha（比 destination-in 遮罩更乾淨，也不用多開一張畫布）
+ * 2026-11-13 修正：染色 Color Tint 不再把整張畫布染成一片色——
+ *   改成先在離屏畫布做一層「只有原圖不透明處才有色」的色層（填滿色 → destination-in 打上原圖 alpha），
+ *   再用 'color' 混合疊回主畫布。透明區完全不上色，去背後不會留下方形色疤；
+ *   刻意採「先填滿再挖掉」而不是「複製底圖再染色」，因為後者會讓 alpha 被乘兩次、半透明邊出現暗邊
+ * 2026-11-13 修正：數碼雨的黑底改成滑桿「黑底濃度」0~50%（paramBgDensity／param key = bgDark），
+ *   預設 0%＝完全不蓋底、原圖透出來；拉高才壓黑。以前黑底是綁在「強度」上的固定算式，
+ *   想要透明根本沒辦法，而且壓多黑也不受使用者控制
+ * 2026-11-13 修正：數碼雨 Matrix Rain 改成原版那種「整條字串往下掉」的畫法——
+ *   之前是每欄一顆亮點往下飄，看起來只是下綠雨；現在每欄是一次掉一整條：
+ *   字頭最亮、往上每一列暗一階（殘影），字元用雜湊(欄, 列)固定在原地等字頭壓過來。
+ *   因為我們的每一格都是獨立算的（預覽可跳格、送出後 APNG 會重排），
+ *   所以不用「上一格蓋半透明黑」的累積作法，而是直接把殘影算式畫出來：每格自給自足、跳格不空白。
+ *   字元集換成參考碼那串漢字；流速換算成「每輪掉幾趟」（取整數，接回第一格才無縫）
+ * 上次修正：「強度」滑桿下方加一行說明，內容隨目前特效更換——這支滑桿是全域的，
+ *   但每支特效拿它做的事情不同（位移幅度／疊圖濃度／粒子數量／六面明暗／根本不吃它），
+ *   使用者拉同一格卻看到不同結果會以為壞掉。做法：K_HINT_MAP 只列行為明顯不同的 27 支，
+ *   其餘共用預設那句「整體幅度」，五語系各補 12 個 key（fxKHint*）省下 175 條翻譯
+ * 上次修正：3D 方塊旋轉的背景參數預設改成「透明」——不再預設把原圖壓暗當底，
+ *   方塊獨自浮在透明畫布上（畫面上不會出現原圖重影），送去 APNG 頁後可直接去背、疊到別的底圖；
+ *   想看舊效果仍可把選單切回「暗化原圖」
+ * 上次修正：新增第 35 支特效「3D 方塊旋轉 Cube Spin」——把輸入圖貼在立方體六個面，
+ *   沿指定軸（隨機／X／Y／Z／斜軸）轉整圈。畫法是自己寫的最小 3D：Rodrigues 軸角旋轉＋正交投影，
+ *   投影後每個面還是平行四邊形，一次 setTransform 就能把貼圖精準鋪滿（不切三角形、不會留對角接縫）；
+ *   背面剔除後依深度由遠到近畫；角度 = 2π × 圈數 × p，p 走完等於整圈，循環頭尾是同一個畫面。
+ *   專屬設定：旋轉軸、圈數（整數）、大小、邊線、明暗、背景（暗化原圖／透明）
+ * 上次修正：漫畫效果的「精細度」範圍從 1~10 拉大到 1~20（再細一倍），
  *   門檻改成等比下降 `55 × 0.9^(精細度-1)`（1 只剩主輪廓、10 柔和照片也有完整線條、20 連淡漸層都抓得到），預設改 10
  * 上次修正：新增第 34 支特效「漫畫效果 Comic Ink」——原圖慢慢變成只剩線條的線稿，中段停留一下再回到原圖；
  *   專屬設定：精細度（邊緣門檻）、線條粗細、墨色濃度、底色（透明／白色）；
@@ -62,11 +134,12 @@
  *
  * 【特效架構】
  * 每個特效都是同一條管線裡的一個「配方」：
- *   draw(ctx, p, k, i)
+ *   draw(ctx, p, k, i, o)
  *   - ctx : 該格畫布的 2D context（尺寸 = W×H）
  *   - p   : 0~1 的播放進度（i / 影格數）
  *   - k   : 0~1 的強度（使用者的 Intensity）
  *   - i   : 第幾格（給需要穩定隨機的特效當種子）
+ *   - o   : 這支特效自己的參數物件（沒宣告 params 時是空物件）
  * 因此新增特效只要往 FX_RECIPES 加一筆，不必改渲染邏輯。
  */
 
@@ -109,6 +182,7 @@
 	const frameCountVal = document.getElementById('fxFrameCountVal');
 	const intensityInput = document.getElementById('fxIntensity');
 	const intensityVal = document.getElementById('fxIntensityVal');
+	const kHintBox = document.getElementById('fxKHint');   // 「強度」下方那行說明，內容隨特效換
 	const effectList = document.getElementById('fxEffectList');
 	const paramGroup = document.getElementById('fxParamGroup');
 	const paramBody = document.getElementById('fxParamBody');
@@ -208,6 +282,19 @@
 		c.drawImage(baseCanvas, (W - w) / 2, (H - h) / 2, w, h);
 	}
 
+	// 立方體六個面（cubeSpin 用）：n = 面朝外的法向量，u / v = 面內的兩條邊方向
+	// 慣例是 u × v = n（右手系），貼圖才會以「從外面看」的方向正確擺正、不會左右鏡像
+	// 面上的四個角 = n ± u ± v，邊長 2（半徑 1，之後再依畫面尺寸換算）
+	const CUBE_FACES = [
+		{ n: [1, 0, 0], u: [0, 0, -1], v: [0, 1, 0] },    // 右面
+		{ n: [-1, 0, 0], u: [0, 0, 1], v: [0, 1, 0] },    // 左面
+		{ n: [0, 1, 0], u: [1, 0, 0], v: [0, 0, -1] },    // 上面
+		{ n: [0, -1, 0], u: [1, 0, 0], v: [0, 0, 1] },    // 下面
+		{ n: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0] },     // 正面
+		{ n: [0, 0, -1], u: [-1, 0, 0], v: [0, 1, 0] }    // 背面
+	];
+
+
 	// 漫畫特效用：把底圖掃一遍，先把「線稿」畫成一張跟輸出同尺寸的遮罩畫布（只算一次，之後每一格共用）
 	// 原理是最簡單的邊緣偵測：每個像素跟左右鄰居比亮度差、跟上下的鄰居比亮度差，
 	// 差距夠大就當成「這裡有條線」，差越大線越黑（所以對比強的輪廓會比淡邊更明顯）
@@ -244,6 +331,91 @@
 		return mask;
 	}
 
+	// 火焰特效用（一）：沿著圖片輪廓取樣「要從哪裡冒火」
+	// 判定方式：自己不透明、但四個鄰居裡有一個是透明的（或超出畫布）就算邊緣點。
+	// 同一個格子只留一個點（格子大小＝火焰間距），否則一條直邊會冒出幾百根一模一樣的火苗、
+	// 而且越密的邊越亮，看起來會像整條邊被塗白。
+	// 回傳 { x, y, nx, ny }：nx/ny 是「往圖片內部」的方向（拿 alpha 梯度算，邊界處天然指向不透明那側）
+	function flameEdgePoints(spacing) {
+		const pts = [];
+		let src = null;
+		try {
+			src = baseCanvas.getContext('2d').getImageData(0, 0, W, H).data;
+		} catch (e) {
+			src = null;   // 跨網域圖讀不到像素時，底下會退化成「沿畫面邊框燒」
+		}
+		const step = Math.max(3, Math.round(spacing));
+		const alphaAt = function (x, y) {
+			if (x < 0 || y < 0 || x >= W || y >= H) return 0;
+			return src[(y * W + x) * 4 + 3];
+		};
+		const seen = {};
+		if (src) {
+			const limit = 40;   // alpha 低於這個值就當成透明（去背圖的羽邊不會被當成邊界）
+			for (let y = 0; y < H; y++) {
+				for (let x = 0; x < W; x++) {
+					if (alphaAt(x, y) < limit) continue;
+					// 四鄰居都不透明 → 這是圖片內部，不冒火
+					if (alphaAt(x - 1, y) >= limit && alphaAt(x + 1, y) >= limit &&
+						alphaAt(x, y - 1) >= limit && alphaAt(x, y + 1) >= limit) continue;
+					const cell = Math.floor(x / step) + ',' + Math.floor(y / step);
+					if (seen[cell]) continue;
+					seen[cell] = 1;
+					// 往內的方向：用 ±2 的 alpha 差算梯度（只用 ±1 遇到柔和羽邊會抖）
+					let dx = alphaAt(x + 2, y) - alphaAt(x - 2, y);
+					let dy = alphaAt(x, y + 2) - alphaAt(x, y - 2);
+					const dlen = Math.sqrt(dx * dx + dy * dy);
+					if (dlen < 1) { dx = 0; dy = 1; }   // 梯度退化（例如剛好是轉角）就當成往下
+					else { dx /= dlen; dy /= dlen; }
+					pts.push({ x: x, y: y, nx: dx, ny: dy });
+				}
+			}
+		}
+		// 幾乎找不到邊（例如整張不透明的滿版圖、或讀不到像素）→ 退化成沿畫面四邊冒火
+		if (pts.length < 8) {
+			pts.length = 0;
+			for (let x = step; x < W; x += step) {
+				pts.push({ x: x, y: 1, nx: 0, ny: 1 });
+				pts.push({ x: x, y: H - 1, nx: 0, ny: -1 });
+			}
+			for (let y = step; y < H; y += step) {
+				pts.push({ x: 1, y: y, nx: 1, ny: 0 });
+				pts.push({ x: W - 1, y: y, nx: -1, ny: 0 });
+			}
+		}
+		return pts;
+	}
+
+	// 火焰特效用（二）：先做一朵「火苗」貼圖，之後每一格只是把它縮放貼上去
+	// 做法是拿一顆暖色光斑當筆刷，沿著火焰舌頭的骨架從寬到窄、從亮到淡往上堆，
+	// 疊出來就是一朵有芯、有焰身、邊緣柔軟的火苗；比每格現畫幾十個漸層便宜得多
+	function flameSprite() {
+		const sp = mkCanvas(64, 128);
+		const sx = sp.getContext('2d');
+		const blob = mkCanvas(64, 64);
+		const bx = blob.getContext('2d');
+		const g = bx.createRadialGradient(32, 32, 0, 32, 32, 32);
+		g.addColorStop(0, 'rgba(255,246,210,1)');      // 芯：白黃
+		g.addColorStop(0.22, 'rgba(255,216,120,0.95)');
+		g.addColorStop(0.5, 'rgba(255,140,30,0.75)');   // 焰身：橘
+		g.addColorStop(0.8, 'rgba(220,60,0,0.32)');
+		g.addColorStop(1, 'rgba(180,20,0,0)');
+		bx.fillStyle = g;
+		bx.fillRect(0, 0, 64, 64);
+		sx.globalCompositeOperation = 'lighter';
+		const N = 16;
+		for (let t = 0; t < N; t++) {
+			const q = t / (N - 1);
+			const y = 128 - q * 116;              // 從底部往上堆
+			const w = 0.62 - 0.45 * q;            // 越上面越窄
+			const dw = 64 * w;
+			const dh = 64 * w * 0.85;
+			sx.globalAlpha = 1 - 0.7 * q;         // 越上面越淡
+			sx.drawImage(blob, 32 - dw / 2, y - dh / 2, dw, dh);
+		}
+		return sp;
+	}
+
 	// 等一個 animation frame（生成多格時讓 UI 有機會更新）
 	function nextFrame() {
 		return new Promise(function (resolve) {
@@ -252,7 +424,7 @@
 	}
 
 	// ============================================================
-// 特效配方表（34 個）
+// 特效配方表（39 個）
 // ============================================================
 	const FX_RECIPES = [
 		{
@@ -284,6 +456,11 @@
 				const halfLen = Math.abs(cos) * W / 2 + Math.abs(sin) * H / 2 + bandW;
 
 				c.save();
+				// 只畫在有圖的像素上：source-atop 的規則是「只落在畫布已有內容的地方，
+				// 而且保留目的端原本的 alpha」。去背圖的透明區就不會冒出一條白色斜帶。
+				// 這裡刻意不用離屏遮罩＋destination-in，是因為那樣 alpha 會被乘兩次，
+				// 半透明的羽邊會浮出一圈暗暗的接縫；source-atop 沒這個問題，也不必多開一張畫布。
+				c.globalCompositeOperation = 'source-atop';
 				c.translate(W / 2, H / 2);
 				c.rotate(angle);
 				c.translate(0, offset);
@@ -542,13 +719,38 @@
 				const turns = Math.round((o && typeof o.turns === 'number') ? o.turns : 1);
 				const strength = ((o && typeof o.strength === 'number') ? o.strength : 85) / 100;
 				c.drawImage(baseCanvas, 0, 0);
+				// 色相 = 起始色相 + 進度 × 整圈 × 圈數，取 360 餘數繞回 0，循環時顏色接得順
+				const tintColor = 'hsl(' + Math.round((hue + p * 360 * turns) % 360) + ',90%,55%)';
+
+				// 【為什麼要先做一張「有圖才有色」的色層】
+				// 直接在主畫布上用 'color' 填滿整張畫布，透明區也會被填成一片色塊——
+				// 那塊色在 APNG 頁去背後就是一個方形的色疤。所以先開一張同尺寸的離屏畫布：
+				//   1. 整張填滿色（alpha 1）
+				//   2. 用 destination-in 把「原圖的 alpha」打上去 → 只有圖不透明的地方留下顏色，
+				//      透明區 alpha 直接變 0（半透明的羽邊也會跟著漸淡，不會出現硬邊）
+				// 再把這張色層用 'color' 疊回主畫布，明暗層次照樣保留，但只染圖、不染空白。
+				// 這裡刻意「先填滿再挖掉」而不是「複製底圖再染色」：
+				// 複製底圖的做法會讓 alpha 被乘兩次（半透明邊會變得更透、出現一圈暗邊），
+				// 先填滿（alpha=1）再 destination-in 只乘一次，邊緣才會跟原圖一模一樣。
+				let tint = this._tint;
+				if (!tint || tint.width !== W || tint.height !== H) {
+					tint = mkCanvas(W, H);
+					this._tint = tint;
+				}
+				const tc = tint.getContext('2d');
+				tc.globalCompositeOperation = 'source-over';
+				tc.globalAlpha = 1;
+				tc.fillStyle = tintColor;
+				tc.fillRect(0, 0, W, H);
+				tc.globalCompositeOperation = 'destination-in';
+				tc.drawImage(baseCanvas, 0, 0);
+				tc.globalCompositeOperation = 'source-over';   // 還原，下一格才不會沿用上一次的合成模式
+
 				c.save();
 				// 'color' 混合只吃色相與飽和度，畫面原本的明暗層次會留著，看起來像「換色」而不是「蓋色」
 				c.globalCompositeOperation = 'color';
 				c.globalAlpha = strength * k;
-				// 色相 = 起始色相 + 進度 × 整圈 × 圈數，取 360 餘數繞回 0，循環時顏色接得順
-				c.fillStyle = 'hsl(' + Math.round((hue + p * 360 * turns) % 360) + ',90%,55%)';
-				c.fillRect(0, 0, W, H);
+				c.drawImage(tint, 0, 0);
 				c.restore();
 			}
 		},
@@ -1057,34 +1259,78 @@
 		},
 		{
 			id: 'matrixRain', name: 'Matrix Rain',
-			// 專屬設定：字元大小、流速、密度（有字的欄位比例）
-			// 舊版字級是 min(W,H)/16 自動算、流速固定、每欄都有字，預設值就是舊版
+			// 專屬設定：字元大小、流速、密度（有字的欄位比例）、黑底濃度
+			// 【這支在模仿什麼】經典「數碼雨」：每欄是一條往下掉的字串，
+			//   字頭最亮、往上每一列都比下一列暗一階，字元停在自己那一列等新字頭壓過去。
+			//   所以「殘影」是這支特效的靈魂——只畫一顆亮點往下飄，看起來就只是下綠雨，不像數碼雨。
+			// 【為什麼不用「上一格蓋半透明黑」的累積寫法】原始做法（也最像）要記住上一格的畫面，
+			//   可是我們每一格都是獨立算出來的：預覽可以隨便跳格、送出後 APNG 也會重排播放，
+			//   一旦某格沒接到前一格，殘影就會整條消失。所以改成「用算式直接把殘影畫出來」：
+			//   每一列（螢幕上的字行）都畫字，亮度依它離字頭幾列衰減，字元用雜湊(欄, 列)固定住，
+			//   看起來跟累積一模一樣，但每一格都自給自足，跳格也不會突然空白。
 			params: [
 				{ key: 'size', i18n: 'paramSize', min: 6, max: 36, step: 2, def: 16, unit: 'px' },
 				{ key: 'speed', i18n: 'paramSpeed', min: 0.3, max: 2, step: 0.1, def: 1 },
-				{ key: 'density', i18n: 'paramDensity', min: 10, max: 100, step: 5, def: 100, unit: '%' }
+				{ key: 'density', i18n: 'paramDensity', min: 10, max: 100, step: 5, def: 100, unit: '%' },
+				// 黑底濃度：0% = 完全透明（原圖整張透出來），50% = 壓暗一半
+				// 預設 0，跟其他特效的「預設不蓋底」一致；要經典那種黑底自己往上拉
+				{ key: 'bgDark', i18n: 'paramBgDensity', min: 0, max: 50, step: 5, def: 0, unit: '%' }
 			],
 			draw: function (c, p, k, i, o) {
 				const fs = Math.max(6, Math.round((o && typeof o.size === 'number') ? o.size : 16));
 				const speedMul = (o && typeof o.speed === 'number') ? o.speed : 1;
 				const density = ((o && typeof o.density === 'number') ? o.density : 100) / 100;
+				const bgDark = ((o && typeof o.bgDark === 'number') ? o.bgDark : 0) / 100;
 				c.drawImage(baseCanvas, 0, 0);
-				// 先壓暗底圖，綠色字才跳得出來（強度越大壓得越暗）
-				c.fillStyle = 'rgba(0,0,0,' + (0.25 * k) + ')';
-				c.fillRect(0, 0, W, H);
-				const step = fs * 0.9;
-				const cols = Math.max(1, Math.floor(W / step));
-				const r = rnd(i * 17 + 9);
+				// 黑底是可選的：拉 0 就是完全不蓋（原圖清楚、綠字浮在上面），
+				// 拉高才把那層黑壓上去，綠字才有「自己會發光」的錯覺
+				if (bgDark > 0) {
+					c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+					c.fillRect(0, 0, W, H);
+				}
+
+				// 字距就是一格字的大小（參考碼也是拿 font_size 當欄寬、行高）
+				const lineH = Math.max(6, fs * 1.05);
+				const rows = Math.ceil(H / lineH) + 1;          // 畫面能容納幾列字
+				const cols = Math.max(1, Math.floor(W / fs));    // 幾欄雨
+				// 尾巴長度＝畫面上過半的列數（至少 8 列）。太短就只是一串綠點，
+				// 拉長到這種程度才會有原版「整條字串往下掉、上面還留著舊字」的厚度
+				const tail = Math.max(8, Math.round(rows * 0.55));
+				// 流速：p 從 0 走到 1 要掉完幾趟。圈數取整數，接回第一格時才不會跳格
+				const cycles = Math.max(1, Math.round(speedMul * 2));
+				// 字元集沿用參考碼那串漢字；找不到漢字的機器會退回系統字型，不會變豆腐塊之外的東西
+				const CHARS = '田由甲申甴电甶男甸甹町画甼甽甾甿畀畁畂畃畄畅畆畇畈畉畊畋界畍畎畏畐畑';
 				c.font = fs + 'px monospace';
 				c.textBaseline = 'top';
+
 				for (let col = 0; col < cols; col++) {
-					const speed = (0.6 + r() * 0.8) * speedMul;
-					const y = (((r() * 1.4) + p * speed) % 1.4) * H - H * 0.2;
-					const ch = String.fromCharCode(0x30A0 + Math.floor(r() * 90));
-					// 密度用欄位編號當雜湊：抽掉的字照樣先把亂數吃掉，所以調密度不會讓其他欄位亂跳
+					// 密度：用欄號當雜湊抽掉整欄（抽掉的欄不消耗亂數，調密度時別欄不會跟著亂跳）
 					if (((col * 37) % 100) / 100 >= density) continue;
-					c.fillStyle = 'rgba(80,255,140,' + (0.55 + 0.45 * k).toFixed(3) + ')';
-					c.fillText(ch, col * step, y);
+
+					// 每欄的起始相位用欄號打散，看起來才是滿天雨、而不是整排一起掉
+					const phase = ((col * 61) % 100) / 100;
+					const headF = (phase + p * cycles) % 1;                 // 0→1 ＝ 從頂掉到底
+					const headRow = Math.floor(headF * (rows + tail)) - tail;  // 字頭在第幾列（負值＝還在畫面上方）
+					const headX = col * fs;
+
+					for (let d = 0; d < tail; d++) {
+						const row = headRow - d;
+						if (row < 0 || row > rows) continue;
+						const y = row * lineH;
+						// d = 0 是字頭：最亮；往上每一列少一點亮度，尾端留一點微光＝殘影
+						const fade = 1 - d / tail;
+						const a = (0.16 + 0.84 * fade) * (0.45 + 0.55 * k);
+						if (d === 0) {
+							// 字頭偏白綠，像剛被寫上去、還沒暗掉的那一顆
+							c.fillStyle = 'rgba(224,255,228,' + Math.min(1, 0.7 + 0.3 * k).toFixed(3) + ')';
+						} else {
+							c.fillStyle = 'rgba(64,255,136,' + a.toFixed(3) + ')';
+						}
+						// 字元用 (欄, 列) 當種子：字會穩穩停在那一列等字頭壓過來，這才是殘影該有的樣子
+						let s = (col * 92821 + row * 68917) % 233280;
+						s = (s * 9301 + 49297) % 233280;
+						c.fillText(CHARS.charAt(Math.floor((s / 233280) * CHARS.length)), headX, y);
+					}
 				}
 			}
 		},
@@ -1197,6 +1443,13 @@
 				c.filter = 'saturate(' + (1 - desat * k).toFixed(3) + ') brightness(' + (1 + 0.05 * k).toFixed(3) + ')';
 				c.drawImage(baseCanvas, 0, 0);
 				c.restore();
+				// 掃描線與滾動亮帶都是「貼在畫面上」的一層，跟原圖的透明區無關；
+				// 直接畫上去的話，去背後的空白處會多出滿版黑線、亮帶也會在空白處閃。
+				// source-atop = 只畫在「畫布已經有東西」的像素上（這裡就是底圖的不透明處），
+				// 而且它會保留目的端的 alpha（不像 destination-in 會把 alpha 乘第二次、
+				// 讓半透明的羽邊變得更透），所以邊緣跟原圖一模一樣，也不必另外開遮罩畫布。
+				c.save();
+				c.globalCompositeOperation = 'source-atop';
 				// 掃描線（強度 0 就不畫，整片留給底圖）
 				if (scan > 0) {
 					c.fillStyle = 'rgba(0,0,0,' + (scan * k).toFixed(3) + ')';
@@ -1212,6 +1465,7 @@
 					c.fillStyle = g;
 					c.fillRect(0, roll - 20, W, 40);
 				}
+				c.restore();
 			}
 		},
 		{
@@ -1358,6 +1612,826 @@
 					c.restore();
 				}
 			}
+		},
+		{
+			id: 'cubeSpin', name: 'Cube Spin',
+			// 3D 方塊旋轉：把輸入圖貼在立方體六個面，整顆方塊沿指定軸轉整圈
+			// ・畫法是自己寫的最小 3D：八個角點做 Rodrigues 軸角旋轉，再正交投影回 2D。
+			// 　刻意不做透視——正交投影後每個面都還是「平行四邊形」，一個仿射矩陣
+			// 　（setTransform）就能把整張正方形貼圖精準鋪滿，不必切成兩顆三角形慢慢拼
+			// 　（切三角形做透視貼圖會在對角線留一道接縫，1px 的縫在 40 格循環裡很明顯）
+			// ・頭尾相接：角度 = 2π × 圈數 × p，p 走到 1 剛好是整圈，
+			// 　所以下一輪的第 0 格與這一輪的第 0 格是同一個畫面，APNG 循環播放看不到接縫。
+			// 　圈數只收整數就是為了這個（1.5 圈會停在背面，一循環就跳回正面）
+			// ・背面剔除：旋轉後法向量的 z ≤ 0 一律不畫（畫了會蓋在正面上面），
+			// 　剩下面再依深度由遠到近排，交疊處才會是近的壓在遠的上面
+			// ・貼圖：六面都是正方形，所以先把原圖置中裁成正方形再貼，寬圖不會被壓扁
+			params: [
+				{
+					key: 'axis', i18n: 'paramSpinAxis', type: 'select', def: 'random',
+					options: [
+						{ v: 'random', i18n: 'axisRandom' },
+						{ v: 'x', i18n: 'axisX' },
+						{ v: 'y', i18n: 'axisY' },
+						{ v: 'z', i18n: 'axisZ' },
+						{ v: 'tilt', i18n: 'axisTilt' }
+					]
+				},
+				{ key: 'turns', i18n: 'paramTurns', min: 1, max: 3, step: 1, def: 1 },
+				{ key: 'size', i18n: 'paramSize', min: 30, max: 90, step: 5, def: 70, unit: '%' },
+				{ key: 'edge', i18n: 'paramEdge', min: 0, max: 4, step: 0.5, def: 2, unit: 'px' },
+				{ key: 'shade', i18n: 'paramShade', min: 0, max: 100, step: 5, def: 70, unit: '%' },
+				{
+					key: 'bg', i18n: 'paramBg', type: 'select', def: 'transparent',   // 預設不畫底，保留透明
+					options: [{ v: 'transparent', i18n: 'bgTransparent' }, { v: 'dim', i18n: 'bgDim' }]
+				}
+			],
+			draw: function (c, p, k, i, o) {
+				const axisMode = (o && o.axis) || 'random';
+				const turns = Math.max(1, Math.round((o && typeof o.turns === 'number') ? o.turns : 1));
+				const sizePct = Math.max(10, Math.min(95, (o && typeof o.size === 'number') ? o.size : 70));
+				const edgeW = Math.max(0, (o && typeof o.edge === 'number') ? o.edge : 2);
+				const shadePct = Math.max(0, Math.min(100, (o && typeof o.shade === 'number') ? o.shade : 70));
+				const bg = (o && o.bg === 'transparent') ? 'transparent' : 'dim';
+
+				// 背景：預設「透明」——完全不畫底，畫面上只有方塊本身，
+				// 不會出現原圖被壓暗後的重影，送去 APNG 頁也方便去背、疊別的底圖；
+				// 需要「方塊浮在原圖上」的舊感覺時，把選單切回「暗化原圖」即可
+				if (bg === 'dim') {
+					c.save();
+					c.globalAlpha = 0.85;
+					c.drawImage(baseCanvas, 0, 0);
+					c.restore();
+					c.save();
+					c.fillStyle = 'rgba(16,10,20,0.58)';
+					c.fillRect(0, 0, W, H);
+					c.restore();
+				}
+
+				// 貼圖：置中裁成正方形，換圖或換輸出尺寸才重做一次，之後每格只做六次 drawImage
+				const texSize = Math.min(W, H);
+				const texKey = W + 'x' + H;
+				if (!this._tex || this._texKey !== texKey || this._texSrc !== baseCanvas) {
+					const tex = mkCanvas(texSize, texSize);
+					tex.getContext('2d').drawImage(
+						baseCanvas,
+						(W - texSize) / 2, (H - texSize) / 2, texSize, texSize,   // 來源：中央正方形
+						0, 0, texSize, texSize                                     // 目的：整張貼圖
+					);
+					this._tex = tex;
+					this._texKey = texKey;
+					this._texSrc = baseCanvas;
+				}
+				const tex = this._tex;
+
+				// 轉軸（單位向量）：整段動畫必須共用同一支軸。
+				// 「隨機」只在參數變動時抽一次並記在配方物件上——如果每格重抽，
+				// 雖然頭尾角度都回到 0°，但整段路徑會前後不一致，看起來像畫面在亂抖
+				let ax = 0, ay = 1, az = 0;
+				if (axisMode === 'x') { ax = 1; ay = 0; az = 0; }
+				else if (axisMode === 'y') { ax = 0; ay = 1; az = 0; }
+				else if (axisMode === 'z') { ax = 0; ay = 0; az = 1; }
+				else if (axisMode === 'tilt') { ax = 0.5773; ay = 0.5773; az = 0.5773; }
+				else {
+					const sig = turns + '#' + sizePct + '#' + edgeW + '#' + (o && o.bg);
+					if (!this._cubeAxis || this._cubeSig !== sig) {
+						const r = rnd((Date.now() % 233280) + turns * 37 + sizePct);
+						let x = r() * 2 - 1, y = r() * 2 - 1, z = r() * 2 - 1;
+						let len = Math.sqrt(x * x + y * y + z * z);
+						// 抽到太短的向量（幾乎貼著原點）就換一支固定斜軸，免得旋轉軸退化
+						if (len < 0.25) { x = 0.72; y = 0.45; z = 0.53; len = Math.sqrt(x * x + y * y + z * z); }
+						this._cubeAxis = [x / len, y / len, z / len];
+						this._cubeSig = sig;
+					}
+					ax = this._cubeAxis[0]; ay = this._cubeAxis[1]; az = this._cubeAxis[2];
+				}
+
+				// 整圈：p=0 是 0°、p=1 是 360°×圈數（等同 0°），所以循環頭尾同一個畫面
+				const angle = Math.PI * 2 * turns * p;
+				const ct = Math.cos(angle), st = Math.sin(angle), om = 1 - ct;
+
+				// 縮放：立方體八個角點離中心 √3（半徑 1 的方塊對角線的一半），
+				// 最壞情況是某個角點剛好躺在畫面平面上（z=0），投影距離就是滿滿的 √3。
+				// 除上 2√3 之後，任何角度、任何圈數都不會超出「大小」設定的框（不會被畫布切掉）
+				const s = (sizePct / 100) * Math.min(W, H) / (2 * Math.sqrt(3));
+				const ox = W / 2, oy = H / 2;
+
+				// Rodrigues 軸角旋轉：v' = v cosθ + (k × v) sinθ + k(k·v)(1-cosθ)
+				function spinVector(vx, vy, vz) {
+					const dot = ax * vx + ay * vy + az * vz;
+					const crossX = ay * vz - az * vy;
+					const crossY = az * vx - ax * vz;
+					const crossZ = ax * vy - ay * vx;
+					return [
+						vx * ct + crossX * st + ax * dot * om,
+						vy * ct + crossY * st + ay * dot * om,
+						vz * ct + crossZ * st + az * dot * om
+					];
+				}
+
+				// 收面：跳過背面、算四個角的螢幕座標（y 軸要反過來，3D 的 +y 是往上）
+				const faces = [];
+				const quadrant = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+				for (let f = 0; f < CUBE_FACES.length; f++) {
+					const fc = CUBE_FACES[f];
+					const rn = spinVector(fc.n[0], fc.n[1], fc.n[2]);
+					if (rn[2] <= 0.01) continue;   // 背對觀眾（或側到幾乎成一直線）的面不畫
+
+					const pts = [];
+					let depth = 0;
+					for (let q = 0; q < 4; q++) {
+						const su = quadrant[q][0], sv = quadrant[q][1];
+						const vx = fc.n[0] + su * fc.u[0] + sv * fc.v[0];
+						const vy = fc.n[1] + su * fc.u[1] + sv * fc.v[1];
+						const vz = fc.n[2] + su * fc.u[2] + sv * fc.v[2];
+						const rv = spinVector(vx, vy, vz);
+						pts.push([ox + rv[0] * s, oy - rv[1] * s]);
+						depth += rv[2];
+					}
+					faces.push({ pts: pts, n: rn, depth: depth / 4 });
+				}
+				faces.sort(function (a, b) { return a.depth - b.depth; });   // 遠的先畫
+
+				// 光源（左上偏前）：讓三個面有亮暗差，方塊的立體感才會出來
+				const LX = -0.48, LY = 0.56, LZ = 0.67;
+
+				for (let f = 0; f < faces.length; f++) {
+					const face = faces[f];
+					const p0 = face.pts[0], p1 = face.pts[1], p3 = face.pts[3];
+
+					// 貼圖：p0 是原點，p0→p1 是貼圖的 x 方向、p0→p3 是 y 方向，
+					// 除以 texSize 就是把「0～texSize 的像素座標」對到這個平行四邊形
+					const ux = p1[0] - p0[0], uy = p1[1] - p0[1];
+					const vx = p3[0] - p0[0], vy = p3[1] - p0[1];
+					c.save();
+					c.setTransform(ux / texSize, uy / texSize, vx / texSize, vy / texSize, p0[0], p0[1]);
+					c.drawImage(tex, 0, 0);
+					c.restore();
+
+					// 明暗：面越背光越暗。強度滑桿決定陰影的輕重，拉到 0 就是六面同亮
+					if (shadePct > 0 && k > 0) {
+						const lum = face.n[0] * LX + face.n[1] * LY + face.n[2] * LZ;
+						const dark = Math.min(0.85, (shadePct / 100) * k * 0.62 * (1 - (lum * 0.5 + 0.5)));
+						if (dark > 0.008) {
+							c.save();
+							c.beginPath();
+							c.moveTo(p0[0], p0[1]);
+							c.lineTo(p1[0], p1[1]);
+							c.lineTo(face.pts[2][0], face.pts[2][1]);
+							c.lineTo(p3[0], p3[1]);
+							c.closePath();
+							c.fillStyle = 'rgba(0,0,0,' + dark.toFixed(3) + ')';
+							c.fill();
+							c.restore();
+						}
+					}
+
+					// 邊線：深色底上一圈細白線，三個面的交界才看得出來是一顆方塊
+					if (edgeW > 0) {
+						c.save();
+						c.beginPath();
+						c.moveTo(p0[0], p0[1]);
+						c.lineTo(p1[0], p1[1]);
+						c.lineTo(face.pts[2][0], face.pts[2][1]);
+						c.lineTo(p3[0], p3[1]);
+						c.closePath();
+						c.strokeStyle = 'rgba(255,255,255,' + (0.5 + 0.4 * k).toFixed(3) + ')';
+						c.lineWidth = edgeW;
+						c.lineJoin = 'round';
+						c.stroke();
+						c.restore();
+					}
+				}
+			}
+		},
+		{
+			id: 'fireworks', name: 'Fireworks',
+			// 煙火：把使用者提供的那份「滑鼠煙火」精簡成「不需互動、不靠上一格」的版本
+			// 【為什麼可以不留狀態】原作靠 destination-out 每格擦一層半透明黑來留殘影，是因為它要一直跑下去；
+			//   我們只需要跑一輪，而每顆火花從出生那一刻起，軌跡就是固定的（方向＋初速＋摩擦＋重力），
+			//   所以「這一瞬間它在哪、前幾步又在哪」全部可以反推出來——拖尾就是沿著自己的軌跡
+			//   往回取幾個舊位置連成折線。於是每一格都自給自足：預覽可以亂跳格，
+			//   送去 APNG 頁重排播放時也不會出現「殘影突然斷掉」的格子。
+			// 【循環怎麼接得上】每一發煙火有自己的發射時刻 p0，看的是 u = (p - p0) mod 1；
+			//   超出壽命的就跳過。這樣「尾端才出生的那幾發」會跨過循環點繼續燒，
+			//   播到最後一格接回第一格時不會整片突然消失。
+			// 【升空段已移除】使用者指定只保留爆炸，所以沒有火箭從底部衝上去、
+			//   也沒有原作那個脈動的目標小圈（改成爆炸瞬間往外擴的細光環）。
+			params: [
+				{ key: 'bursts', i18n: 'paramBursts', min: 3, max: 12, step: 1, def: 6 },
+				{ key: 'sparks', i18n: 'paramSparks', min: 10, max: 60, step: 5, def: 30 },
+				{ key: 'radius', i18n: 'paramRadius', min: 10, max: 60, step: 5, def: 30, unit: '%' },
+				{ key: 'bgDark', i18n: 'paramBgDensity', min: 0, max: 50, step: 5, def: 0, unit: '%' },
+				{
+					key: 'layer', i18n: 'paramLayer', type: 'select', def: 'front',
+					options: [
+						{ v: 'front', i18n: 'fwFront' },
+						{ v: 'back', i18n: 'fwBack' }
+					]
+				}
+			],
+			draw: function (c, p, k, i, o) {
+				const bursts = Math.round((o && typeof o.bursts === 'number') ? o.bursts : 6);
+				const sparkN = Math.round((o && typeof o.sparks === 'number') ? o.sparks : 30);
+				const radPct = ((o && typeof o.radius === 'number') ? o.radius : 30) / 100;
+				const bgDark = ((o && typeof o.bgDark === 'number') ? o.bgDark : 0) / 100;
+				const layer = (o && o.layer) ? o.layer : 'front';
+				const R = Math.min(W, H) * radPct;   // 火花最遠能飛多遠（＝爆炸半徑）
+				const LIFE = 0.55;                   // 一發煙火活多久（佔一輪的比例）
+				const TAIL = 4;                      // 拖尾往回取幾個舊位置（連頭共 5 個點）
+
+				// 畫煙火本體：整層用加法混合（lighter），火花重疊的地方會自己變亮，這才是煙火的感覺
+				// （用一般的 source-over 疊上去只會一顆顆平貼在畫面上，沒有光）
+				const paintFireworks = function () {
+					c.save();
+					c.globalCompositeOperation = 'lighter';
+					c.lineCap = 'round';
+					for (let b = 0; b < bursts; b++) {
+						// 每一發的中心點與發射時刻都用「固定種子」算：同一輪每一格都一樣，循環時也一樣
+						const g = rnd(b * 101 + 17);
+						const cx = W * (0.2 + 0.6 * g());
+						const cy = H * (0.24 + 0.48 * g());
+						// 色相：每一發錯開一圈（137 是為了不要剛好繞回同一個角度），
+						// 一整輪看下來是彩虹色，而不是每發都同一種綠
+						const hue = Math.round((b * 137) % 360);
+						const p0 = (b + 0.15 + 0.25 * g()) / bursts;   // 這一發在第幾成的一輪時間點炸開
+						let u = (p - p0) % 1;
+						if (u < 0) u += 1;    // p 還沒走到 p0 時，看到的其實是「上一輪」的那一發
+						if (u > LIFE) continue;   // 這一發已經燒完，這一格不畫
+						const age = u / LIFE;     // 0 = 剛炸開、1 = 燒完
+
+						// 炸開瞬間往外擴的細光環（原作是目標小圈，這裡改成爆炸的衝擊環）
+						if (age < 0.22) {
+							const ring = Math.max(1, R * 0.14 * (age / 0.22));
+							const ra = 0.55 * (1 - age / 0.22) * (0.4 + 0.6 * k);
+							c.strokeStyle = 'hsla(' + hue + ',100%,80%,' + ra.toFixed(3) + ')';
+							c.lineWidth = 1;
+							c.beginPath();
+							c.arc(cx, cy, ring, 0, TAU);
+							c.stroke();
+						}
+
+						for (let s = 0; s < sparkN; s++) {
+							// 每顆火花的方向、初速、色相抖動、亮度都用固定種子，所以每一格的軌跡都是同一條
+							const gs = rnd(b * 613 + s * 37 + 5);
+							const ang = TAU * gs();               // 往哪個方向飛
+							const spd = 0.45 + 0.55 * gs();       // 飛多遠（相對最大半徑）
+							const hueJ = hue + (gs() * 36 - 18);  // 色相抖一點，才不會整顆同一個顏色
+							const bright = 55 + 25 * gs();        // 亮度（%）
+
+							// 飛散距離用 1-(1-age)^2：剛炸開衝得很快、後面越來越慢，
+							// 這個形狀剛好等於原作的「每格速度乘上 friction」
+							// 重力另外加上去（age^2 往下掉），火花最後會垂頭、不是筆直飛出去
+							const fly = R * spd * (1 - (1 - age) * (1 - age));
+							const drop = R * 0.5 * spd * age * age;
+							const dx = Math.cos(ang);
+							const dy = Math.sin(ang);
+							const hx = cx + dx * fly;
+							const hy = cy + dy * fly + drop;
+
+							// 拖尾：同一條軌跡往回取幾個舊位置，一段一段畫（越舊越暗、越細）
+							// 這是「反推過去」而不是「記住上一格」，所以跳格也不會斷
+							let px = hx, py = hy;
+							for (let t = 1; t <= TAIL; t++) {
+								const a2 = age - t * 0.06;
+								if (a2 <= 0) break;   // 這顆火花還沒飛那麼久，尾巴就到頭為止
+								const f2 = R * spd * (1 - (1 - a2) * (1 - a2));
+								const d2 = R * 0.5 * spd * a2 * a2;
+								const qx = cx + dx * f2;
+								const qy = cy + dy * f2 + d2;
+								const al = Math.max(0, (1 - age) * (0.5 - t * 0.09) * (0.35 + 0.65 * k));
+								c.strokeStyle = 'hsla(' + hueJ + ',100%,' + bright + '%,' + al.toFixed(3) + ')';
+								c.lineWidth = Math.max(1, 2.4 - t * 0.4);
+								c.beginPath();
+								c.moveTo(qx, qy);
+								c.lineTo(px, py);
+								c.stroke();
+								px = qx;
+								py = qy;
+							}
+							// 火花頭：比尾巴再亮一階的 2×2 小方點，才有「點」的感覺
+							c.fillStyle = 'hsla(' + hueJ + ',100%,' + (bright + 15) + '%,'
+								+ ((1 - age) * (0.6 + 0.4 * k)).toFixed(3) + ')';
+							c.fillRect(hx - 1, hy - 1, 2, 2);
+						}
+					}
+					c.restore();
+				};
+
+				// 【誰在前、誰在後】
+				//   front（預設）＝原圖在下、煙火在上面。一般照片是不透明的，煙火壓在上面才看得到。
+				//   back ＝煙火先畫、原圖再壓上去，等於「煙火在圖後面」；
+				//          這只有圖本身有透明區（去背貼圖）才看得出來，正好是「人物站在煙火前」的用法。
+				//   黑底那層永遠墊在最底下：不透明的話被圖蓋掉（等於看不到），
+				//   圖有透明區時才會透出黑，所以它只在 back 模式真的有用。
+				if (layer === 'back') {
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintFireworks();
+					c.drawImage(baseCanvas, 0, 0);
+				} else {
+					c.drawImage(baseCanvas, 0, 0);
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintFireworks();
+				}
+			}
+		},
+		{
+			id: 'hearts', name: 'Floating Hearts',
+			// 滿天愛心：使用者提供的那份（createjs 版）漂浮愛心改寫——不載入任何外部函式庫、也不留狀態
+			// 【原作在做什麼】一百顆愛心從畫面下方各自往上飄：y 每格減一點（速度依大小不同），
+			//   x 用 cos 在起始位置左右擺盪，rotation 用 sin 給 ±30° 的傾斜，
+			//   約三分之一用 lighter 混合，飄出上緣之後重新丟回下方繼續飄。
+			// 【為什麼可以不留狀態】原作每格對每顆愛心做的事情只有三件：
+			//   y 往下減、x 用 cos(y) 算、rotation 用 sin(y) 算。也就是說——
+			//   只要知道「這顆愛心現在在哪個高度」，它的左右位置和傾斜角度全部算得出來，
+			//   而高度只跟 p 有關。既然整段軌跡都是解析式，就不必記住上一格，
+			//   預覽可以亂跳格、送去 APNG 頁重排播放也不會錯位。
+			// 【循環怎麼接】每顆愛心走的是「從畫面下方一路升到上方」的鋸齒：
+			//   u = (p × 趟數 + 相位) 的小數部分，y 就從 H+60 一路線性升到 −60。
+			//   趟數只取整數，所以 p=1 的 u 剛好等於 p=0；而鋸齒的跳點落在
+			//   「畫面下方外」與「畫面上方外」，兩端都看不見，接格時不會有肉眼可見的瞬移。
+			// 【為什麼沒有那行文字】原作中間那句 "the longer I'm with you" 是示範用的，
+			//   這裡不畫——要加字請用右側的「文字」面板，那邊的字會跟著影格燒進去。
+			params: [
+				{ key: 'count', i18n: 'paramCount', min: 20, max: 120, step: 10, def: 60 },
+				{ key: 'size', i18n: 'paramSize', min: 40, max: 160, step: 10, def: 100, unit: '%' },
+				{ key: 'wobble', i18n: 'paramWobble', min: 0, max: 40, step: 5, def: 15, unit: '%' },
+				{ key: 'speed', i18n: 'paramSpeed', min: 10, max: 100, step: 10, def: 30, unit: '%' },
+				{ key: 'bgDark', i18n: 'paramBgDensity', min: 0, max: 50, step: 5, def: 0, unit: '%' },
+				{
+					key: 'layer', i18n: 'paramLayer', type: 'select', def: 'front',
+					options: [
+						{ v: 'front', i18n: 'hzFront' },
+						{ v: 'back', i18n: 'hzBack' }
+					]
+				}
+			],
+			draw: function (c, p, k, i, o) {
+				const count = Math.round((o && typeof o.count === 'number') ? o.count : 60);
+				const sizePct = ((o && typeof o.size === 'number') ? o.size : 100) / 100;
+				const wobPct = ((o && typeof o.wobble === 'number') ? o.wobble : 15) / 100;
+				const speedPct = ((o && typeof o.speed === 'number') ? o.speed : 30) / 100;
+				const bgDark = ((o && typeof o.bgDark === 'number') ? o.bgDark : 0) / 100;
+				const layer = (o && o.layer) ? o.layer : 'front';
+				// 一輪裡總共升幾趟：只取整數，否則 p=1 接不回 p=0
+				const passes = Math.max(1, Math.round(speedPct * 3));
+				const span = H + 120;              // 從「下方 60px 外」升到「上方 60px 外」的總距離
+				const S = (Math.min(W, H) / 384) * sizePct;   // 愛心基準大小（384 高的畫面上就是 1 倍）
+
+				// 畫愛心：整層逐顆畫，約三分之一的愛心用加法混合，重疊處會微微發亮
+				const paintHearts = function () {
+					for (let n = 0; n < count; n++) {
+						// 每一顆的起始位置、相位、大小、顏色、透明度都用固定種子算：
+						// 同一輪的每一格都是同一顆愛心，循環時也是同一組，不會亂跳
+						const g = rnd(n * 97 + 31);
+						const baseX = g() * W;                      // 起始水平位置
+						const phase = g();                          // 相位（讓每顆的高度錯開）
+						const sc = 0.5 + 1.3 * g();                 // 這顆多大（0.5～1.8 倍）
+						const hue = 312 + 44 * g();                 // 色相：粉 → 桃紅 → 紅
+						const light = 55 + 25 * g();                // 亮度
+						const alpha0 = 0.12 + 0.7 * g();            // 這顆多透
+						const wobAmp = W * wobPct * (0.4 + 0.6 * g());   // 左右擺盪的幅度
+						const waves = 1 + 2 * g();                  // 整個高度上擺幾個波
+						const rot0 = -20 + 40 * g();                // 基礎傾斜角（度）
+						const ph0 = g() * TAU;                      // 擺盪的相位偏移
+						const lighter = g() < 0.33;                 // 約三分之一走加法混合
+
+						// 高度：鋸齒上升。u=0 在畫面下方外、u=1 在畫面上方外
+						let uu = (p * passes + phase) % 1;
+						if (uu < 0) uu += 1;
+						const y = (H + 60) - uu * span;
+
+						// 左右位置與傾斜：兩者都是「高度」的函式（原作就是這樣算的）
+						const ph = TAU * (y / H) * waves + ph0;
+						const x = baseX + Math.cos(ph) * wobAmp;
+
+						// 進出畫面時淡入淡出，避免愛心半顆卡在邊線上突然出現
+						const edge = Math.min(1, (H + 60 - y) / 60, (y + 60) / 60);
+						const al = alpha0 * (0.35 + 0.65 * k) * Math.max(0, edge);
+						if (al <= 0.01) continue;
+
+						c.save();
+						if (lighter) c.globalCompositeOperation = 'lighter';
+						c.globalAlpha = Math.min(1, al);
+						c.translate(x, y);
+						c.rotate((rot0 + Math.sin(ph) * 20) * Math.PI / 180);
+						c.scale(S * sc, S * sc);
+						c.fillStyle = 'hsl(' + hue.toFixed(1) + ',100%,' + light.toFixed(1) + '%)';
+						// 心形：原作那八段二次貝茲，左右對稱
+						c.beginPath();
+						c.moveTo(0, -12);
+						c.quadraticCurveTo(1, -20, 8, -20);
+						c.quadraticCurveTo(16, -20, 16, -10);
+						c.quadraticCurveTo(16, 0, 0, 12);
+						c.quadraticCurveTo(-16, 0, -16, -10);
+						c.quadraticCurveTo(-16, -20, -8, -20);
+						c.quadraticCurveTo(-1, -20, 0, -12);
+						c.closePath();
+						c.fill();
+						c.restore();
+					}
+				};
+
+				// 【誰在前、誰在後】跟煙火同一套規矩：
+				//   front（預設）＝原圖在下、愛心飄在上面；back ＝愛心在圖後面，
+				//   只有圖本身有透明區（去背貼圖）才看得出來。
+				//   黑底永遠墊在最底下：不透明的話被圖蓋掉，圖有透明區時才透出黑。
+				if (layer === 'back') {
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintHearts();
+					c.drawImage(baseCanvas, 0, 0);
+				} else {
+					c.drawImage(baseCanvas, 0, 0);
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintHearts();
+				}
+			}
+		},
+		{
+			id: 'flameEdge', name: 'Burning Edge',
+			// 火焰邊緣：沿著圖片的輪廓燒起來，透明的地方一根火苗都不冒
+			// 【邊緣怎麼找】見 flameEdgePoints：把 alpha 掃一遍，找出「自己不透、鄰居透」的像素，
+			//   依火焰間距分格取樣，順便把「往圖片內部」的方向（alpha 梯度）一起算好。
+			//   換圖、換尺寸、換密度才重算一次，其餘每一格只是拿現成的點去貼火苗。
+			// 【火苗怎麼畫】一次做一朵貼圖（flameSprite：暖色光斑從寬到窄往上堆），
+			//   每一格只做縮放＋旋轉貼上、整層 lighter 疊。火焰的跳動則是三條整數頻率正弦疊起來，
+			//   所以 p=0 與 p=1 算出來一模一樣，循環接得回去。
+			// 【兩個範圍】內焰＝火苗朝圖片內部舔，整層用 destination-in 打上原圖 alpha，
+			//   保證「一根都不跑到透明區」（去背圖貼在深色底上時最乾淨）；
+			//   外焰＝火苗一律往上衝，可以燒出輪廓外，適合滿版照片做「整張在燒」的氣氛。
+			params: [
+				{ key: 'length', i18n: 'paramFlameLength', min: 10, max: 50, step: 5, def: 25, unit: '%' },
+				{ key: 'density', i18n: 'paramFlameDensity', min: 20, max: 100, step: 10, def: 70, unit: '%' },
+				{ key: 'bgDark', i18n: 'paramBgDensity', min: 0, max: 50, step: 5, def: 0, unit: '%' },
+				{
+					key: 'scope', i18n: 'paramFlameScope', type: 'select', def: 'inside',
+					options: [
+						{ v: 'inside', i18n: 'flameInside' },
+						{ v: 'outside', i18n: 'flameOutside' }
+					]
+				}
+			],
+			draw: function (c, p, k, i, o) {
+				const lenPct = ((o && typeof o.length === 'number') ? o.length : 25) / 100;
+				const densityPct = ((o && typeof o.density === 'number') ? o.density : 70) / 100;
+				const bgDark = ((o && typeof o.bgDark === 'number') ? o.bgDark : 0) / 100;
+				const scope = (o && o.scope === 'outside') ? 'outside' : 'inside';
+
+				// 邊緣點與火苗貼圖都只做一次（換圖／換尺寸／換密度才重算）
+				const key = W + 'x' + H + '#' + Math.round(densityPct * 100);
+				if (!this._flamePts || this._flameKey !== key || this._flameSrc !== baseCanvas) {
+					// 密度 100% → 每 4px 一根；20% → 每 16px 一根
+					const spacing = Math.max(4, Math.round(20 - 16 * densityPct));
+					this._flamePts = flameEdgePoints(spacing);
+					this._flameKey = key;
+					this._flameSrc = baseCanvas;
+				}
+				if (!this._flameArt) this._flameArt = flameSprite();
+
+				const pts = this._flamePts;
+				// 火苗最長能多長：以短邊為基準，強度 k 再放大一點（0 太短不好看，所以下限留 0.6）
+				const maxLen = Math.min(W, H) * lenPct * (0.6 + 0.6 * k);
+				// 跳動：三條整數頻率的正弦疊起來 → 週期一定是一輪，p=0 與 p=1 完全相同
+				const flick = function (a, b, d, pp) {
+					const v = 0.55 * Math.sin(TAU * (pp + a))
+						+ 0.30 * Math.sin(TAU * (3 * pp + b))
+						+ 0.15 * Math.sin(TAU * (5 * pp + d));
+					return 0.5 + 0.45 * v;
+				};
+
+				// 原圖與黑底先鋪好，火焰一律疊在上面
+				c.drawImage(baseCanvas, 0, 0);
+				if (bgDark > 0) {
+					c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+					c.fillRect(0, 0, W, H);
+				}
+
+				// 內焰要先畫在離屏圖層上，再用原圖的 alpha 挖一次，才不會有火舌伸出輪廓
+				let target = c;
+				let layerCtx = null;
+				if (scope === 'inside') {
+					if (!this._flameLayer || this._flameLayer.width !== W || this._flameLayer.height !== H) {
+						this._flameLayer = mkCanvas(W, H);
+						this._flameLayerCtx = this._flameLayer.getContext('2d');
+					}
+					layerCtx = this._flameLayerCtx;
+					layerCtx.clearRect(0, 0, W, H);
+					target = layerCtx;
+				}
+
+				target.save();
+				target.globalCompositeOperation = 'lighter';
+				for (let n = 0; n < pts.length; n++) {
+					const pt = pts[n];
+					// 每根火苗的相位、大小、方向抖動都由固定種子決定 → 每一格都是同一根，循環也同一根
+					const g = rnd(n * 131 + 7);
+					const ph1 = g(), ph2 = g(), ph3 = g();
+					const sizeJ = 0.75 + 0.55 * g();       // 這根多高
+					const spray = (g() - 0.5) * 0.3;       // 方向再偏一點，火苗才不會排得像柵欄
+					const fl = flick(ph1, ph2, ph3, p);    // 0～1 的呼吸
+					const hgt = maxLen * sizeJ * (0.55 + 0.75 * fl);
+					if (hgt < 4) continue;
+					const wid = hgt * 0.55;
+
+					// 方向：內焰往圖片裡舔、外焰一律往上；兩種都再往上一點點，火才有上升感
+					let dx = 0, dy = -1;
+					if (scope === 'inside') { dx = pt.nx + spray * 0.15; dy = pt.ny + 0.25; }
+					else { dx = spray; dy = -1; }
+					const dl = Math.sqrt(dx * dx + dy * dy) || 1;
+					dx /= dl; dy /= dl;
+
+					// 貼圖本身是「往正上方」畫的，旋轉角把它的上方對到 (dx, dy)
+					target.save();
+					target.globalAlpha = Math.min(1, (0.55 + 0.45 * fl) * (0.45 + 0.55 * k) * 0.9);
+					target.translate(pt.x, pt.y);
+					target.rotate(Math.atan2(dx, -dy));
+					target.drawImage(this._flameArt, -wid / 2, -hgt * 0.92, wid, hgt);
+					target.restore();
+				}
+				target.restore();
+
+				if (scope === 'inside') {
+					// destination-in：只留「原圖有像素」的地方（alpha 一起被乘上，羽邊不會硬切）
+					layerCtx.globalCompositeOperation = 'destination-in';
+					layerCtx.drawImage(baseCanvas, 0, 0);
+					layerCtx.globalCompositeOperation = 'source-over';
+					c.drawImage(this._flameLayer, 0, 0);
+				}
+			}
+		},
+		{
+			id: 'particleNet', name: 'Particle Net',
+			// 【目前先藏起來】使用者還沒決定這個七色漸變版本要留哪一種做法，
+			//   所以配方本體、參數、繪製全部保留在 FX_RECIPES 裡（程式照樣跑得動），
+			//   只是不在右側清單出現。決定好之後把下面這行 hidden 拿掉就會回到選單。
+			hidden: true,
+			// 粒子網路（星座連線）：仿 tsParticles 那個「粒子 + 距離內連線 + 三顆互連填三角形」的視覺
+			// 【為什麼不用那個套件】它是 TypeScript 寫的框架，整包 min.js 只為了畫幾個點和線；
+			//   而且它的動態是「上一格的位置加上速度」累積出來的，跟我們「每格獨立算、預覽可跳格」相反。
+			//   這裡用八十行自己畫，行為更好掌握。
+			// 【粒子怎麼動】每顆走一條利薩如軌跡：x 用 sin、y 用 cos，兩軸的頻率都取整數
+			//   （1～3 次／輪）。整數頻率是關鍵——p 走完一輪剛好繞回原點，
+			//   所以 p=0 與 p=1 的位置完全相同，循環接得回去，也不會像原作那樣
+            //   中途被邊界彈來彈去（那種寫法一旦跳格就會錯位）。
+			// 【連線與三角形】每格重算距離：距離小於「連線距離」就畫線（越近越亮）；
+			//   三顆彼此都在連線距離內，就把中間那塊三角形填上淡白（原作 10% 白）。
+			//   三角形成對檢查會爆掉，所以先建「鄰居清單」，只在共同鄰居裡找第三點。
+			// 【密度要注意】原作是 1920×1080 上放 80 顆、連線 100px，等於幾乎不連線（很空靈）；
+			//   我們的畫布最長邊只有 512，同樣 80 顆＋同樣距離會擠成一團、三角形多到糊成一片。
+			//   所以預設改成 50 顆＋連線 15%（在小畫面上大約是「每顆兩三個鄰居」的疏度）。
+			params: [
+				{ key: 'count', i18n: 'paramCount', min: 20, max: 150, step: 10, def: 50 },
+				{ key: 'link', i18n: 'paramLink', min: 5, max: 30, step: 5, def: 15, unit: '%' },
+				{ key: 'wobble', i18n: 'paramWobble', min: 10, max: 60, step: 5, def: 25, unit: '%' },
+				{ key: 'cluster', i18n: 'paramCluster', min: 0, max: 100, step: 10, def: 60, unit: '%' },
+				// 【色相】改成「整組色相旋轉」：真正的顏色由下面的七色調色盤依位置內插決定，
+				//   這支滑桿只是把整圈色相一起轉，預設 0 就是調色盤原本的顏色
+				{ key: 'hue', i18n: 'paramHue', min: 0, max: 360, step: 10, def: 0, unit: '°' },
+				{ key: 'bgDark', i18n: 'paramBgDensity', min: 0, max: 50, step: 5, def: 0, unit: '%' },
+				{
+					key: 'flow', i18n: 'paramHueFlow', type: 'select', def: '1',
+					options: [
+						{ v: '0', i18n: 'flowOff' },
+						{ v: '1', i18n: 'flowOne' },
+						{ v: '2', i18n: 'flowTwo' }
+					]
+				},
+				{
+					key: 'layer', i18n: 'paramLayer', type: 'select', def: 'front',
+					options: [
+						{ v: 'front', i18n: 'pnFront' },
+						{ v: 'back', i18n: 'pnBack' }
+					]
+				}
+			],
+			draw: function (c, p, k, i, o) {
+				const count = Math.round((o && typeof o.count === 'number') ? o.count : 50);
+				const linkPct = ((o && typeof o.link === 'number') ? o.link : 15) / 100;
+				const ampPct = ((o && typeof o.wobble === 'number') ? o.wobble : 25) / 100;
+				const hueBase = (o && typeof o.hue === 'number') ? o.hue : 350;
+				// 【色相流動】原作是 color.animation（sync:true）：整片粒子同一個色相一起慢慢轉。
+				// 我們要接格無縫，所以「一輪」只能轉「整數圈」——p 走完一圈，色相剛好回到起點。
+				// 0＝固定色相；1＝一輪轉一圈色相；2＝一輪轉兩圈（更快、更像原作那個一直在變的感覺）
+				const flowTurns = parseInt((o && o.flow), 10) || 0;
+				const hueShift = 360 * flowTurns * p;
+				const bgDark = ((o && typeof o.bgDark === 'number') ? o.bgDark : 0) / 100;
+				const layer = (o && o.layer) ? o.layer : 'front';
+				// 【明度跟著底色走】深底發光時線要亮（62%）才有光暈；淺底是 source-over 疊上去的，
+				//   62% 的亮線會整片洗白、顏色全糊掉，所以淺底改用深一階（45%），粉橙青藍紫才分得出來。
+				//   三角形也用同一套：它是 6% 的半透明面紗，白色的話會把底下的彩色線整片蓋成灰白
+				const triL = (bgDark >= 0.15) ? 70 : 50;
+				const lineL = (bgDark >= 0.15) ? 62 : 45;
+				const dotL = (bgDark >= 0.15) ? 68 : 52;
+				const linkDist = Math.min(W, H) * linkPct;
+				// 【聚散】這是實際看了原作畫面之後才加的參數。原作粒子是自由漂移，
+				//   幾顆撞在一起就形成「一團密集的灰色三角形、旁邊一大片空白」的簇狀分佈；
+				//   我原本那種「軌跡中心平均灑在畫面上」的版本，看起來是均勻的格子網，氣質差很多。
+				//   所以這裡先定 4 個「群集中心」，再依聚散程度把每顆粒子的中心往群集中心拉：
+				//   0% ＝ 完全均勻（原本的樣子）、100% ＝ 全部縮進 4 團小小的雲裡。
+				const cluster = ((o && typeof o.cluster === 'number') ? o.cluster : 60) / 100;
+				const minWH = Math.min(W, H);
+
+				// 【七色調色盤】光點與線段不再是「一個色相抖 ±20°」（那看起來其實只有一個顏色），
+				//   改成沿畫面斜向位置內插的七段色相：粉 → 橙 → 金 → 綠 → 青 → 藍 → 紫。
+				//   用位置而不是每顆亂抽顏色，相鄰粒子的色相才會接近，線段拉兩端漸層也才自然；
+				//   而且色相是連續函式，畫面本身就看得出「漸變」，不是七個色塊拼起來。
+				const PALETTE = [345, 25, 50, 135, 190, 245, 300];
+				const normHue = function (h) { h = h % 360; return h < 0 ? h + 360 : h; };
+				const hueAt = function (t) {
+					const seg = t * PALETTE.length;
+					const i0 = Math.floor(seg) % PALETTE.length;
+					const fr = seg - Math.floor(seg);
+					const h0 = PALETTE[i0];
+					let h1 = PALETTE[(i0 + 1) % PALETTE.length];
+					if (h1 < h0) h1 += 360;     // 跨過 0 度時往上繞，避免內插往回跑
+					return normHue(h0 + (h1 - h0) * fr);
+				};
+				const ccx = [], ccy = [];
+				for (let ci = 0; ci < 4; ci++) {
+					const gc = rnd(ci * 997 + 3);
+					ccx.push(W * (0.2 + 0.6 * gc()));
+					ccy.push(H * (0.2 + 0.6 * gc()));
+				}
+
+				// 1. 算這一格所有粒子的位置（純函式，不依賴上一格）
+				const px = [], py = [], pr = [], ph = [], pa = [];
+				for (let n = 0; n < count; n++) {
+					const g = rnd(n * 57 + 13);
+					let cx = W * (0.12 + 0.76 * g());           // 軌跡中心（均勻版）
+					let cy = H * (0.12 + 0.76 * g());
+					const ci = Math.floor(g() * 4);
+					if (cluster > 0) {
+						// 這顆粒子自己在那團雲裡的位置（抖動半徑約畫布短邊的 11%）
+						const jx = ccx[ci] + (g() - 0.5) * minWH * 0.22;
+						const jy = ccy[ci] + (g() - 0.5) * minWH * 0.22;
+						cx = cx * (1 - cluster) + jx * cluster;  // 聚散 ＝ 往群集中心拉的比例
+						cy = cy * (1 - cluster) + jy * cluster;
+					}
+					// 聚起來之後擺幅也要收，不然粒子還是會晃出團外
+					const ax = W * ampPct * (0.3 + 0.5 * g()) * (1 - 0.5 * cluster);
+					const ay = H * ampPct * (0.3 + 0.5 * g()) * (1 - 0.5 * cluster);
+					const fx = 1 + Math.floor(g() * 3);         // 頻率只取整數（1~3 次／輪）
+					const fy = 1 + Math.floor(g() * 3);
+					const phx = g(), phy = g();                 // 相位
+					const size = 1.2 + 1.8 * g();               // 半徑 1.2~3.0
+					// 【這顆的顏色】用軌跡中心（不是即時位置）算漸變位置：粒子晃動時顏色不會跟著閃。
+					//   位置佔 6 成、粒子序佔 4 成——只用位置的話，聚散拉高時「一團雲」會整片同一個顏色
+					//   （實測渲染出來就是綠油油一坨）；混進序號之後，同一團裡也有粉→橙→紫的流動。
+					//   抖動只剩 ±6°，免得把漸層打散
+					const u = Math.max(0, Math.min(0.999,
+						0.6 * (0.65 * (cx / W) + 0.35 * (cy / H)) + 0.4 * (n / Math.max(1, count))));
+					const hue = hueAt(u) + hueBase + hueShift + (g() * 12 - 6);
+					const alpha = 0.55 + 0.35 * g();            // 這顆多亮（最後再乘強度）
+					px.push(cx + ax * Math.sin(TAU * (fx * p + phx)));
+					py.push(cy + ay * Math.cos(TAU * (fy * p + phy)));
+					pr.push(size);
+					ph.push(hue);
+					pa.push(alpha);
+				}
+
+				// 2. 鋪底：原圖 →（黑底）→ 粒子；layer=back 時粒子先畫、原圖再壓上去
+				// 【為什麼三角形不能用 lighter】原作那張畫面是黑底的，白 0.1 疊在黑上＝一片淡灰；
+				//   但我們底下壓的是一張亮的照片，lighter 會一直往上加，三角形一疊就變成純白，
+				//   把原圖整片吃掉（實際渲染出來確認過）。所以三角形改成 source-over 的薄面紗，
+				//   只有線和粒子留在 lighter 裡——這樣才同時有「發亮」和「不毀原圖」。
+				const paintTri = function () {
+					c.save();
+					c.globalCompositeOperation = 'source-over';
+					// 三角形：三顆彼此都在連線距離內就填淡白（原作 10% 白），疊起來像一層薄紗
+					const nb = [];
+					for (let a = 0; a < count; a++) {
+						const set = new Set();
+						for (let b = 0; b < count; b++) {
+							if (a === b) continue;
+							const dx = px[a] - px[b], dy = py[a] - py[b];
+							if (dx * dx + dy * dy <= linkDist * linkDist) set.add(b);
+						}
+						nb.push(set);
+					}
+					// 原作 0.1，但我們小畫面上簇狀重疊很兇，0.1 會在中間糊成純白；
+					// 上色之後同樣會「疊成一整片實色」，所以壓到 0.035，讓彩色點與漸層線還是主角
+					const triA = 0.035 * (0.5 + 0.5 * k);
+					// 面紗的顏色跟著三角形頂點走（同一片三角形的三顆本來就相鄰、色相幾乎一樣，
+					// 直接取第一顆當代表，比算三顆平均省事，也不會踩到色相繞 0 度的平均陷阱）
+					// 密度拉到極限時三角形會上千片（每片都要一段路徑，跑 20 格會明顯卡），
+					// 所以留一個上限：超過就停止填色。反正疊在那麼密的地方，後面幾百片肉眼也分不出來
+					let triUsed = 0;
+					for (let a = 0; a < count; a++) {
+						const triHue = normHue(ph[a]).toFixed(0);
+						const na = nb[a];
+						na.forEach(function (b) {
+							if (b <= a || triUsed >= 1200) return;              // 每組三角形只畫一次
+							const nbn = nb[b];
+							na.forEach(function (cc) {
+								if (cc <= b || triUsed >= 1200) return;
+								if (!nbn.has(cc)) return;
+								c.fillStyle = 'hsla(' + triHue + ',85%,' + triL + '%,' + triA.toFixed(3) + ')';
+								c.beginPath();
+								c.moveTo(px[a], py[a]);
+								c.lineTo(px[b], py[b]);
+								c.lineTo(px[cc], py[cc]);
+								c.closePath();
+								c.fill();
+								triUsed++;
+							});
+						});
+					}
+					c.restore();
+				};
+
+				const paintNet = function () {
+					paintTri();                              // 先鋪三角形的面紗（不發光，只壓一層淡白）
+					c.save();
+					// 【合成方式看底有多暗】實際渲染比對過兩種：
+					//   lighter 疊在深色處很漂亮（線會發亮、越疊越亮），但壓在淺色／亮面上完全加不上去，
+					//   線和點直接消失（漫畫圖常常是淺底）；source-over 則是深淺都看得見，但少了光感。
+					//   所以照「黑底濃度」決定：有壓黑底（≥15%）就用 lighter 發光，完全透明底就用實色。
+					c.globalCompositeOperation = (bgDark >= 0.15) ? 'lighter' : 'source-over';
+					c.lineWidth = 1;
+
+					// 2-1 連線：每對粒子算一次距離（粒子不多，直接雙迴圈就好）
+					for (let a = 0; a < count; a++) {
+						for (let b = a + 1; b < count; b++) {
+							const dx = px[a] - px[b], dy = py[a] - py[b];
+							const d2 = dx * dx + dy * dy;
+							if (d2 > linkDist * linkDist) continue;
+							const d = Math.sqrt(d2);
+							// 越近越亮：距離 0 時最亮、剛好碰到連線距離時完全淡出
+							// （0.45 是照原作 line_linked.opacity 0.4 抓的，原作那張截圖的線條其實很暗）
+							const al = (1 - d / linkDist) * 0.45 * (0.4 + 0.6 * k);
+							if (al <= 0.01) continue;
+							// 【線段漸變】線的兩端各用自己那顆粒子的顏色，中間就是一段漸層——
+							//   這樣整片網路的線條會跟光點同色系，跨過兩個色區時也接得順。
+							//   兩端色相幾乎一樣（<6°）就不建漸層物件，直接純色，省一點每格的重算成本
+							const ha = normHue(ph[a]), hb = normHue(ph[b]);
+							const dh = Math.abs(ha - hb);
+							if (dh > 6 && dh < 354) {
+								const grd = c.createLinearGradient(px[a], py[a], px[b], py[b]);
+								grd.addColorStop(0, 'hsla(' + ha.toFixed(0) + ',92%,' + lineL + '%,' + al.toFixed(3) + ')');
+								grd.addColorStop(1, 'hsla(' + hb.toFixed(0) + ',92%,' + lineL + '%,' + al.toFixed(3) + ')');
+								c.strokeStyle = grd;
+							} else {
+								// 差不到 6°，或剛好跨過 0 度（差 >354°，其實是同一種顏色）→ 直接沿用前端色，
+								// 取平均反而會被 (350+20)/2 = 185 這種算法帶到完全不相干的青色去
+								c.strokeStyle = 'hsla(' + ha.toFixed(0) + ',92%,' + lineL + '%,' + al.toFixed(3) + ')';
+							}
+							c.beginPath();
+							c.moveTo(px[a], py[a]);
+							c.lineTo(px[b], py[b]);
+							c.stroke();
+						}
+					}
+
+					// 2-2 粒子本體：畫在線上面，才有「節點」的感覺
+					for (let n = 0; n < count; n++) {
+						const al = Math.min(1, pa[n] * (0.45 + 0.55 * k));
+						if (al <= 0.01) continue;
+						// 先畫一圈淡淡的外暈（半徑 ×1.9、透明度 ×0.2），再畫實心核；
+						// 兩層都用 source-over，所以淺色底不會被吃掉，深色底又有光的感覺
+						const hueN = normHue(ph[n]).toFixed(0);
+						c.fillStyle = 'hsla(' + hueN + ',95%,' + (dotL + 4) + '%,' + (al * 0.2).toFixed(3) + ')';
+						c.beginPath();
+						c.arc(px[n], py[n], pr[n] * 1.9, 0, TAU);
+						c.fill();
+						c.fillStyle = 'hsla(' + hueN + ',95%,' + dotL + '%,' + al.toFixed(3) + ')';
+						c.beginPath();
+						c.arc(px[n], py[n], pr[n], 0, TAU);
+						c.fill();
+					}
+					c.restore();
+				};
+
+				// 【誰在前、誰在後】跟煙火、愛心同一套規矩：
+				//   front（預設）＝原圖在下、網路上面；back ＝網路在圖後面，
+				//   只有圖本身有透明區（去背貼圖）才看得出來。
+				if (layer === 'back') {
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintNet();
+					c.drawImage(baseCanvas, 0, 0);
+				} else {
+					c.drawImage(baseCanvas, 0, 0);
+					if (bgDark > 0) {
+						c.fillStyle = 'rgba(0,0,0,' + bgDark.toFixed(3) + ')';
+						c.fillRect(0, 0, W, H);
+					}
+					paintNet();
+				}
+			}
 		}
 	];
 
@@ -1369,6 +2443,61 @@
 	// 值存在 paramStore[特效 id] 裡，切換特效再切回來不會把調過的值洗掉。
 	// ============================================================
 	const paramStore = Object.create(null);
+
+	// ============================================================
+	// 「強度」那支滑桿的說明
+	// 它是全域的（0~100% 換算成 k 丟進每支特效），但每支特效拿它做的事情不一樣：
+	//   有的當位移幅度、有的當疊圖濃度、有的當粒子數量、有的去壓六面明暗，
+	//   也有幾支根本不吃它（自己靠圈數／角度在跑）。
+	// 使用者拉同一格卻看到不同結果，很容易以為滑桿壞掉，所以面板下方跟著換一句話。
+	// 這裡只列「行為明顯不同」的，其餘一律用預設那句（整體幅度），
+	// 不然 39 支各寫一句、五語系要翻 195 條，維護成本不划算。
+	// ============================================================
+	const K_HINT_MAP = {
+		// 亮度類：k 調的是「亮不亮」
+		shineSweep: 'fxKHintBright',
+		colorStrobe: 'fxKHintBright',
+		fireworks: 'fxKHintBright',   // 煙火：k 調的是火花亮度（不是數量）
+		particleNet: 'fxKHintBright', // 粒子網路：k 調的是線與粒子的亮度（不影響粒子數量與距離）
+		pulseGlow: 'fxKHintGlow',
+		// 疊圖濃度類：k 調的是那一層的透明度
+		colorCycle: 'fxKHintAlpha',
+		rainbowWave: 'fxKHintAlpha',
+		spotlight: 'fxKHintAlpha',
+		matrixRain: 'fxKHintAlpha',
+		hearts: 'fxKHintAlpha',       // 滿天愛心：k 調的是愛心的透明度（不是數量也不是速度）
+		oldTV: 'fxKHintAlpha',
+		// 自己有「專屬強度」滑桿的：全域 k 是再乘上去，要講清楚免得拉爆或看起來沒反應
+		colorTint: 'fxKHintMultiply',
+		kaleidoscope: 'fxKHintMultiply',
+		sepiaFlash: 'fxKHintMultiply',
+		vignettePulse: 'fxKHintMultiply',
+		invertFlash: 'fxKHintMultiply',
+		contrastPulse: 'fxKHintMultiply',
+		// 數量類：k 調的是「幾個」
+		sparkle: 'fxKHintCount',
+		confettiBurst: 'fxKHintCount',
+		// 其他專屬行為
+		shadowPulse: 'fxKHintShadow',
+		fade: 'fxKHintFade',
+		cubeSpin: 'fxKHintShade',
+		pixelate: 'fxKHintSize',
+		flameEdge: 'fxKHintSize',   // 火焰邊緣：k 調的是火苗長度（不是火焰數量）
+		// 完全不看這支滑桿的（靠自己的圈數／角度／速度在跑）
+		rotate: 'fxKHintNone',
+		slideIn: 'fxKHintNone',
+		flipAnim: 'fxKHintNone',
+		reveal: 'fxKHintNone',
+		dissolve: 'fxKHintNone',
+		sliceSplit: 'fxKHintNone',
+		comic: 'fxKHintNone'
+	};
+
+	// 重寫「強度」下方那行說明（切特效、切語言時各叫一次）
+	function updateKHint() {
+		if (!kHintBox) return;
+		kHintBox.textContent = tr('fxKHintPrefix') + tr(K_HINT_MAP[selectedId] || 'fxKHintDefault');
+	}
 
 	function recipeOf(id) {
 		return FX_RECIPES.find(function (r) { return r.id === id; }) || null;
@@ -1486,7 +2615,12 @@
 	// ============================================================
 	function renderEffectList() {
 		effectList.innerHTML = '';
-		FX_RECIPES.forEach(function (r, idx) {
+		let shown = 0;   // 清單上看到的序號（跳過 hidden 的配方，號碼才不會中斷）
+		FX_RECIPES.forEach(function (r) {
+			// hidden: true 的配方只是「暫時不出現在選單」，配方本身仍留在 FX_RECIPES，
+			// 之後把旗標拿掉就會回來，不用重寫任何繪製程式
+			if (r.hidden) return;
+			shown++;
 			const btn = document.createElement('button');
 			btn.type = 'button';
 			btn.className = 'fx-effect-item' + (r.id === selectedId ? ' active' : '');
@@ -1504,7 +2638,7 @@
 			}
 			const idxEl = document.createElement('span');
 			idxEl.className = 'fx-idx';
-			idxEl.textContent = String(idx + 1);
+			idxEl.textContent = String(shown);
 			btn.appendChild(nameEl);
 			btn.appendChild(idxEl);
 			btn.addEventListener('click', function () {
@@ -1520,6 +2654,7 @@
 			b.classList.toggle('active', b.dataset.id === id);
 		});
 		renderParams();   // 換特效 → 右側「特效設定」換成這個特效的參數
+		updateKHint();    // 「強度」下方那行說明也跟著換（每支特效對強度的用法不同）
 		if (sourceImg) scheduleGenerate(0);
 	}
 
@@ -1901,7 +3036,9 @@
 	// ============================================================
 	// 初始化
 	// ============================================================
-	selectedId = FX_RECIPES[0].id;
+	// 預設特效取「清單上看得到的第一支」——第一支若剛好被 hidden 掉，才不會出現
+	// 「預覽在跑、右側卻沒有任何一項亮著」的怪畫面
+	selectedId = (FX_RECIPES.find(function (r) { return !r.hidden; }) || FX_RECIPES[0]).id;
 	renderEffectList();
 	selectEffect(selectedId);
 	frameCountVal.textContent = frameCountInput.value;
@@ -1914,6 +3051,7 @@
 	//   3. 影格位置文字（第 i／n 格）——重畫目前影格最省事，畫面也一致
 	function refreshLangTexts() {
 		if (statusBox) statusBox.textContent = statusSpec ? tr(statusSpec.key, statusSpec.vars) : '';
+		updateKHint();   // 4. 強度說明（也是程式寫進去的，切語言要重翻）
 		if (!sourceImg && previewInfo && previewInfo.style.display !== 'none') {
 			previewInfo.textContent = tr('fxPreviewEmpty');
 		}
