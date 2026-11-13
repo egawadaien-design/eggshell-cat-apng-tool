@@ -15,7 +15,8 @@
 - 🌐 **多國語言** — 繁中 / 簡中 / English / 日本語 / ไทย，自動跟隨瀏覽器
 - 🔒 **純本機處理** — 圖片不上傳，敏感素材也能安心用
 - 📥 **匯入 APNG / GIF** — 直接拖入現有 APNG 或 GIF，自動拆解成影格並還原每格時間
-- ✨ **動畫特效頁（FX）** — 41 種內建動畫特效（光掃、彈跳、抖動、旋轉、溶解、RGB 分離、故障風、故障雜訊…），單張圖片一鍵生出一整組影格；調整特效、強度與格數後，整組影格一鍵送進「生成」頁接續編輯
+- ✨ **動畫特效頁（FX）** — 34 種內建動畫特效（斜光掃過、震動、旋轉、溶解、RGB 故障、老電視、萬花筒、漫畫線稿…），單張圖片一鍵生出一整組影格；調整特效、強度與格數後，整組影格一鍵送進「生成」頁接續編輯
+- 🎚️ **每個特效都有專屬設定** — 選到哪支特效，右側「特效設定」就換成它專屬的滑桿或下拉：光掃有角度與光帶寬度、RGB 故障有撕裂頻率、萬花筒有切片數、漫畫效果有精細度與墨色…34 支各自一組，換別支再換回來，先前調好的值還留著
 - 🟩 **綠色原圖外框** — APNG / FX / PNG 三個工作框都會用綠色虛線標出「你匯入的圖片實際佔多大一塊」；三頁都是棋盤格背景，有框才分得出圖片邊界。APNG 頁的框固定以**第一張圖的尺寸**為基準，切換到別格時框不會跟著變，所以看得出每格比第一張大多少、被 frame-offset 位移了多少
 - 🎞️ **每格獨立延遲** — 在縮圖卡片上直接輸入毫秒數，即時生效
 - 🎯 **獨立影格設置** — 點哪一格就調哪一格：卡片下方的十字鍵把該格往上／下／左／右各移 2px（可連按累積），中間那顆鈕一鍵還原成剛載入的樣子，右側也能直接輸入 X / Y 偏移量
@@ -40,7 +41,7 @@
 
 ## 🚀 怎麼使用
 
-打開 [apng-murex.vercel.app](https://apng-murex.vercel.app/)（主站，Vercel）或 [apng.top](https://apng.top/)（分站，EdgeOne Pages）即可使用，不需要安裝任何東西。
+打開 [apng-murex.vercel.app](https://apng-murex.vercel.app/)（Vercel）或 [apng.top](https://apng.top/)（EdgeOne Pages）即可使用，不需要安裝任何東西。
 
 兩站前端檔案完全相同，差別只在 `/api/upload` 由所在平台的函數處理（`api/upload.js` / `node-functions/api/upload.js`）。
 
@@ -57,7 +58,7 @@
 ### FX 頁（想先套特效再編輯時走這條）
 1. 切到上方 Tab 的「FX」
 2. 把一張圖片拖進虛線框（或點一下選檔）
-3. 在右側清單挑一種特效（共 41 種，清單可上下滑動），再用滑桿調整強度與影格數
+3. 在右側清單挑一種特效（共 34 種，清單可上下滑動），再用滑桿調整強度與影格數；清單下方「特效設定」會換成這支特效專屬的參數
 4. 畫面上會即時循環預覽，圓點列可以點任一格單獨查看
 5. 滿意後按「送出到 APNG 頁」——原本的影格會被這組新影格取代
 6. 工具自動切回「生成」頁，接著照上面的步驟 2～8 調整延遲、順序、位移、循環次數、尺寸並輸出
@@ -84,7 +85,7 @@
 | 頁籤 | 進入方式 | 功能 |
 |---|---|---|
 | **生成**（`tab-app`） | 上方 Tab | 拖 PNG/APNG/GIF → 設定參數 → 輸出 APNG / GIF；拖入 APNG / GIF 會自動拆成影格；卡片可調延遲、換順序、複製、刪除，下方「獨立影格設置」面板可對單一格做 2px 位移或輸入 X / Y 偏移量；右側「文字」面板可疊字（字體／字級／顏色／外框／陰影／顯示格範圍／淡入淡出） |
-| **FX**（`tab-fx`） | 上方 Tab（排在生成之後） | 動畫特效：選特效、調強度與格數、即時預覽；確定後把整組影格送到「生成」頁（取代原有影格）；右側同樣有「文字」面板，文字直接燒進每一格 |
+| **FX**（`tab-fx`） | 上方 Tab（排在生成之後） | 動畫特效：34 種特效、強度與格數滑桿、即時預覽；選到哪支特效，右側「特效設定」就換成它專屬的參數（滑桿或下拉）；確定後把整組影格送到「生成」頁（取代原有影格）；右側同樣有「文字」面板，文字直接燒進每一格 |
 | **PNG**（`tab-png`） | 上方 Tab | 靜態貼圖製作：吸取顏色去背、全域刪除指定顏色、橡皮擦、縮放平移、分割、240×240 與 96×74 輸出；右側「文字」面板可疊字，按「確認圖片」時才燒進輸出 |
 | **Meme**（`tab-meme`） | 上方 Tab | 蛋殼喵表情包展示牆，從 Supabase 動態載入，點擊重播 |
 | **Help**（`tab-help`） | 頁尾按鈕 | 使用說明與常見問題 |
@@ -93,7 +94,6 @@
 | **原始碼**（`tab-src`） | 頁尾按鈕 | GitHub 專案連結 |
 
 > 註 1：原本的「拆圖」頁籤已移除，拆格功能改在「生成」頁拖入 APNG / GIF 時自動完成。
-> 註 2：Help 原本在上方 Tab 列，2026-11-12 為讓出 FX 的位置移到頁尾；同日「怎麼用」補上十字鍵（單格位移）的說明。
 
 ---
 
@@ -109,7 +109,7 @@
 | [Supabase JS](https://supabase.com/) | Meme 展示牆：Storage 存圖 + Postgres 存 metadata |
 | Vercel Serverless Function | 主站 `/api/upload` 代理寫入，保護 service_role key 不暴露在前端 |
 | EdgeOne Pages Node Function | 分站 `/api/upload`，同一支前端不改一行即可運作；額外有 base64 大小預檢、PNG magic number、簡易限流 |
-| Canvas API | 圖片縮放、像素讀取、影格合成、單格位移烘焙、去背 flood fill、FX 頁 41 種特效繪製 |
+| Canvas API | 圖片縮放、像素讀取、影格合成、單格位移烘焙、去背 flood fill、FX 頁 34 種特效繪製 |
 | Local Font Access API | 「讀取本機字體」：`queryLocalFonts()` 徵求授權後列出系統字體家族（Chrome / Edge 103+，需 HTTPS 或 localhost） |
 | 純 HTML/CSS/JS | 無框架、無建置流程 |
 
@@ -148,7 +148,7 @@ static/
 │   ├── text-overlay.js     ← 文字疊加：APNG / FX / PNG 三頁共用同一套文字面板（字體、字級、顏色、外框、陰影、顯示格範圍、淡入淡出）
 │   ├── apng-encoder.js     ← 編碼輸出：CRC32、acTL 循環次數、UPNG 編碼、GIF 生成、LINE 規範警告
 │   ├── png-editor.js       ← PNG 靜態貼圖：去背、橡皮擦、縮放平移、分割線、240×240 與 96×74 輸出
-│   ├── fx.js               ← FX 特效頁：41 種特效配方、參數預覽、影格送出（交接給 apng-frames.js）
+│   ├── fx.js               ← FX 特效頁：34 種特效配方（各自帶 params）、參數預覽、影格送出（交接給 apng-frames.js）
 │   ├── supabase-config.js  ← Supabase URL / anon key / bucket 設定
 │   └── gif.worker.js       ← GIF.js 背景編碼 worker
 ├── en/ ja/ th/ zh/
@@ -168,7 +168,7 @@ static/
 > `apng-frames.js` 負責宣告全域 DOM 節點與影格狀態（`files` / `frameDelays` 等），必須排在 `apng-encoder.js`、`png-editor.js`、`fx.js` 之前，否則會踩 TDZ。
 > `text-overlay.js` 只宣告 `window.TextOverlay`，排在 `apng-frames.js` 之前，因為 APNG 預覽要呼叫它的 `paintOverlay()`。
 > `fx.js` 排最後：它要呼叫 `apng-frames.js` 的 `clearAll()` / `addFiles()` 與 `app-shell.js` 的 `switchTab()`，這些函式必須先宣告完成。
-> 專案根目錄另有 `_backup/`（原 `apng.js` 的完整備份），不在 `static/` 內，不會被上傳或部署。
+> 專案根目錄另有 `_backup/`（原 `apng.js` 的完整備份-最早寫出來的那個），不在 `static/` 內，不會被上傳或部署。
 
 ---
 
@@ -186,18 +186,32 @@ UPNG.js 本身不支援 loops 參數，本工具會在編碼後直接修改 APNG
 ### FX 動畫特效（`js/fx.js`）
 FX 頁只做「選特效 → 調參數 → 預覽 → 送出」，編輯一律交給「生成」頁，不另外長一套編輯器。
 
-- **41 種特效**：全部走同一條管線，每支都是 Canvas 2D 配方 `draw(ctx, p, k, i)`
+- **各種特效**：全部走同一條管線，每支都是 Canvas 2D 配方 `draw(ctx, p, k, i, o)`
   - `p` = 播放進度（0～1，決定動畫落在時間軸的哪個位置）
   - `k` = 強度（滑桿 0～100%）
-  - `i` = 影格序號，當穩定隨機種子用；不然 Sparkle / Shake / Film Grain / Matrix Rain / Old TV / RGB Glitch 每格都會亂跳
+  - `i` = 影格序號，當穩定隨機種子用；不然 Sparkle / Shake / Matrix Rain / Old TV / RGB Glitch 每格都會亂跳
+  - `o` = 這支特效自己的參數物件（沒有宣告參數時是空物件，舊配方只收前四個參數也照樣能跑）
 - **固定規格**（刻意不開放使用者調整，避免送出後還要再對一次）
   - 每格延遲固定 **100ms**，送出時會再覆寫一次 `frameDelays`，防止被「生成」頁的預設值補成別的數字
   - 輸出最長邊 **≤ 512px**，等比縮小、不放大
   - 影格數 **5 ～ 40 格**（預設 20）
 - **送出＝取代**：已有舊影格時先 `confirm`，確認後 `clearAll()` → `addFiles()` → `switchTab('tab-app')`，檔名從 `fx-001.png` 起算
-- **生成分批非同步**：每 4 格讓出一次主執行緒，41 個特效 × 40 格在一般桌機不會卡住介面
+- **生成分批非同步**：每 4 格讓出一次主執行緒，各個特效 × 40 格在一般桌機應該不會卡住介面
 - **來源圖**：任何 `image/*` 都能用；GIF 只取第一格靜圖（FX 是「一張圖 → 一組影格」，不繼承原 GIF 的動畫）
 - **和 LINE 規範的關係**：FX 頁可以做到 40 格，但 LINE 動態貼圖上限是 20 格；送進「生成」頁後黃色警告列會提示，要上架記得自己降到 20 格以內
+
+#### 特效設定（每支特效自己的參數）
+- 參數**宣告在配方本身**（`recipe.params`），選哪支就渲染哪組 UI，不必另外維護一份對照表；
+- 型別判斷：預設值是數字 → 滑桿 `input[type=range]`；`type: 'select'` → 下拉選單（選項文字也走 i18n，值可以是數字或字串）
+- 值存在 `paramStore[特效 id]`，切換特效再切回來不會被洗掉
+- 沒有宣告參數的特效會顯示一行「這個特效沒有額外設定」，而不是整格消失
+- 「特效設定」標題在選到有參數的特效時會接上它的名字（例「特效設定 Shine Sweep」），名字是獨立的 `span.fx-param-name`（12px 淡色，當副標不搶 20px 粉紅主標）；標題節點刻意不掛 `data-i18n`，切換語言時由 `fxRenderParams()` 重畫
+- 滑桿數值顯示：`step < 1` 的參數（流速 0.3～2、旋轉圈數 0.2 這類）保留到小數第二位，不會被四捨五入成 0 讓使用者以為拉了沒反應
+- 清單高度固定露出 8 個（項目 34px、間距 6px、`max-height: 318px`），把空間讓給下面的「特效設定／輸出設定」
+
+#### 狀態列的語言同步
+- 狀態文字改成「記 key」（`setStatusKey(key, vars)`）：狀態訊息是程式寫進去的、不在 `data-i18n` 掃描範圍，舊做法會永遠停在載入時那個語言
+- 切語言時 `applyLang()` 呼叫 `window.fxRefreshLangTexts()`，把狀態列、沒有圖時的預覽提示、影格位置文字（第 i／n 格）一起重翻
 
 ### 原圖外框（`js/source-frame.js`）
 三個工作框（APNG / FX / PNG）的預覽舞台都是棋盤格背景，圖片放進去後看不出邊界，所以統一用綠色虛線標出來。
@@ -241,7 +255,7 @@ APNG / FX / PNG 三頁共用同一支面板與同一份繪製程式，但**每�
 - **字體只用系統字型**（細明體 / 微軟正黑體 / 蘋方 / Noto Sans TC / 標楷體 / serif / sans），不內嵌字型檔，避免字型授權問題
 
 #### 顯示格範圍與淡入淡出
-- 面板在 X / Y 偏移後面多了「起始格 / 結束格」，決定文字只在第幾格到第幾格出現；**結束格填 0 代表一路到最後一格**，所以預設狀態就是「第一格 → 最後一格」
+- 面板在 X / Y 偏移後面多加了「起始格 / 結束格」，決定文字只在第幾格到第幾格出現；**結束格填 0 代表一路到最後一格**，所以預設狀態就是「第一格 → 最後一格」
 - 判斷寫在 `visibleAt(st, index, total)`：APNG 預覽依目前格號、`apng-encoder.js` 依迴圈的格號、FX 依產格序號；PNG 只有一張圖，`mount()` 傳 `singleFrame: true` 把整組格號區塊（連同淡入淡出）藏起來
 - 結束格填得比總格數大時以總格數為準，所以刪影格刪到比設定少也不會整段不見
 - 勾「淡入淡出」後由 `frameAlpha()` 依格號算透明度：淡入淡出長度取整段的三分之一（最少 1 格、最多 5 格），首格從 `1/(len+1)` 起算、尾格對稱淡出；段落短於 3 格就不淡，免得字一直停在半透明像壞掉
@@ -250,7 +264,7 @@ APNG / FX / PNG 三頁共用同一支面板與同一份繪製程式，但**每�
 
 #### 讀取本機字體
 - 「字型」旁邊那顆鈕走 Local Font Access API：`queryLocalFonts()` 會跳瀏覽器授權，按允許後把家族清單塞進下拉
-- 只有 Chrome / Edge 103+ 支援，而且要 HTTPS 或 localhost；Firefox / Safari 沒有這支 API，`mount()` 時直接把按鈕藏起來，不留一顆按了沒反應的鈕
+- 只有 Chrome / Edge 103+ 支援，而且要 HTTPS 或 localhost；Firefox / Safari 沒有這支 API，`mount()` 時直接把按鈕藏起來，不留一顆按了沒反應的鈕（只留一江春水向東流...）
 - 清單用模組級快取（`localFamilies`），三頁共用一份，整個工作階段只跳一次授權
 - 與內建七種重複的家族（`PMingLiU` / `Microsoft JhengHei` / `DFKai-SB` …）會被 `BASE_FAMILY_SET` 過濾掉，選單不會出現兩個一樣的名字
 - 選到的本機字體存成 `local:家族名`，`fontCss()` 認前綴輸出 `"家族名", serif`；讀完按鈕自動收起
@@ -259,6 +273,7 @@ APNG / FX / PNG 三頁共用同一支面板與同一份繪製程式，但**每�
 - 展示牆從 Supabase 讀取已審核（`approved=true`）的圖片，每次載入 6 筆，支援分頁載入更多
 - 圖片存放在 Supabase Storage bucket，metadata 寫在 `apng_images` 表
 - 使用者生成 APNG 後點「分享我的圖片」即可一鍵上傳（預設 `approved=false`，需後台審核才會顯示）
+- 呦~原來有後台啊！ 不... 完全沒有...（自己看數據庫，拿命令改一下就好了）
 
 ---
 
@@ -277,23 +292,20 @@ MIT License — 自由使用、修改、散佈。
 ## 📝 更新紀錄
 
 ### 2026-11-13
+- README 更新
 - 新增「文字」面板（`js/text-overlay.js`）：APNG / FX / PNG 三頁各掛一次，共用同一份繪製程式、各自一份 state
   - 面板：多行輸入框、十字鍵（上／下／左／右各 2%、中間鈕回正中）、字體下拉、粗體 / 斜體 / 下底線、字級、字色、外框（開關＋寬度＋顏色）、陰影（開關＋大小＋顏色）
   - APNG 頁用透明 canvas 疊在預覽舞台上，編碼時逐格燒字；FX 頁直接燒進每一格；PNG 頁按「確認圖片」才燒進 240×240 與 96×74 輸出
 - 「圖片偏移」面板加上眼睛隱藏鈕（`#foHideBtn`），收合狀態記在 `localStorage` 的 `apng-fo-hidden`
 - 影格「排序列」最右邊的兩顆鈕（隱藏縮圖 / 顯示獨立影格設置）收進 `.sort-bar-right`，不再被擠成第二列
 - 隱藏影格縮圖（`#frameGridToggle`）時連五顆排序鈕（排序順序 / 檔名遞增 / 檔名遞減 / 最新在上 / 最早在上）一起收起來（`.sort-bar.grid-collapsed`）；這條由上方那顆隱藏鈕控制，不是綠色隱藏鈕
-- 文字面板的十字鍵改成與「獨立影格設置」同尺寸（26px 方格、`grid-area` 定位、底色 `#edccd8`、中間鈕 `#fbeef3` 虛線），不再被擠成一列
-- 字色色票移到字級列末尾（與外框／陰影列右緣對齊），預設字色改為黑色 `#000000`
 - 字體下拉旁新增「讀取本機字體」鈕（Local Font Access），讀回來的家族以 `local:` 前綴存進 `state.font`；不支援的瀏覽器整顆隱藏
 - 新增「顯示格範圍」：X / Y 偏移後面兩個輸入框（起始格 / 結束格，結束格 0 = 到最後一格），`visibleAt()` 決定這一格要不要畫字；三頁呼叫端都帶上格號，PNG 頁整組隱藏
 - 新增「淡入淡出」勾選：`frameAlpha()` 依格號算 `globalAlpha`，段落 1／3 當淡入淡出長度（1～5 格），少於 3 格不淡；實測 10 格設 2～9 → `0.25 / 0.50 / 0.75 / 1.00 / 1.00 / 0.75 / 0.50 / 0.25`
 - `js/i18n.js` 五語系補上文字面板字串（`textTitle` / `tp*` / `textFont*` / `tpLoadFonts` / `tpFrom` / `tpTo` / `tpFade` 等）
 - `css/apng.css` 新增 `.text-panel` / `.tp-*` / `.tp-overlay` / `.tp-frames` / `.tp-check` / `.fo-hide-btn` / `.sort-bar-right` / `.sort-bar.grid-collapsed`
-- 修掉改版過程中兩次誤刪：`index.html` 曾少一段約 130 行、`sort-bar` 曾掉收尾 `</div>`，都已補回並重驗 HTML 標籤堆疊（0 錯誤）
-- 驗證：十餘支 JS `node --check` 全通過；node + vm 最小 DOM/Canvas 樁跑冒煙（格範圍 `[3,4,5,6]` 命中、`to=0` 命中到尾、淡入淡出曲線、關掉回全不透明、PNG 頁整組藏）全數符合
-- 檔頭修正次數：`index.html` 32、`css/apng.css` 37、`js/i18n.js` 25、`js/text-overlay.js` 5、`js/apng-frames.js` 9、`js/apng-encoder.js` 4、`js/png-editor.js` 4、`js/fx.js` 8、`js/frame-offset.js` 5
-- Help 頁「怎麼用」補上文字面板那一步，排在第 5 點（原本的第 4～6 點順延為 6～8）：五語系同步新增 `helpText`，`index.html` 修正次數 33、`js/i18n.js` 26；同頁其餘內容（FAQ / LINE 規範 / 示意圖）維持原樣
+- 驗證：node 直接執行 `FX_RECIPES` 陣列，特效 × 40 格 0 錯誤、每支再用預設參數跑一輪 0 錯誤；橫向／縱向切條數、撕裂開與關的 `drawImage` 次數、掃描線 0 與 25% 的黑線數、彈跳峰值 -15px、漂浮正負相位，嗯~全過
+- 檔頭修正次數：`index.html` 36、`css/apng.css` 42、`js/i18n.js` 51、`js/media-utils.js` 5、`js/text-overlay.js` 5、`js/apng-frames.js` 9、`js/apng-encoder.js` 4、`js/png-editor.js` 4、`js/fx.js` 45、`js/frame-offset.js` 5
 
 ### 2026-11-12
 - 影格「排序列」最右邊新增收合鈕（`cat-035` 隱藏 / `cat-034` 顯示）：一鍵把整片影格縮圖收起來，下方的「獨立影格設置」就會往上頂，調 X / Y 偏移不必再捲好幾屏；只影響看不看得到縮圖，不動 `files` / `frameDelays` / 目前選取的格
@@ -305,37 +317,33 @@ MIT License — 自由使用、修改、散佈。
 - 外框會在圖片載入完成、切換影格、縮放／平移、視窗尺寸改變時重算；影格清空或圖片移除時自動收起
 - 載入序新增 `js/source-frame.js`（排在 `apng-frames.js` 之前，APNG / FX / PNG 三頁共用）
 - 檔頭修正次數：`index.html` 25 → 26、`css/apng.css` 26 → 27、`js/apng-frames.js` 4 → 5、`js/fx.js` 5 → 6、`js/png-editor.js` 1 → 2
-- Help「怎麼用」新增十字鍵（單格位移）說明：五語系同步補 `helpStep3b`，條目裡也把四個方向鍵的貓咪圖標一起畫進去
 - 修正獨立影格設置面板的「延遲」不跟隨更新：影格卡上的延遲輸入自己會 `stopPropagation()`，事件冒泡根本到不了外層容器，改用**捕獲階段**監聽（`addEventListener('input', fn, true)`）才收得到
-- 新增「獨立影格設置」面板（`js/frame-offset.js`）：影格卡下方出現十字方向鍵，上／下／左／右一次把**目前這一格**位移 2px，中間鈕把該格還原成剛載入的樣子；右側顯示格號／檔名／延遲並可直接輸入 X、Y 偏移量。每一格的位移各自獨立，點哪一格就顯示哪一格的設定
+- 新增「獨立影格設置」面板（`js/frame-offset.js`）：影格卡下方出現十字方向鍵，上／下／左／右一次把**目前這一格**位移 2px，中間鈕把該格還原成剛載入的樣子；右側顯示格號／檔名／延遲並可直接輸入 X、Y 偏移量。每一格的位移各自獨立，點哪一格就顯示哪一格的設定（圖片位置微調）
 - 位移的實作方式：每個影格保留一份原始 `File`、位移量另外記 `dx` / `dy`，套用時用原始圖重畫一次並「烘焙」成新的 `File` 取代 `files[i]`，因此 `apng-encoder.js` 不必改動；畫布尺寸不變、移出邊界處裁掉並保持透明，不會觸發 encoder 的尺寸不一致檢查。記錄用 `WeakMap` 以 `File` 物件為 key，交換／移動／刪除影格都不必同步
 - 影格卡片導航列中間新增「複製此格」鈕（`cat-247`）：按下後在該格後面插入一格內容相同的影格，延遲時間一併沿用，預覽直接跳到剛複製出來的那格；同時把導航鈕改為以 class 抓取，不再依賴 `querySelectorAll` 的索引順序
-- Help 頁「怎麼讓輸出的檔案變小」的示意圖改為跟隨語系：新增 `data-i18n-img` 屬性（值可寫 `{lang}` 佔位符），`applyLang()` 會自動換成 `colors-zh-TW / zh-CN / en / ja / th.jpg`，切語言不必再寫死單一語系的圖
-- 修正分享彈窗預覽圖「點一下重播後圖片消失」：`blob:` 網址不能加 `?r=` 查詢參數（加了會變成不存在的網址，圖片直接破圖），改由新增的 `replayBlobImg()` 向 Blob 重新取得 object URL 來重播，且只回收自己建立的舊網址、不誤刪 `apng-encoder.js` 產生、還掛在下載連結上的那一筆
+- Help 頁 部分示意圖改為跟隨語系：新增 `data-i18n-img` 屬性（值可寫 `{lang}` 佔位符），`applyLang()` 會自動換成 `colors-zh-TW / zh-CN / en / ja / th.jpg`，切語言不必再寫死單一語系的圖
 - 新增 `js/media-utils.js`：共用 `replayImg()`，讓 GIF / APNG「點一下從第一格重新播放」只留一份實作
 - 統一四處重播行為：Meme 展示牆（`meme.js`）、Meme 舊版 sample 清單與 Help 頁示意圖（`app-shell.js`）、分享彈窗預覽圖（`share.js`）
 - 重播手法由舊的「`src = ''` 再設回」改為「原網址 + `?r=時間戳`」：舊招會讓圖片短暫空白、且命中快取時不一定重新解碼；新招另外補了單調遞增時間戳，避免同一毫秒連點拿到相同網址而沒重播
 - Help 頁示意圖加上可點提示：`cursor:pointer`、hover 上浮陰影、`:active` 縮放、`:focus-visible` 以 box-shadow 顯示聚焦（全站 outline 已關閉），並支援 Enter／空白鍵重播
 - 修正 `index.html` 的 `< class="faq-list">` 標籤漏字（該行 HTML 壞掉，`.faq-list` 樣式整段失效）
 - 修正 `apng.css` 的 `.timeline-help img` 死選擇器（class 掛在 `img` 自身，無子元素可匹配），改為 `p.timeline-help-row img`，兩張併排才會正確吃到 `max-width`
-- 新增「FX 動畫特效」頁（`tab-fx`，位置在「生成」之後）：41 種特效清單、強度滑桿、影格數滑桿、圓點影格列、五鍵播放控制（首格 / 上一格 / 播放暫停 / 下一格 / 末格）
-- FX 頁規格定案：延遲固定 100ms、輸出最長邊 ≤512px、影格數 5～40（預設 20）、送出採「取代」模式
+- 新增「FX 動畫特效」頁（`tab-fx`，位置在「生成」之後）：特效清單、強度滑桿、影格數滑桿、圓點影格列、五鍵播放控制（首格 / 上一格 / 播放暫停 / 下一格 / 末格）
+- FX 頁規格定案：延遲固定 100ms、輸出最長邊 ≤512px、影格數 5～40（預設 20）、送出採「取代」模式（要加入末尾...就自己先輸出PNG或GOF吧）
 - FX 頁影格數上限由最初的 30 放寬到 40（`MAX_FRAMES`、滑桿 `max`、五語系提示文案一起改，避免滑桿能拉到 40 但程式夾在 30 的錯位）
-- FX 頁 41 個特效全部是自寫的 Canvas 2D 配方（`FX_RECIPES`），沒有引入任何新函式庫，也沒有沿用外部實作
-- Help 從上方 Tab 列移到頁尾（內容暫時不動，等樣式討論完再整理），上方 Tab 變四個：生成 / FX / PNG / Meme
+- FX 頁 特效全部是自己寫的 Canvas 2D 配方（`FX_RECIPES`），沒有引入任何新函式庫，也沒有沿用外部實作
+- Help 從上方 Tab 列移到頁尾（內容暫時不動），上方 Tab 變四個：APNG / FX / PNG / Meme
 - `js/apng-frames.js` 把清空影格的邏輯從 `clearBtn` 的 click handler 抽出成 `clearAll()`，供 FX 頁交接呼叫
 - `js/i18n.js` 五語系各補 21 條 FX 字串（共 105 條），並移除已不再使用的 `tabHelp` / `tabLong`
 - 新增 `js/fx.js`；`index.html` 新增 `tab-fx` 區塊、FX 樣式與 `js/fx.js` 載入；`css/apng.css` 新增 FX 區段樣式
-- 修正三個實作問題：`selectedId` 在 `FX_RECIPES` 宣告前取值會踩 TDZ、`rnd()` 少一個 `};`、「生成中按送出」會送出前一組影格的競態（改成先等當前生成收斂再送）
-- 驗證：node + vm 最小 DOM/Canvas 樁跑過 41 個特效 × 40 格 → 0 繪製錯誤；送出 40 張 PNG、`clearAll` 先執行、切頁正確；六支 JS 全數 `node --check` 通過
+- 驗證：node + vm 最小 DOM/Canvas 測試特效 × 40 格 → 0 繪製錯誤；送出 40 張 PNG、`clearAll` 先執行、切頁正確；六支 JS 全數 `node --check` 通過
 - 檔頭修正次數：`index.html` 19 → 20、`js/i18n.js` 14 → 15、`js/fx.js` 4 → 5、`css/apng.css` 20 → 21
 - 兩支上傳 API 完整實測：Vercel 主站 GET `405` / POST `400` / OPTIONS `200` + `Access-Control-Allow-Origin: *`；EdgeOne 分站 GET `405` / POST `400` / OPTIONS `204` —— 皆正常、env 都已設定
 - `api/upload.js`（Vercel 版）補 `typeof blobBase64 !== 'string'` 檢查：送非字串不再以 `TypeError` 落到 500，改回 `400 No image data`
 - `api/upload.js` 的 catch 改為回通用 `Internal server error`，不再把 `e.message`（內含內部函式名）吐給呼叫者
-- 修正文件與程式不一致：`api/README.md` 錯誤碼表、`node-functions/api/README.md` 的驗證指令與欄位契約說明、本文件補上 `node-functions/` 與 EdgeOne 分站
 
 ### 2026-11-11
-- 重構：`js/apng.js`（1908 行）拆分為四支傳統 script，程式邏輯零改動，全靠行號切分
+- 重構：`js/apng.js`（1908 行）拆分為四支傳統 script，程式邏輯零改動，全靠行號切分（本來就有稍微分類）
   - `js/app-shell.js`：頁籤切換與記憶、Emoji 字牆、Meme 舊版解析、README 載入、訪客追蹤
   - `js/apng-frames.js`：全域 DOM 節點與影格狀態、檔案匯入、APNG/GIF 拆格、排序、時間軸與卡片渲染、播放控制
   - `js/apng-encoder.js`：CRC32 / `acTL` 循環次數、UPNG 編碼、GIF 輸出、LINE 規範警告、切換語言時重繪結果文字
@@ -344,14 +352,13 @@ MIT License — 自由使用、修改、散佈。
 - `apng-frames.js` 必須最先載入（宣告 `files` / `frameDelays` 等全域狀態），否則後兩支會踩 TDZ
 - 維持不引入建置流程：多支傳統 script 直接載入，不編譯、不合併，拖曳部署方式不變
 - 原 `apng.js` 完整備份放在專案根目錄 `_backup/`，不在 `static/` 內，不會被上傳或部署
-- `index.html` 修正次數 15 → 16，並註明本次拆分
-- Help 頁新增「常見問題」7 題（`.faq-list` 搭配 `cat cat-029` 圖標，與 Help 頁樣式一致）
+- Help 頁新增「常見問題」
 - 同步補齊 zh-TW / zh-CN / en / ja / th 五語系 `faqTitle`、`faqQ1~7`、`faqA1~7`，共 75 條字串
-- FAQ 內容依實際功能改寫：移除不存在的 Effects / Text Overlay / lossy 壓縮滑桿等描述，文字或濾鏡特效明確標示需先用 Photoshop 等軟體製作
+- FAQ 內容功能改寫：移除 Effects / Text Overlay / lossy 壓縮滑桿等描述（刪除了），文字或濾鏡特效明確標示需先用 Photoshop 等軟體製作
 - `js/i18n.js` 修正次數 12 → 13、`css/apng.css` 17 → 18、`index.html` 16 → 17
 
 ### 2026-11-10
-- README 全面更新：補上 PNG 靜態貼圖去背、自製 Emoji 圖標功能說明
+- README 更新：補上 PNG 靜態貼圖去背、自製 Emoji 圖標功能說明
 - 技術棧補上 Supabase Storage/Postgres、Vercel Serverless Function
 - 專案結構改為反映實際 static/ 目錄（api/、en/ja/th/zh/ 多語言 thin page、vercel.json 等）
 - Meme 展示牆改為每次讀取 6 筆，並標註需 `approved=true` 才顯示
@@ -378,7 +385,7 @@ MIT License — 自由使用、修改、散佈。
 - Meme 頁面改為動態載入 `sample/list.json`，支援排序、點擊重播
 - 分頁切換後重新整理（F5）仍保留在目前頁面
 - 移除 Meme 圖片 caption 的 i18n 綁定，直接顯示 label
-- Help 說明更新為「下載 APNG 或 GIF」
+- Help 說明更新
 
 ### 2026-11-06
 - 加入泰文（ไทย）語言，支援 5 國語言：繁中 / 簡中 / EN / 日本語 / ไทย
@@ -387,7 +394,7 @@ MIT License — 自由使用、修改、散佈。
 - 修正 GIF 解碼 partial update 導致的斑點雜色（改為累積 canvas + disposal 處理）
 - 修正 APNG 匯入時 fcTL delay_den=0 的解析（依規範視為 100）
 - 拖入不支援的檔案會顯示警告訊息，不會靜默吞掉
-- 內建蛋殼喵 Emoji 字型（258 格，PUA-A U+F0000 ~ U+F0101）
+- 內建蛋殼喵 Emoji 字型（目前 258 格，PUA-A U+F0000 ~ U+F0101）
 - i18n 字串支援嵌入 HTML，狀態列可顯示貓咪 emoji
 - 語言下拉改為自訂選單（原生 select 不支援嵌入 emoji）
 
@@ -398,3 +405,4 @@ MIT License — 自由使用、修改、散佈。
 - 主頁面改為 `index.html`，新增 `js/i18n.js`
 - CSS 向量播放控制列、影格卡片排序與刪除功能
 - 修正 favicon 路徑為相對路徑
+- 初始專案製作（定稿：HTML + JS + CSS）
