@@ -1,11 +1,15 @@
 <!--
 	@author: [DaiEn]
 	@Date: 2026-11-13
-	@Correction: 33
+	@Correction: 36
 	蛋殼喵 APNG 工具 — 多國語言版
-	本次修正：Help「怎麼用」新增文字面板說明（第 5 點，原本第 4～6 點順延為 6～8）
-	本次修正：FX／PNG 兩頁的文字面板從右側設定欄搬到左欄，緊貼操作按鈕列上方（樣式比照 APNG 頁）
-	本次修正：影格縮圖那顆「隱藏」鈕收合時，排序列五顆排序鈕一起隱藏（.sort-bar.grid-collapsed）；獨立影格設置的隱藏鈕不影響它們
+	本次修正：「特效設定」標題改成由 js/fx.js 動態組（有獨立設定時冠上特效名稱），節點移除 data-i18n 避免切語言被蓋回
+	上次修正：FX 頁新增「特效設定」一格（放在「輸出設定」上方），參數由特效自己宣告
+	上次修正：特效清單的 h3 圖標沿用設定類的 cat-209，與其他設定群組一致
+	上次修正：Help 常見問題第 6 題改寫為「可以加濾鏡特效嗎？」（現在支援簡單文字與濾鏡），五語系同步
+	上次修正：Help「怎麼用」新增文字面板說明（第 5 點，原本第 4～6 點順延為 6～8）
+	上次修正：FX／PNG 兩頁的文字面板從右側設定欄搬到左欄，緊貼操作按鈕列上方（樣式比照 APNG 頁）
+	上次修正：影格縮圖那顆「隱藏」鈕收合時，排序列五顆排序鈕一起隱藏（.sort-bar.grid-collapsed）；獨立影格設置的隱藏鈕不影響它們
 	本次修正：排序列右側的「隱藏影格縮圖／顯示」兩顆包成 .sort-bar-right 靠右分組，不再掉到排序列外面自成第二列
 	本次修正：foShowBtn 加上 .fo-show-btn 類別，與獨立影格設置的隱藏鈕統一綠色
 	上次修正：APNG／FX／PNG 三頁都加上「文字」面板（js/text-overlay.js）：十字鍵位移、字體、粗斜體底線、字級、顏色、外框、陰影
@@ -425,6 +429,17 @@
 				<small data-i18n="fxEffectHint">可上下滑動選取，點一下就套用</small>
 			</div>
 
+			<!-- 特效自己的設定：點哪個特效就換成哪個特效的參數；
+			     刻意擺在「輸出設定」上面，讓使用者先調特效、再決定輸出規格。
+			     標題交給 js/fx.js 動態組（有設定時是「特效名稱 特效設定」），
+			     所以這裡刻意不放 data-i18n，避免切語言時被 applyLang 蓋回單一「特效設定」 -->
+			<div class="settings-group" id="fxParamGroup">
+				<h3>
+					<cat class="cat cat-209"></cat>&nbsp;<cat id="fxParamTitle">特效設定</cat>
+				</h3>
+				<div class="fx-params" id="fxParamBody"></div>
+			</div>
+
 			<div class="settings-group">
 				<h3>
 					<cat class="cat cat-211"></cat>&nbsp;<cat data-i18n="fxOutput">輸出設定</cat>
@@ -720,8 +735,8 @@
 			<p class="faq-a" data-i18n="faqA4">可以。拖進現成的 APNG 會逐格讀取 fcTL 的延遲時間拆成影格；GIF 用 omggif 解碼，會依 disposal 方式正確合成，不會出現殘影或斑點。</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ5">輸出後在 LINE 上不動或傳不上去？</span></p>
 			<p class="faq-a" data-i18n="faqA5">生成後會自動檢查 6 項 LINE 動態貼圖規範：總時間須為整數秒且不超過 4 秒、寬或高其中一邊須為 270px 且在 320×270 內、影格 5～20 格、播放 1～4 次（不可無限循環）、檔案小於 1MB。沒通過的項目會列在黃色警告列。</p>
-			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ6">可以加文字或濾鏡特效嗎？</span></p>
-			<p class="faq-a" data-i18n="faqA6">目前不支援。本工具只處理延遲、尺寸、色彩深度與循環次數；PNG 分頁可做去背、橡皮擦，並切出 LINE 用的 240×240 與 96×74。需要文字或濾鏡特效時，請先用其他軟件製作，例如 Photoshop，再把成品匯入這裡合成動畫。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ6">可以加濾鏡特效嗎？</span></p>
+			<p class="faq-a" data-i18n="faqA6">目前僅支援簡單的文字輸入與濾鏡，本工具著重於處理延遲、尺寸、色彩深度與循環次數；PNG 分頁可做去背、橡皮擦，並切出 LINE 用的 240×240 與 96×74。需要更加進階的文字或濾鏡特效時，請先用其他軟件製作，例如 Photoshop，再把成品匯入這裡合成動畫。</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ7">需要註冊嗎？支援哪些語言？</span></p>
 			<p class="faq-a" data-i18n="faqA7">完全免費、免註冊，也不用安裝。介面支援繁中、簡中、English、日本語、ไทย 五種語言，預設跟隨瀏覽器語言，也可以用右上角選單手動切換。</p>
 		</div>
@@ -805,7 +820,7 @@
 	</div>
 	<div class="footer-group footer-group-legal">
 		<span class="footer-brand"><span class="cat cat-1x5 cat-111"></span>&nbsp;EggshellCat APNG Tool</span>
-		<span class="footer-copy">© 2026 EggshellCat Studio</span>
+		<span class="footer-copy">© 2026 EggshellCat Studio by DaiEn</span>
 		<button class="footer-github" disabled title="">
 			<span class="cat cat-1x5 cat-140"></span><span data-i18n="supportBtn">支持我們</span>
 		</button>

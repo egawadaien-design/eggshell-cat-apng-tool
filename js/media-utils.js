@@ -1,8 +1,8 @@
 /**
- * 蛋殼喵 APNG 工具 — 共用小工具：動畫重播
+ * 蛋殼喵 APNG 工具 — 共用小工具：動畫重播、顏色換算
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 3
+ * @Date: 2026-11-13
+ * @Correction: 5
  *
  * 【為什麼需要這支檔案】
  * 專案裡有四個地方都要「點一下，讓動畫從第一格重新播放」：
@@ -16,6 +16,9 @@
  *       使用者會覺得點了沒反應。
  * 所以統一收斂成這支 replayImg()，實作改成「換一個帶時間戳的網址」，
  * 瀏覽器就會把它當成新資源重新解碼，動畫自然從第一格開始播。
+ *
+ * 2026-11-13 追加：新增 hexToRgba()（#rrggbb → rgba），FX 頁的顏色參數用它上色，
+ *                 以後文字色、PNG 上色也可以共用同一支，不必各檔各寫一份。
  *
  * 【怎麼用】
  *   replayImg(imgElement);
@@ -150,8 +153,40 @@
 		return true;
 	}
 
+	/**
+	 * #rrggbb → rgba(r,g,b,a)。
+	 *
+	 * 為什麼放在這裡：FX 頁的「顏色」參數（例如光暈顏色）用 #rrggbb 字串存，
+	 * 畫的時候才需要補上透明度；這種換算以後文字色、PNG 編輯器上色都會用到，
+	 * 所以收斂成一支共用版本，各檔不要再各寫一份。
+	 *
+	 * 幾個刻意的處理：
+	 *   - 傳進來的值可能沒帶 #，也可能整段是 null，這裡一律先補成白色再拆，
+	 *     讓呼叫端不必先防呆；
+	 *   - 三碼簡寫（#f9c）會先展開成六碼，不然第三段會拆到空字串、變成 NaN；
+	 *   - 透明度夾在 0～1 之間，而且取到小數第三位，
+	 *     避免畫布字串出現 0.42499999999999993 這種長尾巴（會讓輸出快取字串變長）；
+	 *   - 色碼不合法時 parseInt 會得到 NaN，畫布會直接忽略這個顏色（等於沒上色），
+	 *     所以不用特別擋，交給瀏覽器處理就好。
+	 *
+	 * @param {string} hex 形如 #ff9ec4 或 ff9ec4 的色碼
+	 * @param {number} a 透明度 0～1
+	 * @returns {string} rgba(...) 字串
+	 */
+	function hexToRgba(hex, a) {
+		// 色碼去掉 #；只有三碼的簡寫（#f9c）先展開成六碼，否則第三段會拆到空字串變成 NaN
+		let h = String(hex || '#ffffff').replace('#', '');
+		if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+		const r = parseInt(h.substring(0, 2), 16);
+		const g = parseInt(h.substring(2, 4), 16);
+		const b = parseInt(h.substring(4, 6), 16);
+		const clean = Math.round(Math.max(0, Math.min(1, isNaN(a) ? 1 : a)) * 1000) / 1000;
+		return 'rgba(' + r + ',' + g + ',' + b + ',' + clean + ')';
+	}
+
 	// 傳統 script 沒有模組系統，只能掛到 window 讓其他檔案共用。
-	// 只放出這兩個名字，不再多污染全域。
+	// 只放出這幾個名字，不再多污染全域。
 	window.replayImg = replayImg;
 	window.replayBlobImg = replayBlobImg;
+	window.hexToRgba = hexToRgba;
 })();
