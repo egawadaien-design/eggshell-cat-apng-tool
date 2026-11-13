@@ -46,6 +46,9 @@
 
 兩站前端檔案完全相同，差別只在 `/api/upload` 由所在平台的函數處理（`api/upload.js` / `node-functions/api/upload.js`）。
 
+js/supabase-config.js 裡面的設置 enabled: true,  ← 分享功能開關：true = 啟用，false = 關閉（不顯示分享按鈕）<br>
+設置為 false 就會關閉分享功能，程序會變成完全前端作業，不會有上傳/分享圖片功能。
+
 ### 操作步驟
 參考站內頁面help → 放在網站開啟後頁面底部導航。
 
