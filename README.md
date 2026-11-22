@@ -180,7 +180,6 @@ static/
 > `apng-frames.js` 負責宣告全域 DOM 節點與影格狀態（`files` / `frameDelays` 等），必須排在 `apng-encoder.js`、`png-editor.js`、`fx.js` 之前，否則會踩 TDZ。
 > `text-overlay.js` 只宣告 `window.TextOverlay`，排在 `apng-frames.js` 之前，因為 APNG 預覽要呼叫它的 `paintOverlay()`。
 > `fx.js` 排最後：它要呼叫 `apng-frames.js` 的 `clearAll()` / `addFiles()` 與 `app-shell.js` 的 `switchTab()`，這些函式必須先宣告完成。
-> 專案根目錄另有 `_backup/`（原 `apng.js` 的完整備份-最早寫出來的那個），不在 `static/` 內，不會被上傳或部署。
 
 ---
 
