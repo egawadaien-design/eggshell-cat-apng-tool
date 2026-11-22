@@ -17,8 +17,6 @@
  * 注意：本檔包含全域狀態（files / previewUrls / frameDelays 等）與 DOM 節點宣告，
  *       必須在 apng-encoder.js、png-editor.js 之前載入
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

@@ -16,8 +16,6 @@
  * 之後若換網域（例如搬到 EdgeOne Pages），記得把新網域加進 shareHosts，
  * 否則分享按鈕會在新站默默消失。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

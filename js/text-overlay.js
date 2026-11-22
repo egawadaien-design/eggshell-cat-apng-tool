@@ -51,8 +51,6 @@
  * 2026-11-12：十字鍵的定位改由 CSS（.tp-up/.tp-left/.tp-center/.tp-right/.tp-down）負責，
  *             尺寸與「獨立影格設置」一致；字色色票移到字級那一列末尾，預設黑色。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

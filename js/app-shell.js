@@ -11,8 +11,6 @@
  *                  parseAnimationMeta / formatSize 兩支只服務它的函式）。
  *                  Meme 頁改由 js/meme.js（Supabase）獨占，修好「切換語言就把 Meme 牆清空」。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

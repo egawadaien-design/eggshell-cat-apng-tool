@@ -10,8 +10,6 @@
  * 由原 apng.js 第 304~360 行與第 859~1088 行原封不動切出，未改動任何邏輯
  * 依賴 apng-frames.js 先載入（使用其 DOM 節點與 files / frameDelays 狀態）
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

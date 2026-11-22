@@ -142,8 +142,6 @@
  *   - o   : 這支特效自己的參數物件（沒宣告 params 時是空物件）
  * 因此新增特效只要往 FX_RECIPES 加一筆，不必改渲染邏輯。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

@@ -26,8 +26,6 @@
  *     就看不出「這格比第一張大多少、往右偏多少」。所以框固定吃第一張的尺寸，
  *     然後以每格圖片的中心置中 —— 圖片貼齊框代表與第一張等大，超出框就代表比較大。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.

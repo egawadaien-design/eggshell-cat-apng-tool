@@ -45,8 +45,6 @@
 	本次修正：新增 hideFrames / showFrames（收合／展開影格縮圖鈕，五語系同步）
 	上次修正：新增 data-i18n-img 支援（圖片路徑可寫 {lang} 佔位符，跟隨語系換圖）
 
-	2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
-
 	This Source Code Form is subject to the terms of the Mozilla Public
 	License, v. 2.0. If a copy of the MPL was not distributed with this
 	file, You can obtain one at https://mozilla.org/MPL/2.0/.

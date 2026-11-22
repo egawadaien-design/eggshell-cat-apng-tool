@@ -24,8 +24,6 @@
  *   畫布尺寸不變，移出邊界的地方會被裁掉、露出來的地方保持透明，
  *   這樣每格尺寸仍然一致，不會踩到 encoder 的 sizeMismatch 檢查。
  *
- * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
- *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
