@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — 共用小工具：動畫重播、顏色換算
  * @author [DaiEn]
- * @Date: 2026-11-13
- * @Correction: 5
+ * @Date: 2026-11-23
+ * @Correction: 6
  *
  * 【為什麼需要這支檔案】
  * 專案裡有四個地方都要「點一下，讓動畫從第一格重新播放」：
@@ -28,6 +28,12 @@
  * 必須排在 i18n.js 之後、share.js / meme.js / app-shell.js 之前，
  * 這樣後面幾支綁事件時就已經看得到 replayImg。
  * 本檔不依賴任何其他模組，也不碰 DOM 以外的東西。
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 (function () {

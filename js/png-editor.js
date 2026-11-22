@@ -2,13 +2,19 @@
  * 蛋殼喵 APNG 工具 — PNG 靜態貼圖編輯器
  * 去背（flood fill / 全域刪除）/ 橡皮擦 / 縮放平移 / 分割線 / 240×240 與 96×74 輸出
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 4
+ * @Date: 2026-11-23
+ * @Correction: 5
  * 2026-11-12 追加：PNG 頁新增「文字」面板；240×240 與 96×74 兩張輸出各自燒字（burnTextToResult），
  *                 主畫布預覽那一層跟著 applyTransform 重畫（縮放平移時字也貼在圖上）
  *
  * 由原 apng.js 第 1090~1908 行原封不動切出，未改動任何邏輯（自封閉 IIFE）
  * 2026-11-12：接上 js/source-frame.js，預覽舞台畫出原圖的綠色外框（applyTransform 內更新）
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 // ============================================================

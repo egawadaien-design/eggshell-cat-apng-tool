@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — Supabase 設定
  * @author [DaiEn]
- * @Date: 2026-11-11
- * @Correction: 4
+ * @Date: 2026-11-23
+ * @Correction: 5
  *
  * 把下面幾個常數換成你自己 Supabase 專案的值：
  *   - enabled     設 true 才會啟用分享功能（false = 隱藏分享按鈕、不連 Supabase）
@@ -15,6 +15,12 @@
  *
  * 之後若換網域（例如搬到 EdgeOne Pages），記得把新網域加進 shareHosts，
  * 否則分享按鈕會在新站默默消失。
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 window.SUPABASE_CONFIG = {
   enabled: true,  // ← 分享功能開關：true = 啟用，false = 關閉（不顯示分享按鈕）

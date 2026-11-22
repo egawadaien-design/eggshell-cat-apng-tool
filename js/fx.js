@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — FX 特效頁
  * @author [DaiEn]
- * @Date: 2026-11-14
- * @Correction: 63
+ * @Date: 2026-11-23
+ * @Correction: 64
  * 2026-11-14 修正：粒子網路（第 39 支）先從右側特效清單隱藏——配方、參數與繪製全部保留在 FX_RECIPES，
  *   只加一個 hidden: true 旗標，renderEffectList() 遇到就跳過（清單序號改以「看得見的項數」重編，不會跳號），
  *   初始選取也改成取第一支看得見的配方。改法確定後把旗標拿掉就回來。
@@ -141,6 +141,12 @@
  *   - i   : 第幾格（給需要穩定隨機的特效當種子）
  *   - o   : 這支特效自己的參數物件（沒宣告 params 時是空物件）
  * 因此新增特效只要往 FX_RECIPES 加一筆，不必改渲染邏輯。
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 (function () {

@@ -2,13 +2,19 @@
  * 蛋殼喵 APNG 工具 — 編碼輸出
  * PNG CRC32 / acTL 循環次數 / UPNG 編碼 / GIF 輸出 / LINE 規範警告 / 語言重繪
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 4
+ * @Date: 2026-11-23
+ * @Correction: 5
  * 2026-11-12 追加：每一格 drawImage 之後、取像素之前先把「文字」燒上去（TextOverlay.instances.app），
  *                 這樣輸出的 APNG 才會帶字，而不只是預覽看得到
  *
  * 由原 apng.js 第 304~360 行與第 859~1088 行原封不動切出，未改動任何邏輯
  * 依賴 apng-frames.js 先載入（使用其 DOM 節點與 files / frameDelays 狀態）
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 // ============================================================

@@ -2,8 +2,8 @@
  * 蛋殼喵 APNG 工具 — 影格管理
  * 檔案匯入 / APNG-GIF 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 9
+ * @Date: 2026-11-23
+ * @Correction: 10
  * 2026-11-12 追加：接上 js/text-overlay.js，APNG 頁新增「文字」面板（十字鍵 / 字體 / 粗斜體底線 / 字級 / 顏色 / 外框 / 陰影），
  *                 預覽用透明 canvas 疊在 .preview-stage 上，實際燒字在 apng-encoder.js
  * 2026-11-12 追加：影格縮圖收起時，排序列五顆排序鈕一起隱藏（sort-bar.grid-collapsed）
@@ -16,6 +16,12 @@
  * 2026-11-12 追加：排序列最右邊新增收合鈕（frameGridToggle），可把影格縮圖整片收起來
  * 注意：本檔包含全域狀態（files / previewUrls / frameDelays 等）與 DOM 節點宣告，
  *       必須在 apng-encoder.js、png-editor.js 之前載入
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 // ============================================================

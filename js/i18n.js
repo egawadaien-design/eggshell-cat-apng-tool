@@ -1,8 +1,9 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-13
-	@Correction: 61
-	本次修正：粒子網路補「聚散」——paramCluster（聚散）× 五語系，預設 60%，0% 均勻散佈、100% 縮成四團
+	@Date: 2026-11-23
+	@Correction: 63
+	本次修正：補齊日文（ja）缺少的 5 條——paramBands（色帶數量）、paramBlend（混合模式）、blendOverlay（疊加）、blendSoftLight（柔光）、blendScreen（濾色）。這 5 條 en／th 都有獨漏 ja，缺了會 fallback 回繁中，日文介面拉「彩虹波浪」會冒出中文標籤
+	上次修正：粒子網路補「聚散」——paramCluster（聚散）× 五語系，預設 60%，0% 均勻散佈、100% 縮成四團
 	本次修正：粒子網路補「色相流動」——paramHueFlow（色相流動）、flowOff（固定色）、flowOne（一輪轉一圈）、flowTwo（一輪轉兩圈）× 五語系
 	本次修正：新增特效「粒子網路 Particle Net」的 key——paramLink（連線距離）、pnFront（粒子在圖前）、pnBack（粒子在圖後）× 五語系，fxName_particles（繁中／簡中）；數量／擺動／色相沿用 paramCount／paramWobble／paramHue
 	本次修正：新增特效「火焰邊緣 Burning Edge」的 key——paramFlameLength（火焰高度）、paramFlameDensity（火焰密度）、paramFlameScope（火焰範圍）、flameInside（內焰）、flameOutside（外焰）× 五語系，fxName_flameEdge（繁中／簡中）
@@ -43,6 +44,12 @@
 	支援 zh-TW / zh-CN / en / ja / th，自動跟隨瀏覽器，可手動切換
 	本次修正：新增 hideFrames / showFrames（收合／展開影格縮圖鈕，五語系同步）
 	上次修正：新增 data-i18n-img 支援（圖片路徑可寫 {lang} 佔位符，跟隨語系換圖）
+
+	2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+
+	This Source Code Form is subject to the terms of the Mozilla Public
+	License, v. 2.0. If a copy of the MPL was not distributed with this
+	file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 const I18N = {
@@ -1236,6 +1243,11 @@ Object.assign(I18N['ja'], {
 	fxParams: 'エフェクト設定',
 	paramNone: 'このエフェクトに追加設定はありません',
 	paramAngle: '角度',
+	paramBands: '色帯の数',
+	paramBlend: '合成モード',
+	blendOverlay: 'オーバーレイ',
+	blendSoftLight: 'ソフトライト',
+	blendScreen: 'スクリーン',
 	paramBandWidth: '光帯の幅',
 	paramFadeLength: 'フェードの長さ',
 	paramTurns: '周回数',

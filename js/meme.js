@@ -1,11 +1,17 @@
 /**
  * 蛋殼喵 APNG 工具 — Meme 展示邏輯（嵌在 index.html tab-meme）
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 5
+ * @Date: 2026-11-23
+ * @Correction: 6
  *
  * 提供 window.loadMemePage(page) 給 share.js 呼叫
  * 每次顯示最新 20 筆，底部分頁
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 (function () {
 	'use strict';

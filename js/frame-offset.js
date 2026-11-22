@@ -2,8 +2,8 @@
  * 蛋殼喵 APNG 工具 — 獨立影格設置（單格位移微調）
  * 每一格可以個別往上下左右移動 2px，中間那顆按鈕把該格還原成剛載入的樣子
  * @author [DaiEn]
- * @Date: 2026-11-12
- * @Correction: 5
+ * @Date: 2026-11-23
+ * @Correction: 6
  * 2026-11-12 追加：面板右側新增「隱藏」鈕（foHideBtn），收合狀態記在 localStorage；
  *                 收起來後由排序列的「顯示」鈕（foShowBtn）叫回來
  *
@@ -23,6 +23,12 @@
  *   所以 apng-encoder.js 完全不必改：它拿到的就已經是位移好的圖。
  *   畫布尺寸不變，移出邊界的地方會被裁掉、露出來的地方保持透明，
  *   這樣每格尺寸仍然一致，不會踩到 encoder 的 sizeMismatch 檢查。
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 (function frameOffset() {

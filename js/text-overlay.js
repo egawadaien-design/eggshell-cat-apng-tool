@@ -1,8 +1,8 @@
 /**
  * 蛋殼喵 APNG 工具 — 文字圖層（面板 + 繪製核心）
  * @author [DaiEn]
- * @Date: 2026-11-13
- * @Correction: 7
+ * @Date: 2026-11-23
+ * @Correction: 8
  * 本次修正：文字面板新增「旋轉」滑桿（0~360 度），以文字區塊的中心點為軸心旋轉。
  *   實作是「把座標系搬到中心 → 轉 → 搬回來」再沿用原本的繪字程式，
  *   所以外框、陰影、底線會跟著字一起轉，不必另外處理；
@@ -50,6 +50,12 @@
  *
  * 2026-11-12：十字鍵的定位改由 CSS（.tp-up/.tp-left/.tp-center/.tp-right/.tp-down）負責，
  *             尺寸與「獨立影格設置」一致；字色色票移到字級那一列末尾，預設黑色。
+ *
+ * 2026-11-23 修正：加入 MPL-2.0 Exhibit A 授權聲明（專案授權由 MIT 改為 MPL-2.0，詳見 LICENSE）
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
 (function textOverlay() {
