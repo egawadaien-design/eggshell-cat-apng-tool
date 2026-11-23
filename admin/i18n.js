@@ -1,8 +1,10 @@
 /**
  * 蛋殼喵 APNG 工具 — 管理後台專用 i18n（五語系）
  * @author [DaiEn]
- * @Date: 2026-11-23
- * @Correction: 1
+ * @Date: 2026-11-24
+ * @Correction: 2
+ * 本次修正：新增刪除相關四條 key（btnDelete／confirmDelete／btnDeleting／doneDelete）× 五語系
+ *           ——confirmDelete 帶 {title}，用「」包住使用者填的標題，並明講「圖檔與資料列都會刪、不可復原」
  *
  * 【為什麼不共用主站的 js/i18n.js】
  * 主站那份是「整個前台的翻譯字典」，400 多條 key，還綁著 Meme 牆、API 清單等前台邏輯；
@@ -71,6 +73,10 @@
 		btnWorking: '處理中…',
 		doneShow: '已放到前台展示',
 		doneHide: '已從前台隱藏',
+		btnDelete: '刪除這張',
+		confirmDelete: '確定要刪除「{title}」嗎？\n資料列與 Storage 裡的圖檔會一起刪掉，無法復原。',
+		btnDeleting: '刪除中…',
+		doneDelete: '已刪除「{title}」',
 		untitled: '（無標題）',
 		anonymous: '匿名',
 		tagsNone: '無標籤',
@@ -114,6 +120,10 @@
 		btnWorking: '处理中…',
 		doneShow: '已放到前台展示',
 		doneHide: '已从前台隐藏',
+		btnDelete: '删除这张',
+		confirmDelete: '确定要删除「{title}」吗？\n数据行与 Storage 里的图档会一起删掉，无法复原。',
+		btnDeleting: '删除中…',
+		doneDelete: '已删除「{title}」',
 		untitled: '（无标题）',
 		anonymous: '匿名',
 		tagsNone: '无标签',
@@ -157,6 +167,10 @@
 		btnWorking: 'Working…',
 		doneShow: 'Now visible on the site',
 		doneHide: 'Hidden from the site',
+		btnDelete: 'Delete',
+		confirmDelete: 'Delete "{title}"?\nThe database row and the file in Storage will both be removed. This cannot be undone.',
+		btnDeleting: 'Deleting…',
+		doneDelete: 'Deleted "{title}"',
 		untitled: '(untitled)',
 		anonymous: 'Anonymous',
 		tagsNone: 'No tags',
@@ -200,6 +214,10 @@
 		btnWorking: '処理中…',
 		doneShow: 'フロントに表示しました',
 		doneHide: 'フロントから隠しました',
+		btnDelete: 'この画像を削除',
+		confirmDelete: '「{title}」を削除しますか？\nデータ行と Storage の画像ファイルがまとめて消えます。元に戻せません。',
+		btnDeleting: '削除中…',
+		doneDelete: '「{title}」を削除しました',
 		untitled: '（タイトルなし）',
 		anonymous: '匿名',
 		tagsNone: 'タグなし',
@@ -243,6 +261,10 @@
 		btnWorking: 'กำลังดำเนินการ…',
 		doneShow: 'แสดงบนหน้าร้านแล้ว',
 		doneHide: 'ซ่อนจากหน้าร้านแล้ว',
+		btnDelete: 'ลบภาพนี้',
+		confirmDelete: 'ต้องการลบ “{title}” ใช่ไหม?\nทั้งแถวข้อมูลและไฟล์ใน Storage จะถูกลบไปด้วย และกู้คืนไม่ได้',
+		btnDeleting: 'กำลังลบ…',
+		doneDelete: 'ลบ “{title}” แล้ว',
 		untitled: '(ไม่มีชื่อ)',
 		anonymous: 'ไม่ระบุชื่อ',
 		tagsNone: 'ไม่มีแท็ก',

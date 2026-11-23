@@ -1,16 +1,21 @@
 /**
- * Vercel Serverless Function: 管理後台 API（分享圖片是否展示）
+ * Vercel Serverless Function: 管理後台 API（分享圖片的展示開關與刪除）
  * @author [DaiEn]
- * @Date: 2026-11-23
- * @Correction: 1
+ * @Date: 2026-11-24
+ * @Correction: 3
  *
  * 【功能】
  * 給 /admin/ 管理頁用的後端：驗管理密碼、列出全部分享圖片（含未通過的）、
- * 切換某一筆的 approved（true = 前台 Meme 牆看得到）。
+ * 切換某一筆的 approved（true = 前台 Meme 牆看得到）、刪除某一筆（資料列＋Storage 圖檔）。
  *
  * 【為什麼單一入口】
  * POST /api/admin，用 body 的 action 分流，Vercel 一支 Function 只有一個路由。
  * 本機 STS 的 AdminController.java 用完全相同的契約，前端 js/admin.js 兩站通用。
+ *
+ * 【刪除的順序】先刪 Storage 圖檔、再刪資料列：
+ * 圖檔刪不掉就整個失敗，資料列留著（後台還看得到、可以重試），不會變成「紀錄在、圖不見」的破圖；
+ * 圖檔本來就不在視為已完成（Supabase 是以 HTTP 400 + body NoSuchKey 表達，不能只看狀態碼）。
+ * 刪除只吃 id，檔名由後端查回來，前端無法指定要刪哪個物件。
  *
  * 【環境變數（Vercel 後台 → Settings → Environment Variables）】
  * ADMIN_PASSWORD              - 管理密碼（必填；沒設 = 後台一律拒絕）
@@ -28,6 +33,14 @@ const MAX_PAGE_SIZE = 50;
 
 function fail(res, status, error) {
   return res.status(status).json({ ok: false, error });
+}
+
+// Supabase Storage 對「物件不存在」回的不是 404，而是 HTTP 400，body 才是
+// {"statusCode":"404","error":"not_found","message":"Object not found","code":"NoSuchKey"}
+// 只認 body 內的標記，其他失敗（權限、路徑不合）仍算失敗，不會被誤放行
+function isObjectNotFound(text) {
+  if (!text) return false;
+  return text.includes('NoSuchKey') || text.includes('"not_found"');
 }
 
 function sign(password, ts) {
@@ -165,6 +178,69 @@ export default async function handler(req, res) {
       return fail(res, 502, '更新失敗：' + r.status + ' ' + t);
     }
     return res.status(200).json({ ok: true, id, approved: body.approved });
+  }
+
+  // ---------- delete ----------
+  // 一次刪掉「資料列 + Storage 圖檔」；順序是先刪圖檔、再刪資料列（理由見檔頭）
+  if (action === 'delete') {
+    const id = Number(body.id);
+    if (!Number.isFinite(id) || id <= 0) return fail(res, 400, 'id 格式錯誤');
+
+    // 先查檔名：Storage 的物件路徑就是這支 filename，前端只拿得到公開網址
+    const look = await fetch(`${SUPABASE_URL}/rest/v1/apng_images?id=eq.${id}&select=id,filename,title`, {
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+    });
+    if (!look.ok) {
+      const tx = await look.text();
+      return fail(res, 502, '查詢失敗：' + look.status + ' ' + tx);
+    }
+    const found = await look.json();
+    if (!Array.isArray(found) || found.length === 0) {
+      return fail(res, 404, '找不到這張圖（可能已被刪除）');
+    }
+
+    let filename = String(found[0].filename || '');
+    // 正常檔名是 eggshell-xxxxxxxx.png；出現路徑字元一律擋掉，避免路徑穿越刪到別的物件
+    if (filename && (filename.includes('/') || filename.includes('..'))) {
+      return fail(res, 400, '檔名不合法');
+    }
+
+    let storageDeleted = false;
+    if (filename) {
+      const delObj = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`, {
+        method: 'DELETE',
+        headers: {
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      });
+      // 圖檔本來就不在（例如先前刪過一半）視為已完成；但 Supabase 是用 400 + NoSuchKey 表達，看 body 才準
+      if (!delObj.ok) {
+        const tx = await delObj.text();
+        if (!isObjectNotFound(tx)) {
+          return fail(res, 502, '刪除圖檔失敗：' + delObj.status + ' ' + tx);
+        }
+      }
+      storageDeleted = delObj.ok;
+    }
+
+    const delRow = await fetch(`${SUPABASE_URL}/rest/v1/apng_images?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Prefer: 'return=minimal',
+      },
+    });
+    if (!delRow.ok) {
+      const tx = await delRow.text();
+      return fail(res, 502, '刪除資料列失敗：' + delRow.status + ' ' + tx);
+    }
+
+    return res.status(200).json({ ok: true, id, filename, storageDeleted });
   }
 
   return fail(res, 400, '未知的 action：' + action);

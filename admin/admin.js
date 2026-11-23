@@ -1,19 +1,23 @@
 /**
  * 蛋殼喵 APNG 工具 — 管理後台（/admin/）
  * @author [DaiEn]
- * @Date: 2026-11-23
- * @Correction: 2
- * 本次修正：全面改走 admin/i18n.js 的 t()（五語系）；語言鈕切換後重畫列表（卡片文字是動態產生的，
+ * @Date: 2026-11-24
+ * @Correction: 3
+ * 本次修正：新增「刪除」——每張卡片多一顆 .ad-btn-del（白底紅字外框），
+ *          按下先 window.confirm 二次確認，再送 {action:'delete', id}；
+ *          後端在同一個請求裡把「資料列 + Storage 圖檔」一起刪掉（前端不碰 service_role）；
+ *          刪完若這一頁空了會自動退回上一頁，避免停在空白頁
+ * 上次修正：全面改走 admin/i18n.js 的 t()（五語系）；語言鈕切換後重畫列表（卡片文字是動態產生的，
  *           applyLang 掃 data-i18n 掃不到），並把語言選擇記在 localStorage（key 與主站分開）
- * 上次修正：登入、列表、展示開關（approved）、篩選、分頁
  *
- * 這頁只做三件事：
+ * 這頁只做四件事：
  *   1. 用管理密碼換一張通行證（token 存 sessionStorage，關掉分頁就消失）
  *   2. 列出「全部」分享圖片（含未通過的），這是跟前台 Meme 牆最大的差別
  *   3. 切換某張圖的 approved：true = 前台看得到，false = 收起來
+ *   4. 刪掉某張圖：資料列與 Storage 圖檔一起消失（不可復原）
  *
  * 後端契約（本機 AdminController.java／Vercel api/admin.js 完全相同）：
- *   POST /api/admin  body {action:'login'|'list'|'setVisible', ...}
+ *   POST /api/admin  body {action:'login'|'list'|'setVisible'|'delete', ...}
  *   登入後帶 header X-Admin-Token
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -271,6 +275,10 @@
 			info.appendChild(makeEl('div', 'ad-line ad-id',
 				t('likes', { n: row.likes || 0, id: row.id })));
 
+			// 兩顆動作鈕排成一列：展示開關＋刪除
+			// （用 .ad-actions 包起來，CSS 才好讓它們各佔一半寬；單顆時就是整條寬）
+			const actions = makeEl('div', 'ad-actions');
+
 			// 開關按鈕
 			const btn = makeEl('button', approved ? 'ad-btn-hide' : 'ad-btn-show',
 				approved ? t('btnHide') : t('btnShow'));
@@ -278,7 +286,17 @@
 			btn.addEventListener('click', function () {
 				toggle(row, approved, btn);
 			});
-			info.appendChild(btn);
+			actions.appendChild(btn);
+
+			// 刪除鈕：後端會把資料列與 Storage 圖檔一起刪掉，所以一定要先二次確認
+			const delBtn = makeEl('button', 'ad-btn-del', t('btnDelete'));
+			delBtn.type = 'button';
+			delBtn.addEventListener('click', function () {
+				removeRow(row, delBtn);
+			});
+			actions.appendChild(delBtn);
+
+			info.appendChild(actions);
 
 			card.appendChild(info);
 			grid.appendChild(card);
@@ -300,6 +318,41 @@
 			await load(state.page);
 			setMsg(statusMsg, target ? t('doneShow') : t('doneHide'), 'ok');
 		} catch (e) {
+			if (!isSessionError(e)) {
+				setMsg(statusMsg, t('opFail', { msg: e.message }), 'err');
+				btn.disabled = false;
+				btn.textContent = oldText;
+			}
+		}
+	}
+
+	// ============================================================
+	// 刪除：資料列 + Storage 圖檔（後端同一個請求處理）
+	// 前端只送 id，檔名與 service_role 都在後端，避免前端能亂指定要刪哪個物件
+	// ============================================================
+	async function removeRow(row, btn) {
+		// 標題可能被使用者填空白，用「（無標題）」當確認框的稱呼
+		const name = row.title || t('untitled');
+
+		// 不可復原 → 先問一次；按取消就完全不打後端
+		if (!window.confirm(t('confirmDelete', { title: name }))) return;
+
+		btn.disabled = true;
+		const oldText = btn.textContent;
+		btn.textContent = t('btnDeleting');
+
+		try {
+			await api({ action: 'delete', id: row.id });
+
+			// 這一頁原本只有這張圖時，刪完會變空頁 → 自動退回上一頁
+			const remain = grid.querySelectorAll('.ad-card').length - 1;
+			const nextPage = (remain <= 0 && state.page > 0) ? state.page - 1 : state.page;
+
+			// 重新抓一次列表，「共 N 筆」與篩選結果才會跟資料庫一致
+			await load(nextPage);
+			setMsg(statusMsg, t('doneDelete', { title: name }), 'ok');
+		} catch (e) {
+			// 刪除失敗（例如 Storage 刪不掉）：按鈕復原，訊息留在狀態列
 			if (!isSessionError(e)) {
 				setMsg(statusMsg, t('opFail', { msg: e.message }), 'err');
 				btn.disabled = false;

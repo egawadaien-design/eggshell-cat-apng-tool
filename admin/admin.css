@@ -1,8 +1,10 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-23
-	@Correction: 3
-	本次修正：補「Home／GitHub」超連結樣式（圖示＋膠囊底色＋hover／focus-visible），
+	@Date: 2026-11-24
+	@Correction: 4
+	本次修正：卡片底部改成「兩顆一排」的 .ad-actions（展示開關＋刪除），並新增 .ad-btn-del
+	          ——刪除用白底紅字外框，不跟主動作搶色，也避免誤按時看不出哪顆是危險操作
+	上次修正：補「Home／GitHub」超連結樣式（圖示＋膠囊底色＋hover／focus-visible），
 	          並補上 cat-089／cat-116 兩顆圖示碼位
 	上次修正：標題列改成 flex（語言鈕靠右、窄螢幕自動換行到標題下方）；
 	          自行宣告 CatEmoji 字型與 5 個語言圖示（不載入主站 apng.css，避免它的全域規則污染後台）
@@ -247,6 +249,22 @@ button:disabled { background: #d8b8c2; cursor: not-allowed; }
 .ad-btn-show:hover { background: var(--green-dark); }
 .ad-btn-hide { background: #b07d8d; }
 .ad-btn-hide:hover { background: #96636f; }
+
+/* 卡片底部兩顆動作鈕：展示開關＋刪除排成一列（單獨一顆時就整條寬，跟原本一樣） */
+.ad-actions { display: flex; gap: 8px; margin-top: 6px; }
+.ad-actions button { margin-top: 0; flex: 1 1 0; }
+
+/* 刪除：白底紅字外框。後台唯一的破壞性操作，刻意不用實心色，
+   避免跟「放到前台展示」這顆綠色主動作搶眼，也降低誤點的機率 */
+.ad-btn-del {
+	background: #fff;
+	color: #c0392b;
+	border: 1px solid #f2c9d3;
+	font-size: 13px;
+	padding: 8px 12px;
+}
+.ad-btn-del:hover { background: #fdecea; color: #a52a1e; border-color: #e8b4ad; }
+.ad-btn-del:disabled { background: #faf5f6; color: #c9a9b3; border-color: #f0dde3; }
 
 /* 分頁 */
 .ad-pager {
