@@ -1,9 +1,14 @@
 /**
  * 蛋殼喵 APNG 工具 — 編碼輸出
- * PNG CRC32 / acTL 循環次數 / UPNG 編碼 / GIF 輸出 / LINE 規範警告 / 語言重繪
+ * PNG CRC32 / acTL 循環次數 / UPNG 編碼 / GIF 輸出 / 動畫 WEBP 觸發 / LINE 規範警告 / 語言重繪
  * @author [DaiEn]
  * @Date: 2026-11-23
- * @Correction: 5
+ * @Correction: 7
+ * 2026-11-23 修正：GIF 預處理把透明像素填成透明色時，因為 ImageData 直接採用傳入的陣列，
+ *                 連 frames[i] 都被改寫成「綠底不透明」，導致後續輸出的 WEBP 整片綠底。
+ *                 改成先 slice(0) 複製一份再處理（只影響 GIF，APNG 本來就先編碼所以沒感覺）
+ * 2026-11-23 追加：APNG 頁「下載 WEBP」——生成時只暫存像素（webpSource），
+ *                 按下按鈕才交給 js/webp-encoder.js 編碼，生成流程不會變慢
  * 2026-11-12 追加：每一格 drawImage 之後、取像素之前先把「文字」燒上去（TextOverlay.instances.app），
  *                 這樣輸出的 APNG 才會帶字，而不只是預覽看得到
  *
@@ -133,6 +138,14 @@ function renderApngTexts() {
 	renderApngSummary();
 }
 window.renderApngTexts = renderApngTexts;
+
+// ============================================================
+// 動畫 WEBP：生成時只暫存像素，按下「下載 WEBP」才編碼
+// （生成流程維持原樣，不會因為多一個格式而變慢）
+// ============================================================
+const downloadWebpLink = document.getElementById('downloadWebpLink');
+let webpSource = null;          // { frames, w, h, dels, loops, colors }
+let webpBusy = false;           // 連點防護：編碼一次要幾百毫秒到數秒
 
 // ============================================================
 // 產生 APNG
@@ -285,7 +298,12 @@ makeBtn.addEventListener('click', async () => {
 				const c = document.createElement('canvas');
 				c.width = w; c.height = h;
 				const ctx = c.getContext('2d');
-				const imgData = new ImageData(new Uint8ClampedArray(frames[i]), w, h);
+				// frames[i] 是 ArrayBuffer，直接傳給 Uint8ClampedArray／ImageData 只會建「檢視」，
+				// 而 ImageData 依規範是「直接採用」傳進來的陣列（不複製），
+				// 下面把透明像素填成透明色時就會連 frames[i] 一起洗掉——
+				// 導致後面「下載 WEBP」拿到的是綠底不透明的像素（APNG 因為先編碼才沒事）。
+				// 所以這裡一定要先 slice(0) 複製一份，GIF 的預處理不准動到原始影格。
+				const imgData = new ImageData(new Uint8ClampedArray(frames[i].slice(0)), w, h);
 				// 把透明像素填成選定的透明色，同時把 alpha 改成 255（不透明）
 				// 否則 gif.js 看不到那個像素（因為 alpha=0），會把背景填成黑色
 				for (let p = 0; p < imgData.data.length; p += 4) {
@@ -308,6 +326,20 @@ makeBtn.addEventListener('click', async () => {
 			gif.render();
 		}
 
+		// 記住這一輪的像素，等使用者按「下載 WEBP」才編碼
+		// 品質沿用「色彩」選單的語意（WebP 沒有調色盤，全彩＝0.9、256 色＝0.8、128 色＝0.7）
+		// 這裡只存 cnum，品質在按下按鈕時才算——語言分頁的薄殼是動態插入 script，
+		// 載入順序不保證，避免 webp-encoder.js 還沒到就先鎖死品質
+		webpSource = {
+			frames: frames,
+			w: w,
+			h: h,
+			dels: dels.slice(),
+			loops: loops,
+			colors: Number.isFinite(cnum) ? cnum : 0
+		};
+		if (downloadWebpLink) downloadWebpLink.style.display = 'inline-block';
+
 	} catch (err) {
 		status.innerHTML = t('err', {msg: err.message});
 		console.error(err);
@@ -316,3 +348,63 @@ makeBtn.addEventListener('click', async () => {
 		makeBtn.disabled = false;
 	}
 });
+
+// ============================================================
+// 下載 WEBP：按下才編碼
+// 第一格就編不出 WebP（blob.type 不是 image/webp）＝這台瀏覽器不支援，
+// 直接顯示提示即可，按鈕本身不隱藏（它只是「額外下載」功能，APNG 仍是主線）
+// ============================================================
+if (downloadWebpLink) {
+	downloadWebpLink.addEventListener('click', async function (e) {
+		e.preventDefault();                     // <a> 沒有 href，仍攔一下避免被當成跳頁
+		if (webpBusy) return;                   // 編碼中再點一次會排隊做兩份，擋掉
+
+		if (!webpSource || !window.WebpEncoder) {
+			status.innerHTML = t('webpFail', { msg: 'WebpEncoder not loaded' });
+			return;
+		}
+
+		webpBusy = true;
+		downloadWebpLink.style.pointerEvents = 'none';
+		try {
+			const total = webpSource.frames.length;
+			status.innerHTML = t('webpEncoding', { i: 0, n: total });
+
+			const blob = await window.WebpEncoder.encode({
+				frames: webpSource.frames,
+				w: webpSource.w,
+				h: webpSource.h,
+				dels: webpSource.dels,
+				loops: webpSource.loops,
+				quality: window.WebpEncoder.qualityForColors(webpSource.colors),
+				// 每編完一格就更新狀態列，讓使用者知道沒有卡住
+				onProgress: function (done, n) {
+					status.innerHTML = t('webpEncoding', { i: done, n: n });
+				}
+			});
+
+			if (!blob) {
+				status.innerHTML = t('webpUnsupported');
+				return;
+			}
+
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'eggshell-' + randomId(8) + '.webp';
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			// 下載已開始才回收；太早 revoke 會讓部分瀏覽器抓到空檔
+			setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+
+			status.innerHTML = t('webpDone', { kb: Math.round(blob.size / 1024) });
+		} catch (err) {
+			console.error('[WEBP]', err);
+			status.innerHTML = t('webpFail', { msg: err.message || err });
+		} finally {
+			webpBusy = false;
+			downloadWebpLink.style.pointerEvents = '';
+		}
+	});
+}

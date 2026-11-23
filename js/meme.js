@@ -2,7 +2,13 @@
  * 蛋殼喵 APNG 工具 — Meme 展示邏輯（嵌在 index.html tab-meme）
  * @author [DaiEn]
  * @Date: 2026-11-23
- * @Correction: 6
+ * @Correction: 9
+ * 本次修正：卡片加「小紅心」按讚鈕——未點亮 cat-123／已點亮 cat-252，右邊顯示次數；
+ *           計數走 Supabase RPC like_meme()（security definer，前端 anon key 不能直接 UPDATE），
+ *           點過的 id 記在 localStorage，所以「已點亮」只對同一個瀏覽器有效；
+ *           寫回失敗時會把紅心與次數一起還原（避免出現「紅心亮了、次數還是 0」的假狀態）
+ * 上次修正：init() 加上幂等旗標（grid.dataset.memeInit）並改為沿用既有的 .meme-pager，
+ *           修正 init 被 DOM ready 與 i18n renderMemes 各叫一次、導致 Meme 頁出現兩排分頁的問題
  *
  * 提供 window.loadMemePage(page) 給 share.js 呼叫
  * 每次顯示最新 20 筆，底部分頁
@@ -29,6 +35,14 @@
 		const grid = document.getElementById('memeGrid');
 		if (!grid) return;
 
+		// 只初始化一次：init 會被兩個時機各叫一次——
+		//   ① 本檔最下方的 DOM ready 區塊
+		//   ② i18n 首次 applyLang 呼叫 window.renderMemes()（此時 loadMemePage 還沒定義，會 fallback 叫 init）
+		// 以前每叫一次就 new 一個 .meme-pager 接在 grid 後面，所以 Meme 頁會出現兩排一樣的分頁。
+		// 用 dataset 當旗標擋掉第二次；放資料屬性而不是模組變數，是為了讓 thin page 重建 DOM 後能重新初始化。
+		if (grid.dataset.memeInit === '1') return;
+		grid.dataset.memeInit = '1';
+
 		// 先定義一個空的 loadMemePage，避免 renderMemes 呼叫到 undefined
 		window.loadMemePage = function () {};
 
@@ -40,9 +54,13 @@
 			return;
 		}
 
-		const pager = document.createElement('div');
-		pager.className = 'meme-pager';
-		grid.parentElement.appendChild(pager);
+		// 分頁容器：沿用已存在的，沒有才建一個（雙重保險，避免任何路徑又生出第二排）
+		let pager = grid.parentElement.querySelector('.meme-pager');
+		if (!pager) {
+			pager = document.createElement('div');
+			pager.className = 'meme-pager';
+			grid.parentElement.appendChild(pager);
+		}
 
 		// 把標籤列移到分頁下方
 		const tagBar = document.getElementById('memeTagBar');
@@ -91,6 +109,96 @@
 
 		function publicUrl(filename) {
 			return cfg.url + '/storage/v1/object/public/' + cfg.bucket + '/' + filename;
+		}
+
+		// ============================================================
+		// 小紅心（按讚）
+		// 未點亮 cat-123、已點亮 cat-252；右邊顯示次數
+		// 這個站沒有帳號，所以「誰點過讚」只能記在 localStorage——同一個瀏覽器才會記得，
+		// 換裝置／清快取後紅心會回到未點亮（但次數本身仍以資料庫為準）
+		// ============================================================
+		const LIKED_KEY = 'apng-meme-likes';
+
+		function likedList() {
+			try {
+				const arr = JSON.parse(localStorage.getItem(LIKED_KEY) || '[]');
+				return Array.isArray(arr) ? arr : [];
+			} catch (e) { return []; }   // 被瀏覽器擋 localStorage（例如無痕）就當作沒點過
+		}
+
+		function isLiked(id) {
+			return likedList().indexOf(id) !== -1;
+		}
+
+		function markLiked(id, on) {
+			const arr = likedList();
+			const i = arr.indexOf(id);
+			if (on && i === -1) arr.push(id);
+			if (!on && i !== -1) arr.splice(i, 1);
+			try { localStorage.setItem(LIKED_KEY, JSON.stringify(arr)); } catch (e) { /* 寫不進去就只活在這一次瀏覽 */ }
+		}
+
+		// 點一下：先改畫面（樂觀更新），再把計數交給伺服器
+		async function onLikeClick(btn, heart, num, id) {
+			if (btn.dataset.busy === '1') return;      // 連點保護：等這一輪寫回結束再放行
+			const before = isLiked(id);                // 點擊前的狀態，寫回失敗時要還原成它
+			const next = !before;
+			const delta = next ? 1 : -1;
+			const n0 = parseInt(num.textContent, 10) || 0;
+			const n1 = Math.max(0, n0 + delta);        // 次數不會被扣到負數
+
+			btn.classList.toggle('liked', next);
+			btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+			btn.title = next ? t('memeUnlike') : t('memeLike');
+			heart.className = 'cat ' + (next ? 'cat-252' : 'cat-123');
+			num.textContent = String(n1);
+			markLiked(id, next);
+
+			btn.dataset.busy = '1';
+			try {
+				if (!sbClient) throw new Error('supabase not ready');
+				// 走 RPC 而不是 UPDATE：前端只有 anon key，直接 UPDATE 會被 RLS 擋掉；
+				// 而且 apng_images 的 anon 權限是「整列可改」，開 UPDATE 等於讓人能改 approved/title
+				const { data, error } = await sbClient.rpc('like_meme', { p_id: id, p_delta: delta });
+				if (error) throw error;
+				num.textContent = String(typeof data === 'number' ? data : n1);   // 以伺服器回傳的真實次數為準
+			} catch (e) {
+				// 寫回失敗 → 把紅心與次數一起還原，不要留下「亮了卻顯示 0」的假狀態
+				btn.classList.toggle('liked', before);
+				btn.setAttribute('aria-pressed', before ? 'true' : 'false');
+				btn.title = before ? t('memeUnlike') : t('memeLike');
+				heart.className = 'cat ' + (before ? 'cat-252' : 'cat-123');
+				num.textContent = String(n0);
+				markLiked(id, before);
+				console.warn('[MEME] 按讚沒有寫回資料庫（like_meme 函式還沒建立？見 data/like_meme.sql）：', e.message || e);
+			} finally {
+				delete btn.dataset.busy;
+			}
+		}
+
+		// 在卡片底部畫一顆紅心（放在作者列下面）
+		function renderLike(card, row) {
+			const id = Number(row.id);
+			const liked = isLiked(id);
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'meme-like' + (liked ? ' liked' : '');
+			btn.dataset.memeId = String(id);
+			btn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+			btn.title = liked ? t('memeUnlike') : t('memeLike');
+
+			const heart = document.createElement('cat');
+			heart.className = 'cat ' + (liked ? 'cat-252' : 'cat-123');
+
+			const num = document.createElement('span');
+			num.className = 'meme-like-count';
+			num.textContent = String(row.likes || 0);   // likes 為 null／undefined 時顯示 0
+
+			btn.appendChild(heart);
+			btn.appendChild(num);
+			btn.addEventListener('click', () => onLikeClick(btn, heart, num, id));
+			card.appendChild(btn);
 		}
 
 		async function loadMemePage(page) {
@@ -155,6 +263,7 @@
 				card.appendChild(img);
 				card.appendChild(title);
 				card.appendChild(author);
+				renderLike(card, row);   // 小紅心＋次數
 				grid.appendChild(card);
 			}
 

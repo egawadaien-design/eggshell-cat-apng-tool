@@ -1,9 +1,17 @@
 /**
  * 蛋殼喵 APNG 工具 — 影格管理
- * 檔案匯入 / APNG-GIF 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
+ * 檔案匯入 / APNG、GIF、WebP 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
  * @author [DaiEn]
  * @Date: 2026-11-23
- * @Correction: 10
+ * @Correction: 14
+ * 本次修正：clearAll() 一併隱藏「下載 WEBP」鈕（downloadWebpLink），
+ *           避免清空影格後還能下載上一輪留下的舊像素
+ * 上次修正：接上右側「通用設置」——applyGeneralDelay()（L93）讀 #gsDelay 的毫秒數驗證 16～65535，
+ *           把 frameDelays 全部填成同值後重畫卡片（renderTimeline）並更新總時間（updatePlaybackInfo）；
+ *           #gsApply 沒有影格時由 rebuildPreviews 停用，輸入框按 Enter 也可套用
+ * 上次修正：APNG 頁支援匯入 WebP（addFiles 分流 importWebP）——動畫 WebP 用 WebCodecs 的 ImageDecoder
+ *           逐格解出並沿用每格 duration 當延遲；不支援 ImageDecoder 的瀏覽器退回只取第一格
+ *           檔案型別判斷加入副檔名（type 為空字串或 image/apng 時也能正確分流）
  * 2026-11-12 追加：接上 js/text-overlay.js，APNG 頁新增「文字」面板（十字鍵 / 字體 / 粗斜體底線 / 字級 / 顏色 / 外框 / 陰影），
  *                 預覽用透明 canvas 疊在 .preview-stage 上，實際燒字在 apng-encoder.js
  * 2026-11-12 追加：影格縮圖收起時，排序列五顆排序鈕一起隱藏（sort-bar.grid-collapsed）
@@ -42,6 +50,8 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const outW = document.getElementById('outW');
 const outH = document.getElementById('outH');
+const gsDelayInput = document.getElementById('gsDelay');   // 通用設置：毫秒輸入框
+const gsApplyBtn = document.getElementById('gsApply');       // 通用設置：設置鈕
 
 let files = [];          // File 物件陣列
 let sourceW = 0, sourceH = 0;
@@ -80,6 +90,31 @@ outH.addEventListener('input', () => {
 	if (sourceW && sourceH && outH.value) outW.value = Math.round(outH.value * sourceW / sourceH);
 });
 
+// 通用設置：把所有影格的延遲一次設成同一個值
+// 卡片上的「毫秒」輸入框是 renderTimeline() 產生的，所以改完 frameDelays 之後要重畫一次
+function applyGeneralDelay() {
+	if (!files.length) {
+		status.innerHTML = trMsg('gsNoFrames', null, '尚無影格可設定');
+		return;
+	}
+	const ms = parseInt(gsDelayInput.value, 10);
+	// 16ms 以下播放器幾乎看不出動畫，65535 是單格延遲的合理上限
+	if (!Number.isFinite(ms) || ms < 16 || ms > 65535) {
+		status.innerHTML = trMsg('gsInvalid', null, '請輸入 16～65535 之間的毫秒數');
+		return;
+	}
+	gsDelayInput.value = ms;                    // 去掉 0100 這種前導零
+	for (let i = 0; i < files.length; i++) frameDelays[i] = ms;
+	renderTimeline();                           // 卡片上的 ms 輸入框全部改成新值
+	updatePlaybackInfo();                        // 總時間／平均延遲那行
+	status.innerHTML = trMsg('gsDone', {ms}, '已把所有影格的延遲設為 {ms} 毫秒');
+}
+gsApplyBtn.addEventListener('click', applyGeneralDelay);
+// 在輸入框按 Enter 也直接套用，不用特地移滑鼠去點按鈕
+gsDelayInput.addEventListener('keydown', e => {
+	if (e.key === 'Enter') { e.preventDefault(); applyGeneralDelay(); }
+});
+
 // 拖曳上傳
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -107,21 +142,28 @@ bgToggle.addEventListener('click', () => {
 });
 
 // ============================================================
-// 匯入檔案 —— 依型別分流：一般 PNG / APNG / GIF
+// 匯入檔案 —— 依型別分流：一般 PNG / APNG / GIF / WebP
 // ============================================================
 async function addFiles(list) {
 	const unsupported = [];
 	for (const f of Array.from(list)) {
 		try {
-			if (f.type !== 'image/png' && f.type !== 'image/gif') {
-				unsupported.push(f.name);
+			// 有些系統給的 type 是空字串（APNG 也可能給 image/apng），所以副檔名也一起判斷
+			const name = f.name || '';
+			const isGIF = f.type === 'image/gif' || /\.gif$/i.test(name);
+			const isWebP = f.type === 'image/webp' || /\.webp$/i.test(name);
+			const isPNG = f.type === 'image/png' || f.type === 'image/apng' || /\.(png|apng)$/i.test(name);
+			if (!isGIF && !isWebP && !isPNG) {
+				unsupported.push(name);
 				continue;
 			}
 			const buf = await f.arrayBuffer();
-			if (f.type === 'image/gif') {
-				await importGIF(buf, f.name);
+			if (isGIF) {
+				await importGIF(buf, name);
+			} else if (isWebP) {
+				await importWebP(buf, name);
 			} else if (isAPNG(buf)) {
-				await importAPNG(buf, f.name);
+				await importAPNG(buf, name);
 			} else {
 				// 一般靜態 PNG，直接當一格
 				files.push(f);
@@ -311,8 +353,68 @@ async function importGIF(buf, originalName) {
 	status.innerHTML = t('importedGIF', {n});
 }
 
+// 把 WebP 拆成獨立 PNG 影格
+// 靜態 WebP ＝ 1 格；動畫 WebP 用 WebCodecs 的 ImageDecoder 逐格解（Chrome / Edge 94+），
+// 每格的 duration（微秒）換算成毫秒就是該格延遲，跟 GIF 的 disposal 不同，這裡逐格都是完整畫面。
+// 沒有 ImageDecoder 的瀏覽器（Safari、部分 Firefox）退回 createImageBitmap，只能取到第一格。
+async function importWebP(buf, originalName) {
+	const baseName = originalName.replace(/\.webp$/i, '');
+	// 先累積在區域陣列，中途失敗才不會留下半套影格
+	const newFiles = [];
+	const newDelays = [];
+
+	if (typeof ImageDecoder === 'function') {
+		let decoder = null;
+		try {
+			decoder = new ImageDecoder({ data: buf, type: 'image/webp' });
+			await decoder.tracks.ready;
+			const track = decoder.tracks.selectedTrack;
+			const total = track && track.frameCount ? track.frameCount : 1;
+			for (let i = 0; i < total; i++) {
+				const result = await decoder.decode({ frameIndex: i });
+				const frame = result.image;               // VideoFrame
+				const w = frame.displayWidth, h = frame.displayHeight;
+				const canvas = document.createElement('canvas');
+				canvas.width = w; canvas.height = h;
+				canvas.getContext('2d').drawImage(frame, 0, 0);
+				// VideoFrame.duration 單位是微秒；單格 WebP 會是 null，就當 100ms
+				const delayMs = frame.duration ? Math.round(frame.duration / 1000) : 100;
+				frame.close();                            // VideoFrame 一定要 close，不然記憶體不會放
+				const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+				newFiles.push(new File([blob], baseName + '_' + String(i+1).padStart(3,'0') + '.png', {type: 'image/png'}));
+				newDelays.push(Math.max(16, delayMs));
+			}
+			decoder.close();
+		} catch (err) {
+			console.warn('[WebP] ImageDecoder 解不開，改用單格模式', err);
+			if (decoder) { try { decoder.close(); } catch (e) { /* 已關閉 */ } }
+			newFiles.length = 0;
+			newDelays.length = 0;
+		}
+	}
+
+	if (newFiles.length === 0) {
+		// 退回：createImageBitmap 對動畫 WebP 只會給第一格
+		const bitmap = await createImageBitmap(new Blob([buf], { type: 'image/webp' }));
+		const canvas = document.createElement('canvas');
+		canvas.width = bitmap.width; canvas.height = bitmap.height;
+		canvas.getContext('2d').drawImage(bitmap, 0, 0);
+		bitmap.close();
+		const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+		newFiles.push(new File([blob], baseName + '_001.png', {type: 'image/png'}));
+		newDelays.push(100);
+		status.innerHTML = t('importedWebP', {n: 1}) + ' ' + t('webpSingleFrame');
+	} else {
+		status.innerHTML = t('importedWebP', {n: newFiles.length});
+	}
+
+	for (const f of newFiles) files.push(f);
+	for (const d of newDelays) frameDelays.push(d);
+}
+
 // 重新產生所有預覽 URL 並刷新 UI
 function rebuildPreviews() {
+	gsApplyBtn.disabled = files.length === 0;   // 沒有影格時「設置」鈕不給按
 	previewUrls.forEach(u => URL.revokeObjectURL(u));
 	previewUrls = files.map(f => URL.createObjectURL(f));
 	// 補齊 frameDelays：新加入的圖片預設 100ms
@@ -644,6 +746,7 @@ function clearAll() {
 	if (window.SourceFrame) window.SourceFrame.hide(previewStage);
 	downloadLink.style.display = 'none';
 	document.getElementById('downloadGifLink').style.display = 'none';
+	document.getElementById('downloadWebpLink').style.display = 'none';
 	document.getElementById('shareLink').style.display = 'none';
 	status.innerHTML = '';
 	fileInfo.textContent = '';

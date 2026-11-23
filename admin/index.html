@@ -1,0 +1,105 @@
+<!--
+	@author: [DaiEn]
+	@Date: 2026-11-23
+	@Correction: 2
+	本次修正：支援五語系（i18n.js 獨立放在 /admin 內），標題右側放五個語言按鈕（圖示沿用主站 Emoji 字型），
+	           窄螢幕時自動換行到標題下方
+	上次修正：新增管理後台首頁（/admin/）—— 管理密碼登入、分享圖片「是否展示」開關
+	注意：這頁不進搜尋引擎（meta robots noindex + robots.txt Disallow），也不對外宣傳
+-->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>蛋殼喵 APNG 工具 — 管理後台</title>
+<link rel="icon" type="image/png" href="../icon/favicon.png">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<main class="ad-wrap">
+
+	<header class="ad-head">
+		<div class="ad-head-row">
+			<h1 data-i18n="heading">蛋殼喵 · 管理後台</h1>
+
+			<!-- 語言切換：圖示沿用主站（cat-214／213／215／216／239），靠右對齊 -->
+			<nav class="ad-langs" aria-label="Language">
+				<button class="ad-lang" data-lang="zh-TW" title="繁體中文">
+					<small class="cat cat-214"></small><span>繁體中文</span>
+				</button>
+				<button class="ad-lang" data-lang="zh-CN" title="简体中文">
+					<small class="cat cat-213"></small><span>简体中文</span>
+				</button>
+				<button class="ad-lang" data-lang="en" title="English">
+					<small class="cat cat-215"></small><span>English</span>
+				</button>
+				<button class="ad-lang" data-lang="ja" title="日本語">
+					<small class="cat cat-216"></small><span>日本語</span>
+				</button>
+				<button class="ad-lang" data-lang="th" title="ไทย">
+					<small class="cat cat-239"></small><span>ไทย</span>
+				</button>
+			</nav>
+		</div>
+
+		<p class="ad-sub" data-i18n="subtitle">管理分享圖片要不要在前台的 Meme 牆展示</p>
+	</header>
+
+	<!-- ================= 登入 ================= -->
+	<section id="adLogin" class="ad-card">
+		<label for="adPassword" data-i18n="loginLabel">管理密碼</label>
+		<div class="ad-row">
+			<input id="adPassword" type="password" autocomplete="current-password"
+			       data-i18n-ph="loginPh" placeholder="請輸入管理密碼">
+			<button id="adLoginBtn" data-i18n="loginBtn">登入</button>
+		</div>
+		<p id="adLoginMsg" class="ad-msg"></p>
+		<p class="ad-note">
+			<a href="../" rel="noopener"><cat class="cat cat-089"></cat>&nbsp;Home</a>
+			&nbsp;│&nbsp;
+			<a href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener"><cat class="cat cat-116"></cat>&nbsp;github</a>
+		</p>
+	</section>
+
+	<!-- ================= 主面板 ================= -->
+	<section id="adPanel" class="ad-panel" hidden>
+
+		<div class="ad-toolbar">
+			<div class="ad-tabs">
+				<button class="ad-tab active" data-status="all" data-i18n="tabAll">全部</button>
+				<button class="ad-tab" data-status="hidden" data-i18n="tabHidden">未展示</button>
+				<button class="ad-tab" data-status="visible" data-i18n="tabVisible">已展示</button>
+			</div>
+			<div class="ad-tools">
+				<span id="adCount" class="ad-count"></span>
+				<button id="adReload" class="ad-ghost" data-i18n="reload">重新整理</button>
+				<button id="adLogout" class="ad-ghost" data-i18n="logout">登出</button>
+			</div>
+		</div>
+
+		<p id="adStatus" class="ad-msg"></p>
+		<div id="adGrid" class="ad-grid"></div>
+
+		<div class="ad-pager">
+			<button id="adPrev" class="ad-ghost" data-i18n="prev">上一頁</button>
+			<span id="adPageInfo"></span>
+			<button id="adNext" class="ad-ghost" data-i18n="next">下一頁</button>
+		</div>
+
+		<p class="ad-note" data-i18n="note">「已展示」＝ 前台 Meme 牆看得到；新上傳的圖片預設是未展示，要在這裡打開才會出現。</p>
+		<p class="ad-note">
+			<a href="../" rel="noopener"><cat class="cat cat-089"></cat>&nbsp;Home</a>
+			&nbsp;│&nbsp;
+			<a href="https://github.com/egawadaien-design/eggshell-cat-apng-tool" target="_blank" rel="noopener"><cat class="cat cat-116"></cat>&nbsp;github</a>
+		</p>
+	</section>
+
+</main>
+
+<script src="i18n.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

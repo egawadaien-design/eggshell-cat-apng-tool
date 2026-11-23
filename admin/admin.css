@@ -1,0 +1,308 @@
+/*
+	@author: [DaiEn]
+	@Date: 2026-11-23
+	@Correction: 3
+	本次修正：補「Home／GitHub」超連結樣式（圖示＋膠囊底色＋hover／focus-visible），
+	          並補上 cat-089／cat-116 兩顆圖示碼位
+	上次修正：標題列改成 flex（語言鈕靠右、窄螢幕自動換行到標題下方）；
+	          自行宣告 CatEmoji 字型與 5 個語言圖示（不載入主站 apng.css，避免它的全域規則污染後台）
+	          新增管理後台（/admin/）樣式——沿用站台的粉色系（#d4708a）與下載鈕的深綠（rgb(20,100,80)）
+	          版面刻意做得樸素：這是只給自己用的後台，不共用 apng.css（免得主站改樣式時被牽動）
+*/
+
+:root {
+	--pink: #d4708a;
+	--pink-dark: #c06078;
+	--green: rgb(20, 100, 80);
+	--green-dark: rgb(14, 75, 60);
+	--bg: #fdf6f7;
+	--line: #f0d8de;
+	--text: #4a3540;
+	--muted: #8a6a78;
+}
+
+* { box-sizing: border-box; }
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: -apple-system, "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.ad-wrap {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 24px 16px 64px;
+}
+
+/* 標題列：標題靠左、語言鈕靠右；窄了就自動換行（語言鈕整組掉到標題下方） */
+.ad-head-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 16px;
+	flex-wrap: wrap;
+	margin-bottom: 4px;
+}
+
+.ad-head h1 {
+	margin: 0;
+	font-size: 24px;
+	color: var(--pink);
+}
+
+/* 語言切換：五顆按鈕橫向並排 */
+.ad-langs {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	margin-left: auto;      /* 撐到最右邊，就算 h1 很短也不會擠在中間 */
+}
+
+.ad-lang {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 5px 10px;
+	font-size: 12px;
+	line-height: 1.2;
+	background: #fff;
+	color: var(--muted);
+	border: 1px solid var(--line);
+	border-radius: 999px;
+}
+.ad-lang:hover { background: #fbeef1; color: var(--pink); border-color: #f2c9d3; }
+.ad-lang.active {
+	background: var(--pink);
+	border-color: var(--pink);
+	color: #fff;
+}
+.ad-lang .cat { font-size: 14px; }
+
+.ad-sub { margin: 0 0 20px; color: var(--muted); font-size: 13px; }
+
+/* 卡片 */
+.ad-card {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 16px;
+}
+
+.ad-note { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+
+/* 註解列／頁尾的超連結（Home、GitHub）：做成「圖示＋文字」的小膠囊，
+   不然純 <a> 會是瀏覽器預設的藍字加底線，跟站台的粉色系完全不搭 */
+.ad-note a {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px;
+	border-radius: 999px;
+	color: var(--pink);
+	text-decoration: none;
+	font-weight: 600;
+	line-height: 1.6;
+	transition: background .15s, color .15s;
+}
+.ad-note a:hover { background: #fbeef1; color: var(--pink-dark); }
+
+/* 鍵盤 Tab 到時也要看得到焦點（預設 outline 被 border-radius 切掉，自己畫一圈） */
+.ad-note a:focus-visible {
+	outline: 2px solid var(--pink);
+	outline-offset: 2px;
+	background: #fbeef1;
+}
+
+/* 連結裡的 icon：固定 15px（12px 文字旁邊 14px 會顯得偏小），垂直置中交給上面的 inline-flex */
+.ad-note a .cat { font-size: 15px; line-height: 1; }
+
+/* 按鈕 */
+button {
+	font: inherit;
+	cursor: pointer;
+	border: none;
+	border-radius: 8px;
+	padding: 9px 16px;
+	background: var(--pink);
+	color: #fff;
+	transition: background .15s;
+}
+button:hover { background: var(--pink-dark); }
+button:disabled { background: #d8b8c2; cursor: not-allowed; }
+
+.ad-ghost {
+	background: #fff;
+	color: var(--muted);
+	border: 1px solid var(--line);
+	padding: 6px 12px;
+	font-size: 13px;
+}
+.ad-ghost:hover { background: #fbeef1; color: var(--pink); }
+
+/* 登入 */
+.ad-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ad-row input {
+	flex: 1 1 240px;
+	min-width: 0;
+	padding: 10px 12px;
+	font: inherit;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	outline: none;
+}
+.ad-row input:focus { border-color: var(--pink); }
+
+.ad-msg { margin: 10px 0 0; min-height: 18px; font-size: 13px; }
+.ad-msg-err { color: #c0392b; }
+.ad-msg-ok { color: var(--green); }
+
+/* 工具列 */
+.ad-toolbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.ad-tabs { display: flex; gap: 6px; }
+.ad-tab {
+	background: #fff;
+	color: var(--muted);
+	border: 1px solid var(--line);
+	padding: 6px 14px;
+	font-size: 13px;
+}
+.ad-tab:hover { background: #fbeef1; color: var(--pink); }
+.ad-tab.active {
+	background: var(--pink);
+	border-color: var(--pink);
+	color: #fff;
+}
+
+.ad-tools { display: flex; align-items: center; gap: 8px; }
+.ad-count { color: var(--muted); font-size: 13px; }
+
+/* 圖片格 */
+.ad-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 12px;
+}
+
+.ad-item {
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	gap: 10px;
+}
+/* 未展示的用虛線框提醒「這張前台看不到」 */
+.ad-off { border-style: dashed; }
+
+.ad-thumb {
+	position: relative;
+	display: block;
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	border-radius: 8px;
+	overflow: hidden;
+	background:
+		linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%) 0 0 / 16px 16px,
+		linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%) 8px 8px / 16px 16px,
+		#fff;
+}
+.ad-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	display: block;
+}
+
+.ad-badge {
+	position: absolute;
+	top: 6px;
+	left: 6px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	color: #fff;
+	background: #b07d8d;
+}
+.ad-on .ad-badge { background: var(--green); }
+
+.ad-info { display: flex; flex-direction: column; gap: 4px; }
+.ad-title { font-weight: 600; word-break: break-word; }
+.ad-line { font-size: 12px; color: var(--muted); }
+.ad-tags { color: var(--pink); }
+.ad-id { font-family: ui-monospace, Consolas, monospace; }
+
+.ad-info button { margin-top: 6px; font-size: 13px; padding: 8px 12px; }
+.ad-btn-show { background: var(--green); }
+.ad-btn-show:hover { background: var(--green-dark); }
+.ad-btn-hide { background: #b07d8d; }
+.ad-btn-hide:hover { background: #96636f; }
+
+/* 分頁 */
+.ad-pager {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	margin-top: 18px;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+/* ===== 蛋殼喵 Emoji 字型（語言圖示用；從主站 apng.css 搬最小一組過來） =====
+   路徑從 /admin/admin.css 出發 → ../webfonts/ 就是主站的字型資料夾 */
+@font-face {
+	font-family: 'CatEmoji';
+	font-style: normal;
+	font-display: block;
+	src: url(../webfonts/EggshellCat.woff) format("woff"),
+		url(../webfonts/EggshellCat.ttf) format("truetype");
+}
+
+.cat {
+	font-family: 'CatEmoji', sans-serif;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-font-smoothing: antialiased;
+	display: inline-block;
+	font-style: normal;
+	font-weight: 300;
+	font-variant: normal;
+	text-rendering: auto;
+	line-height: 1;
+}
+
+/* 圖示碼位：cat-089／116 給超連結用；cat-213~239 是五個語言鈕（編號與主站 index.html 一致） */
+.cat-089:before { content: "\F0058"; }   /* Home */
+.cat-116:before { content: "\F0073"; }   /* GitHub */
+.cat-213:before { content: "\F00D4"; }   /* 简体中文 */
+.cat-214:before { content: "\F00D5"; }   /* 繁體中文 */
+.cat-215:before { content: "\F00D6"; }   /* English */
+.cat-216:before { content: "\F00D7"; }   /* 日本語 */
+.cat-239:before { content: "\F00EE"; }   /* ไทย */
+
+/* 手機 */
+@media (max-width: 560px) {
+	.ad-wrap { padding: 16px 10px 48px; }
+	.ad-head h1 { font-size: 20px; }
+	.ad-grid { grid-template-columns: 1fr; }
+	.ad-toolbar { align-items: flex-start; }
+
+	/* 窄螢幕：語言鈕整組移到標題下方，靠左排 */
+	.ad-head-row { align-items: flex-start; }
+	.ad-langs {
+		width: 100%;
+		margin-left: 0;
+		margin-top: 8px;
+		justify-content: flex-start;
+	}
+}

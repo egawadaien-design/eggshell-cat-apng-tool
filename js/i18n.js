@@ -1,49 +1,14 @@
 /*
 	@author: [DaiEn]
 	@Date: 2026-11-23
-	@Correction: 63
-	本次修正：補齊日文（ja）缺少的 5 條——paramBands（色帶數量）、paramBlend（混合模式）、blendOverlay（疊加）、blendSoftLight（柔光）、blendScreen（濾色）。這 5 條 en／th 都有獨漏 ja，缺了會 fallback 回繁中，日文介面拉「彩虹波浪」會冒出中文標籤
-	上次修正：粒子網路補「聚散」——paramCluster（聚散）× 五語系，預設 60%，0% 均勻散佈、100% 縮成四團
-	本次修正：粒子網路補「色相流動」——paramHueFlow（色相流動）、flowOff（固定色）、flowOne（一輪轉一圈）、flowTwo（一輪轉兩圈）× 五語系
-	本次修正：新增特效「粒子網路 Particle Net」的 key——paramLink（連線距離）、pnFront（粒子在圖前）、pnBack（粒子在圖後）× 五語系，fxName_particles（繁中／簡中）；數量／擺動／色相沿用 paramCount／paramWobble／paramHue
-	本次修正：新增特效「火焰邊緣 Burning Edge」的 key——paramFlameLength（火焰高度）、paramFlameDensity（火焰密度）、paramFlameScope（火焰範圍）、flameInside（內焰）、flameOutside（外焰）× 五語系，fxName_flameEdge（繁中／簡中）
-	本次修正：新增特效「滿天愛心 Floating Hearts」的 key——paramWobble（擺動幅度）、hzFront（愛心在圖前）、hzBack（愛心在圖後）× 五語系，fxName_hearts（繁中／簡中）；數量／大小／速度沿用 paramCount／paramSize／paramSpeed
-	本次修正：新增 tpRotate（旋轉）× 五語系——文字面板多一支 0~360 度的旋轉滑桿
-	本次修正：新增特效「煙火 Fireworks」的 key——paramBursts（發數）、paramSparks（火花數）、paramLayer（圖層）、fwFront（煙火在圖前）、fwBack（煙火在圖後）× 五語系，fxName_fireworks（繁中／簡中）
-	本次修正：新增 paramBgDensity（黑底濃度）× 五語系——數碼雨 Matrix Rain 的黑底改成滑桿，0% 完全不蓋底、50% 壓暗一半
-	本次修正：新增「強度說明」12 個 key——fxKHintPrefix／Default／Bright／Glow／Alpha／Multiply／Count／Shadow／Fade／Shade／Size／None × 五語系（FX 頁「強度」下方那行會隨特效換字）
-	本次修正：新增特效「3D 方塊旋轉 Cube Spin」的 key——paramSpinAxis（旋轉軸）、axisRandom／axisX／axisY／axisZ／axisTilt（五種轉軸）、paramEdge（邊線）、paramShade（明暗）、paramBg（背景）、bgDim（暗化原圖）、bgTransparent（透明）× 五語系，fxName_cubeSpin（繁中／簡中）
-	上次修正：新增特效「漫畫效果 Comic Ink」的 key——paramDetail（精細度）、paramLineWidth（線條粗細）、paramInk（墨色濃度）、paramPaper（底色）、paperTransparent（透明）、paperWhite（白色）× 五語系，fxName_comic（繁中／簡中）
-	上次修正：新增特效「切割 Slice Split」的 key——paramCuts（切割數量）× 五語系、fxName_sliceSplit（繁中／簡中）
-	上次修正：再補 paramShadowOffset（陰影距離）、paramSlices（切片數），各五語系
-	上上次修正：再補 paramGrainSize（顆粒大小，各五語系）
-	上上次修正：新增通用參數 key paramRadius／paramOrbit／paramDensity（各五語系）
-	上上次修正：新增通用參數 key paramBeatGap（節拍間隔）×五語系
-	上上次修正：新增通用參數 key paramVignette（暗角範圍）×五語系
-	上上次修正：新增通用參數 key paramHue／paramStrength／paramBlur／paramGrid（各五語系）
-	上上次修正：震動 shake 加上專屬設定，新增通用方向 key dirBoth（雙向）×五語系
-	上上次修正：向左滑入＋向下滑入合併為「滑入 slideIn」，33 → 32，移除 4 條 fxName_*、新增 2 條 fxName_slideIn
-	上上次修正：刪掉四支太接近的特效（呼吸縮放／漣漪／底片顆粒／霓虹光暈），37 → 33，同步移除 8 條 fxName_*
-	上上次修正：特效合併 41 → 37，移除 4 條 fxName_*；新增 18 個參數 key（頻率／幅度／方向／色差位移／撕裂／掃描線…）
-	上上次修正：新增 paramBands / paramBlend / blendOverlay / blendSoftLight / blendScreen（rainbowWave 的色帶與混合模式）
-	上上次修正：applyLang() 補呼叫 fxRefreshLangTexts()（FX 狀態列／預覽提示／影格位置文字會跟著換語言）
-	上上次修正：新增對外 getLang()，applyLang() 時重畫 FX 特效清單（名稱是程式產生的，切語言原本不會跟著換）
-	上上次修正：新增 41 個特效名稱 fxName_*（繁中／簡中），其他語系沿用英文原名
-	上上次修正：paramColor 文案改通用（顏色），新增 paramCount / paramSize / paramSpeed（sparkle 的星點設定）
-	上上次修正：參數標籤改用通用 key（paramAngle / paramTurns / dirCW / colorWhite…），換特效或換頁面都能重用
-	上次修正：新增 fxpGlow / fxpPulses / fxpBreathe / fxpColor 與四個顏色名（pulseGlow 的獨立設定），五語系同步
-	上次修正：新增 fxpTurns / fxpDir / fxpDirCW / fxpDirCCW（colorCycle 的圈數與轉向），五語系同步
-	上次修正：新增 fxParams / fxpNone / fxpAngle / fxpBand / fxpFadeLen（FX 頁「特效設定」），五語系同步
-	上次修正：Help 常見問題第 6 題改寫為「可以加濾鏡特效嗎？」（現在支援簡單文字與濾鏡），五語系同步
-	上次修正：新增 helpText（Help「怎麼用」的文字面板那一步），五語系同步
-	上次修正：新增 tpFade（顯示格範圍的淡入淡出勾選），五語系同步
-	上次修正：新增 tpFrom / tpFromHint / tpTo / tpToHint（文字顯示格範圍），五語系同步
-	上次修正：新增 tpLoadFonts / tpFontGroup / tpFontDone / tpFontDenied（讀取本機字體用），五語系同步
-	上次修正：新增文字面板字串（tpPlaceholder / tpBold / textFont* 等）與 foHide、foShow，五語系同步
-	蛋殼喵 APNG 工具 — 多國語言包
-	支援 zh-TW / zh-CN / en / ja / th，自動跟隨瀏覽器，可手動切換
-	本次修正：新增 hideFrames / showFrames（收合／展開影格縮圖鈕，五語系同步）
-	上次修正：新增 data-i18n-img 支援（圖片路徑可寫 {lang} 佔位符，跟隨語系換圖）
+	@Correction: 69
+		本次修正：新增 Meme 頁「小紅心」的 2 條 key——memeLike／memeUnlike × 五語系（只用在 aria-label／title）
+	本次修正：新增「下載 WEBP」5 條 key——downloadWebpBtn／webpEncoding／webpDone／webpUnsupported／webpFail × 五語系
+	本次修正：introStep1 五語系改成「上傳 GIF、APNG或多張 PNG 圖片」——原本寫「影片」但站台不支援影片，改列真正支援的 APNG 匯入
+	本次修正：APNG 頁「輸出尺寸」下方新增「通用設置」——同步所有幀時間（輸入毫秒＋設置鈕），
+	　　　　　新增 generalSettings／gsSyncPrefix／gsUnit／gsApplyBtn／gsHint／gsNoFrames／gsDone／gsInvalid × 五語系
+	本次修正：APNG 頁支援匯入 WebP（ImageDecoder 逐格拆解、沿用每格延遲；不支援時只取第一格），
+	　　　　　並同步 dropHint／unsupported 文案與五語系 importedWebP 字串
 
 	This Source Code Form is subject to the terms of the Mozilla Public
 	License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -53,7 +18,7 @@
 const I18N = {
 	'zh-TW': {
 		title: '蛋殼喵 APNG 工具',
-		subtitle: '把一序列 PNG、APNG、GIF 打包成動畫 PNG',
+		subtitle: '把一序列 PNG、APNG、GIF、WebP 打包成動畫 PNG',
 		tabApp: 'Apng', tabReadme: 'APNG Tool 更新日誌', tabHelp: 'Help', tabMeme: 'Meme', supportBtn: '支持我們',
 		tabEmoji: 'EggshellCat Emoji', tabSrc: 'GitHub', tabPng: 'PNG',
 		pngTitle: 'PNG 貼圖製作',
@@ -97,7 +62,7 @@ const I18N = {
 		pngEraseColor: '刪除顏色',
 		pngEraser: '橡皮擦',
 		pngEraserSize: '橡皮擦大小',
-		dropHint: '把 PNG、APNG、GIF 圖片拖曳到這裡（可多選）',
+		dropHint: '把 PNG、APNG、GIF、WebP 圖片拖曳到這裡（可多選）',
 		dropOrClick: '或點此選擇檔案',
 		previewEmpty: '尚無圖片',
 		bgToggle: '棋盤格',
@@ -146,9 +111,17 @@ const I18N = {
 		color256: '256 色（較小檔）', color128: '128 色（更小）', colorFull: '全彩（最大檔但最細緻）',
 		outSize: '輸出尺寸',
 		outW: '輸出寬度（px）', outH: '輸出高度（px）', outHint: '設其一，另一邊自動等比',
+		generalSettings: '通用設置',
+		gsSyncPrefix: '同步所有幀時間為',
+		gsUnit: '毫秒',
+		gsApplyBtn: '設置',
+		gsHint: '按下「設置」後，所有影格的毫秒數都會變成這個值',
+		gsNoFrames: '尚無影格可設定',
+		gsDone: '已把所有影格的延遲設為 {ms} 毫秒',
+		gsInvalid: '請輸入 16～65535 之間的毫秒數',
 		fileList: '檔案清單',
 		helpTitle: '怎麼用',
-		helpStep1: '把 PNG / APNG / GIF 拖到虛線框（可多選）',
+		helpStep1: '把 PNG / APNG / GIF / WebP 拖到虛線框（可多選）',
 		helpStep2: '在每張縮圖卡片上調整該格的延遲毫秒（預設 100ms）',
 		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按鈕調整影格順序，<span class="cat cat-color06 cat-017"></span>&nbsp;刪除不需要的格',
 		helpStep3b: '點某張卡片選取該格，下方十字鍵&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;可把該格往上／下／左／右各移 2px，中間那顆鈕還原成剛載入時的樣子，右側也能直接打 X／Y 偏移量（每格各自獨立）',
@@ -157,7 +130,7 @@ const I18N = {
 		helpStep5: '需要縮放才填輸出寬高，留空 = 原圖大小',
 		helpStep6: '點「<span class="cat cat-color06 cat-033"></span>&nbsp;生成動畫」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下載 GIF」',
 		helpTip: '小提示',
-		helpTip1: '拖入現成的 APNG / GIF 會自動拆成影格並還原時間',
+		helpTip1: '拖入現成的 APNG / GIF / WebP 會自動拆成影格並還原時間',
 		helpTip2: '右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣',
 		helpTip3: '所有圖片都在你瀏覽器本機處理，不會上傳',
 		helpTip4: '輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動',
@@ -175,8 +148,8 @@ const I18N = {
 		faqA2: '在「基本設定」把色彩改成 256 色或 128 色（全彩檔案最大）；也可以減少影格數量，或在「輸出尺寸」填比較小的寬高。本工具沒有 lossy 壓縮滑桿，縮小檔案就是靠這三個方式。',
 		faqQ3: '我的圖片會被上傳嗎？',
 		faqA3: '生成、拆格、縮放、去背全部在瀏覽器本機用 Canvas 完成，圖片不會離開你的電腦。只有你主動按「分享我的圖片」時，檔案才會上傳到 Meme 展示牆，而且要經過審核才會公開顯示。',
-		faqQ4: '可以把現成的 GIF 或 APNG 丟進來改嗎？',
-		faqA4: '可以。拖進現成的 APNG 會逐格讀取 fcTL 的延遲時間拆成影格；GIF 用 omggif 解碼，會依 disposal 方式正確合成，不會出現殘影或斑點。',
+		faqQ4: '可以把現成的 GIF、APNG 或 WebP 丟進來改嗎？',
+		faqA4: '可以。拖進現成的 APNG 會逐格讀取 fcTL 的延遲時間拆成影格；GIF 用 omggif 解碼，會依 disposal 方式正確合成，不會出現殘影或斑點；WebP 用 WebCodecs 的 ImageDecoder 逐格解出並沿用每格延遲，瀏覽器不支援時只取第一格。',
 		faqQ5: '輸出後在 LINE 上不動或傳不上去？',
 		faqA5: '生成後會自動檢查 6 項 LINE 動態貼圖規範：總時間須為整數秒且不超過 4 秒、寬或高其中一邊須為 270px 且在 320×270 內、影格 5～20 格、播放 1～4 次（不可無限循環）、檔案小於 1MB。沒通過的項目會列在黃色警告列。',
 		faqQ6: '可以加濾鏡特效嗎？',
@@ -193,9 +166,11 @@ const I18N = {
 		memeSortDesc: '按時間：反序',
 		loading: '載入中...',
 		footerNote: '所有圖片皆在你的瀏覽器本機處理，不用上傳',
-		unsupported: '<span class="cat cat-052"></span>&nbsp;不支援的檔案：{list}（只接受 PNG / APNG / GIF）',
+		unsupported: '<span class="cat cat-052"></span>&nbsp;不支援的檔案：{list}（只接受 PNG / APNG / GIF / WebP）',
 		importedAPNG: '已匯入 APNG：{n} 格',
 		importedGIF: '已匯入 GIF：{n} 格',
+		importedWebP: '已匯入 WebP：{n} 格',
+		webpSingleFrame: '（此瀏覽器不支援動畫 WebP，僅取第一格）',
 		processing: '處理中...',
 		encoding: '正在編碼 APNG...',
 		done: '<small class="cat cat-018"></small>&nbsp;完成！共 {n} 影格',
@@ -210,11 +185,21 @@ const I18N = {
 		tagAll: '全部',
 		tag1: '開心', tag2: '傷心', tag3: '跳舞', tag4: '加油', tag5: '生氣',
 		tag6: '感謝', tag7: '道歉', tag8: '好棒', tag9: '可惜',
+		introFmtTitle: '多格式轉 APNG',
+		introFmtDesc: '支援 GIF、WebP、PNG 序列幀一鍵轉換為 APNG 格式，自動最佳化幀率與壓縮率。',
+		introEditTitle: '幀可視化編輯',
+		introEditDesc: '線上調整每幀延遲時間、循環次數、畫面裁剪，即時預覽動畫效果。',
+		introZipTitle: '智慧壓縮',
+		introZipDesc: '有損／無損壓縮可選，在畫質幾乎無損失的前提下減小 APNG 檔案體積 30%–70%。',
+		introHowTitle: '如何製作 APNG 動圖？',
+		introStep1: '上傳 GIF、APNG或多張 PNG 圖片',
+		introStep2: '調整幀順序、播放速度與循環次數',
+		introStep3: '選擇壓縮等級，點擊生成即可下載 APNG 檔案',
 	},
 
 	'zh-CN': {
 		title: '蛋壳喵 APNG 工具',
-		subtitle: '把一序列 PNG、APNG、GIF 打包成动画 PNG',
+		subtitle: '把一序列 PNG、APNG、GIF、WebP 打包成动画 PNG',
 		tabApp: 'Apng', tabReadme: 'APNG Tool 更新记录', tabHelp: 'Help', tabMeme: 'Meme', supportBtn: '支持我们',
 		tabEmoji: 'EggshellCat Emoji', tabSrc: 'GitHub', tabPng: 'PNG',
 		pngTitle: 'PNG 贴图制作',
@@ -258,7 +243,7 @@ const I18N = {
 		pngEraseColor: '删除颜色',
 		pngEraser: '橡皮擦',
 		pngEraserSize: '橡皮擦大小',
-		dropHint: '把 PNG、APNG、GIF 图片拖曳到这里（可多选）',
+		dropHint: '把 PNG、APNG、GIF、WebP 图片拖曳到这里（可多选）',
 		dropOrClick: '或点此选择文件',
 		previewEmpty: '尚无图片',
 		bgToggle: '棋盘格',
@@ -307,9 +292,17 @@ const I18N = {
 		color256: '256 色（较小档）', color128: '128 色（更小）', colorFull: '全彩（最大档但最细致）',
 		outSize: '输出尺寸',
 		outW: '输出宽度（px）', outH: '输出高度（px）', outHint: '设其一，另一边自动等比',
+		generalSettings: '通用设置',
+		gsSyncPrefix: '同步所有帧时间为',
+		gsUnit: '毫秒',
+		gsApplyBtn: '设置',
+		gsHint: '按下「设置」后，所有帧的毫秒数都会变成这个值',
+		gsNoFrames: '尚无帧可设置',
+		gsDone: '已将所有帧的延迟设为 {ms} 毫秒',
+		gsInvalid: '请输入 16～65535 之间的毫秒数',
 		fileList: '文件列表',
 		helpTitle: '怎么用',
-		helpStep1: '把 PNG / APNG / GIF 拖到虚线框（可多选）',
+		helpStep1: '把 PNG / APNG / GIF / WebP 拖到虚线框（可多选）',
 		helpStep2: '在每张缩略图卡片上调整该格的延迟毫秒（默认 100ms）',
 		helpStep3: '用卡片下方的&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;按钮调整帧顺序，<span class="cat cat-color06 cat-017"></span>&nbsp;删除不需要的格',
 		helpStep3b: '点某张卡片选中该影格，下方十字键&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;可把该格往上／下／左／右各移 2px，中间那颗钮还原成刚载入时的样子，右侧也能直接打 X／Y 偏移量（每格各自独立）',
@@ -318,7 +311,7 @@ const I18N = {
 		helpStep5: '需要缩放才填输出宽高，留空 = 原图大小',
 		helpStep6: '点「<span class="cat cat-color06 cat-033"></span>&nbsp;生成动画」→「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 APNG」或「<span class="cat cat-color06 cat-022"></span>&nbsp;下载 GIF」',
 		helpTip: '小提示',
-		helpTip1: '拖入现成的 APNG / GIF 会自动拆成帧并还原时间',
+		helpTip1: '拖入现成的 APNG / GIF / WebP 会自动拆成帧并还原时间',
 		helpTip2: '右上的棋盘格 / 黑色按钮可以切换预览背景，方便看透明边缘',
 		helpTip3: '所有图片都在你浏览器本机处理，不会上传',
 		helpTip4: '输出的 PNG 是 APNG 格式，发 Discord / Telegram / LINE 都会动',
@@ -336,8 +329,8 @@ const I18N = {
 		faqA2: '在「基本设置」把色彩改成 256 色或 128 色（全彩文件最大）；也可以减少帧数，或在「输出尺寸」填较小的宽高。本工具没有 lossy 压缩滑块，缩小文件就靠这三种方式。',
 		faqQ3: '我的图片会被上传吗？',
 		faqA3: '生成、拆帧、缩放、去背全部在浏览器本地用 Canvas 完成，图片不会离开你的电脑。只有你主动点「分享我的图片」时，文件才会上传到 Meme 展示墙，而且要审核后才会公开显示。',
-		faqQ4: '可以把现成的 GIF 或 APNG 拖进来改吗？',
-		faqA4: '可以。拖入现成的 APNG 会逐帧读取 fcTL 的延迟时间拆成帧；GIF 用 omggif 解码，会按 disposal 方式正确合成，不会出现残影或斑点。',
+		faqQ4: '可以把现成的 GIF、APNG 或 WebP 拖进来改吗？',
+		faqA4: '可以。拖入现成的 APNG 会逐帧读取 fcTL 的延迟时间拆成帧；GIF 用 omggif 解码，会按 disposal 方式正确合成，不会出现残影或斑点；WebP 用 WebCodecs 的 ImageDecoder 逐帧解码并沿用每帧延迟，浏览器不支持时只取第一帧。',
 		faqQ5: '输出后在 LINE 上不动或传不上去？',
 		faqA5: '生成后会自动检查 6 项 LINE 动态贴图规范：总时间须为整数秒且不超过 4 秒、宽或高其中一边须为 270px 且在 320×270 内、帧数 5～20、播放 1～4 次（不可无限循环）、文件小于 1MB。未通过的项会列在黄色警告条。',
 		faqQ6: '可以加滤镜特效吗？',
@@ -354,9 +347,11 @@ const I18N = {
 		memeSortDesc: '按时间：反序',
 		loading: '加载中...',
 		footerNote: '所有图片都在你的浏览器本机处理，不上传',
-		unsupported: '<span class="cat cat-052"></span>&nbsp;不支持的文件：{list}（只接受 PNG / APNG / GIF）',
+		unsupported: '<span class="cat cat-052"></span>&nbsp;不支持的文件：{list}（只接受 PNG / APNG / GIF / WebP）',
 		importedAPNG: '已导入 APNG：{n} 帧',
 		importedGIF: '已导入 GIF：{n} 帧',
+		importedWebP: '已导入 WebP：{n} 帧',
+		webpSingleFrame: '（此浏览器不支持动画 WebP，仅取第一帧）',
 		processing: '处理中...',
 		encoding: '正在编码 APNG...',
 		done: '<small class="cat cat-018"></small>&nbsp;完成！共 {n} 帧',
@@ -371,11 +366,21 @@ const I18N = {
 		tagAll: '全部',
 		tag1: '开心', tag2: '伤心', tag3: '跳舞', tag4: '加油', tag5: '生气',
 		tag6: '感谢', tag7: '道歉', tag8: '好棒', tag9: '可惜',
+		introFmtTitle: '多格式转APNG',
+		introFmtDesc: '支持 GIF、WebP、PNG 序列帧一键转换为 APNG 格式，自动优化帧率与压缩率。',
+		introEditTitle: '帧可视化编辑',
+		introEditDesc: '在线调整每帧延迟时间、循环次数、画面裁剪，实时预览动画效果。',
+		introZipTitle: '智能压缩',
+		introZipDesc: '有损/无损压缩可选，在画质几乎无损失的前提下减小 APNG 文件体积 30%-70%。',
+		introHowTitle: '如何制作APNG动图？',
+		introStep1: '上传 GIF、APNG或多张 PNG 图片',
+		introStep2: '调整帧顺序、播放速度与循环次数',
+		introStep3: '选择压缩等级，点击生成即可下载 APNG 文件',
 	},
 
 	'en': {
 		title: 'EggshellCat APNG Tool',
-		subtitle: 'Pack a sequence of PNG / APNG / GIF into an animated PNG',
+		subtitle: 'Pack a sequence of PNG / APNG / GIF / WebP into an animated PNG',
 		tabApp: 'Apng', tabReadme: 'APNG Tool Changelog', tabHelp: 'Help', tabMeme: 'Meme', supportBtn: 'Support Us',
 		tabEmoji: 'EggshellCat Emoji', tabSrc: 'GitHub', tabPng: 'PNG',
 		pngTitle: 'PNG Sticker Maker',
@@ -419,7 +424,7 @@ const I18N = {
 		pngEraseColor: 'Erase color',
 		pngEraser: 'Eraser',
 		pngEraserSize: 'Eraser size',
-		dropHint: 'Drag & drop PNG / APNG / GIF here (multi-select)',
+		dropHint: 'Drag & drop PNG / APNG / GIF / WebP here (multi-select)',
 		dropOrClick: 'or click to browse',
 		previewEmpty: 'No images',
 		bgToggle: 'Checker',
@@ -468,9 +473,17 @@ const I18N = {
 		color256: '256 colors (smaller)', color128: '128 colors (even smaller)', colorFull: 'Full color (largest, best quality)',
 		outSize: 'Output size',
 		outW: 'Width (px)', outH: 'Height (px)', outHint: 'Set one, the other auto-scales',
+		generalSettings: 'General Settings',
+		gsSyncPrefix: 'Sync all frame timing to',
+		gsUnit: 'ms',
+		gsApplyBtn: 'Apply',
+		gsHint: 'Every frame will use this delay after you press Apply',
+		gsNoFrames: 'No frames to apply yet',
+		gsDone: 'All frame delays set to {ms} ms',
+		gsInvalid: 'Enter a value between 16 and 65535 ms',
 		fileList: 'File list',
 		helpTitle: 'How to use',
-		helpStep1: 'Drag PNG / APNG / GIF files into the drop zone (multi-select)',
+		helpStep1: 'Drag PNG / APNG / GIF / WebP files into the drop zone (multi-select)',
 		helpStep2: 'Adjust per-frame delay (ms) on each thumbnail card (default 100ms)',
 		helpStep3: 'Use&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;to reorder frames, <span class="cat cat-color06 cat-017"></span>&nbsp;to delete',
 		helpStep3b: 'Select a frame, then use the cross keys&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;below to nudge it up / down / left / right by 2px. The middle key restores that frame to how it looked when loaded, and you can type exact X / Y offsets on the right — every frame keeps its own offset.',
@@ -479,7 +492,7 @@ const I18N = {
 		helpStep5: 'Only set output W/H if you need to resize; leave blank = original size',
 		helpStep6: 'Click "<span class="cat cat-color06 cat-033"></span>&nbsp;Make Animation" → "<span class="cat cat-color06 cat-022"></span>&nbsp;Download APNG" or "<span class="cat cat-color06 cat-022"></span>&nbsp;Download GIF"',
 		helpTip: 'Tips',
-		helpTip1: 'Drag in existing APNG / GIF to auto-split into frames with restored timing',
+		helpTip1: 'Drag in existing APNG / GIF / WebP to auto-split into frames with restored timing',
 		helpTip2: 'Toggle checkerboard / black background to inspect transparent edges',
 		helpTip3: 'All processing happens locally in your browser — nothing is uploaded',
 		helpTip4: 'Output PNG is APNG — animated on Discord / Telegram / LINE',
@@ -497,8 +510,8 @@ const I18N = {
 		faqA2: 'In Basic Settings, switch the color depth to 256 or 128 colors (full color is the largest). You can also remove frames, or enter a smaller width or height under Output Size. There is no lossy compression slider here, so those three levers are how you shrink a file.',
 		faqQ3: 'Do my images get uploaded to a server?',
 		faqA3: 'Generating, splitting, resizing and background removal all run locally in your browser with the Canvas API, so your images never leave your device. Files are only uploaded if you press "Share my image", which sends them to the Meme wall where they stay hidden until approved.',
-		faqQ4: 'Can I drop in an existing GIF or APNG and edit it?',
-		faqA4: 'Yes. An existing APNG is split frame by frame using each fcTL delay, and GIFs are decoded with omggif and composited according to their disposal method, so no ghosting or speckled frames appear.',
+		faqQ4: 'Can I drop in an existing GIF, APNG or WebP and edit it?',
+		faqA4: 'Yes. An existing APNG is split frame by frame using each fcTL delay, and GIFs are decoded with omggif and composited according to their disposal method, so no ghosting or speckled frames appear. Animated WebP is decoded frame by frame with WebCodecs ImageDecoder, keeping each frame’s own delay; browsers without it only yield the first frame.',
 		faqQ5: 'Why does my animation not play or upload on LINE?',
 		faqA5: 'After generating, the tool checks six LINE animated sticker rules for you: total duration must be a whole number of seconds and at most 4 seconds, width or height must be 270px and within 320×270, 5 to 20 frames, 1 to 4 plays (no infinite loop), and under 1MB. Anything that fails is listed in the yellow warning box.',
 		faqQ6: 'Can I add filter effects?',
@@ -515,9 +528,11 @@ const I18N = {
 		memeSortDesc: 'Sort: Newest',
 		loading: 'Loading...',
 		footerNote: 'All images are processed locally in your browser, nothing uploaded',
-		unsupported: '<span class="cat cat-052"></span>&nbsp;Unsupported: {list} (only PNG / APNG / GIF)',
+		unsupported: '<span class="cat cat-052"></span>&nbsp;Unsupported: {list} (only PNG / APNG / GIF / WebP)',
 		importedAPNG: 'Imported APNG: {n} frames',
 		importedGIF: 'Imported GIF: {n} frames',
+		importedWebP: 'Imported WebP: {n} frames',
+		webpSingleFrame: '(animated WebP unsupported here — first frame only)',
 		processing: 'Processing...',
 		encoding: 'Encoding APNG...',
 		done: '<small class="cat cat-018"></small>&nbsp;Done! {n} frames',
@@ -532,11 +547,21 @@ const I18N = {
 		tagAll: 'All',
 		tag1: 'Happy', tag2: 'Sad', tag3: 'Dance', tag4: 'Fighting', tag5: 'Angry',
 		tag6: 'Thanks', tag7: 'Sorry', tag8: 'Great', tag9: 'Shame',
+		introFmtTitle: 'Multi-format to APNG',
+		introFmtDesc: 'Turn GIF, WebP or a PNG sequence into APNG in one click, with frame rate and compression tuned automatically.',
+		introEditTitle: 'Visual frame editing',
+		introEditDesc: 'Adjust each frame duration, loop count and crop online, with the animation preview updating instantly.',
+		introZipTitle: 'Smart compression',
+		introZipDesc: 'Choose lossy or lossless compression and shrink the APNG file by 30–70% with almost no visible quality loss.',
+		introHowTitle: 'How to make an APNG animation?',
+		introStep1: 'Upload a GIF, an APNG, or several PNG images',
+		introStep2: 'Adjust frame order, playback speed and loop count',
+		introStep3: 'Pick a compression level, click Generate, and download the APNG file',
 	},
 
 	'ja': {
 		title: 'エッグシェル・ミャオ APNG ツール',
-		subtitle: 'PNG / APNG / GIF を連結してアニメーション PNG に',
+		subtitle: 'PNG / APNG / GIF / WebP を連結してアニメーション PNG に',
 		tabApp: 'Apng', tabReadme: 'APNG Tool 変更履歴', tabHelp: 'Help', tabMeme: 'Meme', supportBtn: 'サポート',
 		tabEmoji: 'EggshellCat Emoji', tabSrc: 'GitHub', tabPng: 'PNG',
 		pngTitle: 'PNG スタンプメーカー',
@@ -580,7 +605,7 @@ const I18N = {
 		pngEraseColor: '色削除',
 		pngEraser: '消しゴム',
 		pngEraserSize: '消しゴムサイズ',
-		dropHint: 'PNG / APNG / GIF をここにドラッグ（複数可）',
+		dropHint: 'PNG / APNG / GIF / WebP をここにドラッグ（複数可）',
 		dropOrClick: 'またはクリックして選択',
 		previewEmpty: '画像なし',
 		bgToggle: '市松模様',
@@ -629,9 +654,17 @@ const I18N = {
 		color256: '256色（軽量）', color128: '128色（さらに軽量）', colorFull: 'フルカラー（最高画質）',
 		outSize: '出力サイズ',
 		outW: '幅（px）', outH: '高さ（px）', outHint: 'どちらか入力で自動計算',
+		generalSettings: '共通設定',
+		gsSyncPrefix: 'すべてのフレーム時間を',
+		gsUnit: 'ミリ秒',
+		gsApplyBtn: '設定',
+		gsHint: '「設定」を押すと、全フレームのミリ秒がこの値になります',
+		gsNoFrames: '設定できるフレームがありません',
+		gsDone: '全フレームの遅延を {ms} ミリ秒に設定しました',
+		gsInvalid: '16～65535 のミリ秒を入力してください',
 		fileList: 'ファイル一覧',
 		helpTitle: '使い方',
-		helpStep1: 'PNG / APNG / GIF をドロップゾーンにドラッグ（複数可）',
+		helpStep1: 'PNG / APNG / GIF / WebP をドロップゾーンにドラッグ（複数可）',
 		helpStep2: '各サムネイルでフレームごとの遅延 ms を調整（既定 100ms）',
 		helpStep3: 'カード下の&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;で並び替え、<span class="cat cat-color06 cat-017"></span>&nbsp;で削除',
 		helpStep3b: 'フレームを選ぶと、下の十字キー&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;で上下左右へ 2px ずつ動かせます。中央のキーで読み込み時の状態に戻り、右側で X / Y オフセットを直接入力することもできます（設定はフレームごとに独立）。',
@@ -640,7 +673,7 @@ const I18N = {
 		helpStep5: 'リサイズが必要な場合のみ幅/高さを入力（空欄 = 原寸）',
 		helpStep6: '「<span class="cat cat-color06 cat-033"></span>&nbsp;アニメーション生成」→「<span class="cat cat-color06 cat-022"></span>&nbsp;APNGを保存」または「<span class="cat cat-color06 cat-022"></span>&nbsp;GIFを保存」',
 		helpTip: 'ヒント',
-		helpTip1: '既存の APNG / GIF をドロップするとフレーム分割して時間も復元',
+		helpTip1: '既存の APNG / GIF / WebP をドロップするとフレーム分割して時間も復元',
 		helpTip2: '右上の市松/黒ボタンで背景を切替、透明エッジを確認',
 		helpTip3: 'すべてブラウザ内で処理、アップロードなし',
 		helpTip4: '出力 PNG は APNG 形式、Discord / Telegram / LINE で動く',
@@ -658,8 +691,8 @@ const I18N = {
 		faqA2: '「基本設定」で色数を 256 色または 128 色に変更してください（フルカラーが最大です）。フレームを減らす、または「出力サイズ」に小さい幅・高さを入れる方法もあります。lossy 圧縮スライダーは搭載していないため、小さくする手段はこの 3 つです。',
 		faqQ3: '画像はサーバーにアップロードされますか？',
 		faqA3: '生成・フレーム分割・拡大縮小・背景除去はすべてブラウザ内の Canvas API で処理され、画像が端末から出ることはありません。「画像をシェア」を押したときだけ Meme 展示ページへアップロードされ、承認されるまで公開されません。',
-		faqQ4: '手持ちの GIF / APNG を読み込んで編集できますか？',
-		faqA4: 'できます。APNG は各 fcTL の遅延時間を読み取ってフレームに分解し、GIF は omggif でデコードして disposal に従って合成するため、残像や斑点は出ません。',
+		faqQ4: '手持ちの GIF / APNG / WebP を読み込んで編集できますか？',
+		faqA4: 'できます。APNG は各 fcTL の遅延時間を読み取ってフレームに分解し、GIF は omggif でデコードして disposal に従って合成するため、残像や斑点は出ません。WebP は WebCodecs の ImageDecoder で 1 フレームずつデコードし、各フレームの遅延時間をそのまま使います（非対応ブラウザでは先頭フレームのみ）。',
 		faqQ5: '出力したアニメが LINE で動かない、送れない',
 		faqA5: '生成後に LINE のアニメーションスタンプ 6 条件を自動チェックします：合計時間が整数秒かつ 4 秒以内、幅または高さが 270px かつ 320×270 以内、5～20 フレーム、再生 1～4 回（無限ループ不可）、1MB 未満。満たさない項目は黄色の警告欄に表示されます。',
 		faqQ6: 'フィルター効果は追加できますか？',
@@ -676,9 +709,11 @@ const I18N = {
 		memeSortDesc: '並び替え：降順',
 		loading: '読み込み中...',
 		footerNote: 'すべての画像はブラウザ内で処理され、アップロードされません',
-		unsupported: '<span class="cat cat-052"></span>&nbsp;未対応ファイル：{list}（PNG / APNG / GIF のみ）',
+		unsupported: '<span class="cat cat-052"></span>&nbsp;未対応ファイル：{list}（PNG / APNG / GIF / WebP のみ）',
 		importedAPNG: 'APNG 取り込み：{n} フレーム',
 		importedGIF: 'GIF 取り込み：{n} フレーム',
+		importedWebP: 'WebP 取り込み：{n} フレーム',
+		webpSingleFrame: '（このブラウザはアニメーション WebP 非対応・先頭フレームのみ）',
 		processing: '処理中...',
 		encoding: 'APNG エンコード中...',
 		done: '<small class="cat cat-018"></small>&nbsp;完了！全 {n} フレーム',
@@ -693,11 +728,21 @@ const I18N = {
 		tagAll: 'すべて',
 		tag1: '嬉しい', tag2: '悲しい', tag3: 'ダンス', tag4: '頑張れ', tag5: '怒り',
 		tag6: '感謝', tag7: 'ごめんね', tag8: 'すごい', tag9: '残念',
+		introFmtTitle: '多形式から APNG へ変換',
+		introFmtDesc: 'GIF・WebP・PNG 連番画像をワンクリックで APNG に変換し、フレームレートと圧縮率を自動で最適化します。',
+		introEditTitle: 'フレームを目で確認しながら編集',
+		introEditDesc: '各フレームの表示時間・ループ回数・切り抜きをオンラインで調整し、アニメーションをその場でプレビューできます。',
+		introZipTitle: 'スマート圧縮',
+		introZipDesc: '非可逆・可逆圧縮を選べ、画質をほぼ損なわずに APNG のファイルサイズを 30〜70% 削減できます。',
+		introHowTitle: 'APNG アニメの作り方',
+		introStep1: 'GIF・APNG・複数の PNG 画像をアップロード',
+		introStep2: 'フレームの順序・再生速度・ループ回数を調整',
+		introStep3: '圧縮レベルを選んで生成を押すと、APNG ファイルをダウンロードできます',
 	},
 
 	'th': {
 		title: 'EggshellCat APNG Tool',
-		subtitle: 'รวม PNG / APNG / GIF เป็นภาพเคลื่อนไหว PNG',
+		subtitle: 'รวม PNG / APNG / GIF / WebP เป็นภาพเคลื่อนไหว PNG',
 		tabApp: 'Apng', tabReadme: 'APNG Tool ประวัติ', tabHelp: 'Help', tabMeme: 'Meme', supportBtn: 'สนับสนุน',
 		tabEmoji: 'EggshellCat Emoji', tabSrc: 'GitHub', tabPng: 'PNG',
 		pngTitle: 'สร้างสติกเกอร์ PNG',
@@ -741,7 +786,7 @@ const I18N = {
 		pngEraseColor: 'ลบสี',
 		pngEraser: 'ยางลบ',
 		pngEraserSize: 'ขนาดยางลบ',
-		dropHint: 'ลาก PNG / APNG / GIF มาวางที่นี่ (เลือกหลายไฟล์ได้)',
+		dropHint: 'ลาก PNG / APNG / GIF / WebP มาวางที่นี่ (เลือกหลายไฟล์ได้)',
 		dropOrClick: 'หรือคลิกเพื่อเลือกไฟล์',
 		previewEmpty: 'ยังไม่มีภาพ',
 		bgToggle: 'ตารางหมากรุก',
@@ -790,9 +835,17 @@ const I18N = {
 		color256: '256 สี (ไฟล์เล็ก)', color128: '128 สี (เล็กกว่า)', colorFull: 'เต็มสี (ใหญ่สุด คมชัดสุด)',
 		outSize: 'ขนาดส่งออก',
 		outW: 'กว้าง (px)', outH: 'สูง (px)', outHint: 'ใส่ค่าใดค่าหนึ่ง อีกด้านจะปรับตามสัดส่วน',
+		generalSettings: 'ตั้งค่าทั่วไป',
+		gsSyncPrefix: 'ตั้งเวลาเฟรมทั้งหมดเป็น',
+		gsUnit: 'มิลลิวินาที',
+		gsApplyBtn: 'ตั้งค่า',
+		gsHint: 'หลังกด «ตั้งค่า» ทุกเฟรมจะใช้เวลาหน่วงค่านี้',
+		gsNoFrames: 'ยังไม่มีเฟรมให้ตั้งค่า',
+		gsDone: 'ตั้งเวลาหน่วงทุกเฟรมเป็น {ms} มิลลิวินาทีแล้ว',
+		gsInvalid: 'กรุณากรอกค่าระหว่าง 16–65535 มิลลิวินาที',
 		fileList: 'รายการไฟล์',
 		helpTitle: 'วิธีใช้',
-		helpStep1: 'ลากไฟล์ PNG / APNG / GIF มาวางในกรอบเส้นประ (เลือกหลายไฟล์ได้)',
+		helpStep1: 'ลากไฟล์ PNG / APNG / GIF / WebP มาวางในกรอบเส้นประ (เลือกหลายไฟล์ได้)',
 		helpStep2: 'ปรับเวลาหน่วงต่อเฟรม (ms) การ์ดภาพขนาดย่อ (ค่าเริ่มต้น 100ms)',
 		helpStep3: 'ใช้&nbsp;<span class="cat cat-color06"><span class="cat-086"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span>&nbsp;<span class="cat-087"></span></span>&nbsp;จัดลำดับเฟรม <span class="cat cat-color06 cat-017"></span>&nbsp;ลบเฟรมที่ไม่ต้องการ',
 		helpStep3b: 'เลือกเฟรมแล้วใช้ปุ่มลูกศร&nbsp;<span class="cat cat-color06"><span class="cat-081"></span>&nbsp;<span class="cat-249"></span>&nbsp;<span class="cat-082"></span>&nbsp;<span class="cat-083"></span></span>&nbsp;ด้านล่างเลื่อนขึ้น／ลง／ซ้าย／ขวาได้ครั้งละ 2px ปุ่มตรงกลางคืนค่าเป็นตอนที่โหลดเข้ามา และพิมพ์ค่า X / Y เองได้ทางด้านขวา (แยกกันในแต่ละเฟรม)',
@@ -801,7 +854,7 @@ const I18N = {
 		helpStep5: 'กรอกขนาดส่งออกเฉพาะตอนต้องการปรับขนาด เว้นว่าง = ขนาดเดิม',
 		helpStep6: 'กด «<span class="cat cat-color06 cat-033"></span>&nbsp;สร้างภาพเคลื่อนไหว» → «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด APNG» หรือ «<span class="cat cat-color06 cat-022"></span>&nbsp;ดาวน์โหลด GIF»',
 		helpTip: 'เคล็ดลับ',
-		helpTip1: 'ลาก APNG / GIF ที่มีอยู่แล้วจะแยกเป็นเฟรมและกู้คืนเวลาเอง',
+		helpTip1: 'ลาก APNG / GIF / WebP ที่มีอยู่แล้วจะแยกเป็นเฟรมและกู้คืนเวลาเอง',
 		helpTip2: 'ปุ่มตารางหมากรุก / ดำ ที่มุมขวาบนใช้สลับพื้นหลังดูขอบโปร่ง',
 		helpTip3: 'ประมวลผลทั้งหมดในเบราว์เซอร์ของคุณ ไม่อัปโหลดขึ้นเซิร์ฟเวอร์',
 		helpTip4: 'ไฟล์ PNG ที่ส่งออกเป็น APNG เล่นบน Discord / Telegram / LINE ได้',
@@ -819,8 +872,8 @@ const I18N = {
 		faqA2: 'ใน "การตั้งค่าพื้นฐาน" ให้เปลี่ยนจำนวนสีเป็น 256 สี หรือ 128 สี (โหมดสีเต็มมีขนาดใหญ่สุด) หรือลดจำนวนเฟรม หรือใส่ความกว้าง/ความสูงที่เล็กลงใน "ขนาดเอาต์พุต" เครื่องมือนี้ไม่มีแถบเลื่อนบีบอัดแบบ lossy จึงใช้สามวิธีนี้ในการลดขนาดไฟล์',
 		faqQ3: 'รูปภาพของฉันจะถูกอัปโหลดหรือไม่?',
 		faqA3: 'การสร้าง แยกเฟรม ย่อขยาย และลบพื้นหลังทำในเบราว์เซอร์ด้วย Canvas API ทั้งหมด รูปจึงไม่ออกจากเครื่องคุณ จะอัปโหลดก็ต่อเมื่อคุณกด "แชร์ภาพของฉัน" ซึ่งส่งไปยังหน้า Meme และจะไม่แสดงจนกว่าจะอนุมัติ',
-		faqQ4: 'นำ GIF หรือ APNG ที่มีอยู่มาแก้ไขได้ไหม?',
-		faqA4: 'ได้ APNG จะถูกแยกเป็นเฟรมโดยอ่านเวลาหน่วงจาก fcTL ส่วน GIF ถอดรหัสด้วย omggif และประกอบตามวิธี disposal จึงไม่เกิดภาพซ้อนหรือจุดสีแปลก',
+		faqQ4: 'นำ GIF, APNG หรือ WebP ที่มีอยู่มาแก้ไขได้ไหม?',
+		faqA4: 'ได้ APNG จะถูกแยกเป็นเฟรมโดยอ่านเวลาหน่วงจาก fcTL ส่วน GIF ถอดรหัสด้วย omggif และประกอบตามวิธี disposal จึงไม่เกิดภาพซ้อนหรือจุดสีแปลก และ WebP จะถูกถอดรหัสทีละเฟรมด้วย ImageDecoder ของ WebCodecs พร้อมใช้เวลาหน่วงของแต่ละเฟรม (เบราว์เซอร์ที่ไม่รองรับจะได้เฉพาะเฟรมแรก)',
 		faqQ5: 'ทำไมไฟล์ที่สร้างไม่เล่นหรืออัปโหลดขึ้น LINE ไม่ได้?',
 		faqA5: 'หลังสร้างเสร็จ เครื่องมือจะตรวจ 6 ข้อของสติกเกอร์ภาพเคลื่อนไหว LINE ให้อัตโนมัติ: เวลารวมต้องเป็นจำนวนวินาทีเต็มและไม่เกิน 4 วินาที ความกว้างหรือความสูงต้องเป็น 270px และอยู่ใน 320×270 จำนวนเฟรม 5-20 เล่น 1-4 ครั้ง (ห้ามวนไม่จำกัด) และไฟล์ต่ำกว่า 1MB ข้อที่ไม่ผ่านจะแสดงในกรอบเตือนสีเหลือง',
 		faqQ6: 'เพิ่มเอฟเฟกต์ฟิลเตอร์ได้ไหม?',
@@ -837,9 +890,11 @@ const I18N = {
 		memeSortDesc: 'เรียง: ใหม่สุด',
 		loading: 'กำลังโหลด...',
 		footerNote: 'รูปภาพทั้งหมดประมวลผลในเบราว์เซอร์ของคุณ ไม่มีการอัปโหลด',
-		unsupported: '<span class="cat cat-052"></span>&nbsp;ไฟล์ที่ไม่รองรับ: {list} (รับเฉพาะ PNG / APNG / GIF)',
+		unsupported: '<span class="cat cat-052"></span>&nbsp;ไฟล์ที่ไม่รองรับ: {list} (รับเฉพาะ PNG / APNG / GIF / WebP)',
 		importedAPNG: 'นำเข้า APNG แล้ว: {n} เฟรม',
 		importedGIF: 'นำเข้า GIF แล้ว: {n} เฟรม',
+		importedWebP: 'นำเข้า WebP แล้ว: {n} เฟรม',
+		webpSingleFrame: '(เบราว์เซอร์นี้ไม่รองรับ WebP แบบเคลื่อนไหว ดึงเฉพาะเฟรมแรก)',
 		processing: 'กำลังประมวลผล...',
 		encoding: 'กำลังเข้ารหัส APNG...',
 		done: '<small class="cat cat-018"></small>&nbsp;เสร็จสิ้น! ทั้งหมด {n} เฟรม',
@@ -854,6 +909,16 @@ const I18N = {
 		tagAll: 'ทั้งหมด',
 		tag1: 'มีความสุข', tag2: 'เศร้า', tag3: 'เต้น', tag4: 'สู้ๆ', tag5: 'โกรธ',
 		tag6: 'ขอบคุณ', tag7: 'ขอโทษ', tag8: 'เยี่ยมมาก', tag9: 'น่าเสียดาย',
+		introFmtTitle: 'แปลงหลายรูปแบบเป็น APNG',
+		introFmtDesc: 'แปลง GIF, WebP หรือชุดภาพ PNG เป็น APNG ในคลิกเดียว พร้อมปรับเฟรมเรตและอัตราการบีบอัดให้เหมาะสมอัตโนมัติ',
+		introEditTitle: 'แก้ไขเฟรมแบบเห็นภาพ',
+		introEditDesc: 'ปรับระยะเวลาของแต่ละเฟรม จำนวนรอบ และการครอบภาพออนไลน์ พร้อมดูตัวอย่างแอนิเมชันได้ทันที',
+		introZipTitle: 'บีบอัดอัจฉริยะ',
+		introZipDesc: 'เลือกบีบอัดแบบสูญเสียหรือไม่สูญเสียข้อมูลได้ ลดขนาดไฟล์ APNG ลง 30%–70% โดยคุณภาพแทบไม่เปลี่ยน',
+		introHowTitle: 'วิธีสร้างภาพเคลื่อนไหว APNG',
+		introStep1: 'อัปโหลด GIF, APNG หรือภาพ PNG หลายไฟล์',
+		introStep2: 'ปรับลำดับเฟรม ความเร็วในการเล่น และจำนวนรอบ',
+		introStep3: 'เลือกระดับการบีบอัด กดสร้าง แล้วดาวน์โหลดไฟล์ APNG',
 	},
 };
 
@@ -1857,6 +1922,73 @@ Object.assign(I18N['th'], {
 	flowTwo: 'หมุน 2 รอบต่อลูป',
 	pnFront: 'อนุภาคด้านหน้า',
 	pnBack: 'อนุภาคด้านหลัง'
+});
+
+
+// ============================================================
+// APNG 頁「下載 WEBP」的字串（按下才編碼，狀態列會顯示進度）
+// 不支援 WebP 編碼的瀏覽器（多為 Safari）只顯示提示，按鈕不隱藏
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	downloadWebpBtn: '下載 WEBP',
+	webpEncoding: '正在編碼 WEBP… {i}/{n}',
+	webpDone: '已下載 WEBP（約 {kb} KB）',
+	webpUnsupported: '此瀏覽器不支援 WEBP 編碼（Chrome／Edge／Firefox 可用），無法輸出動畫 WEBP',
+	webpFail: 'WEBP 輸出失敗：{msg}'
+});
+Object.assign(I18N['zh-CN'], {
+	downloadWebpBtn: '下载 WEBP',
+	webpEncoding: '正在编码 WEBP… {i}/{n}',
+	webpDone: '已下载 WEBP（约 {kb} KB）',
+	webpUnsupported: '此浏览器不支持 WEBP 编码（Chrome／Edge／Firefox 可用），无法输出动画 WEBP',
+	webpFail: 'WEBP 输出失败：{msg}'
+});
+Object.assign(I18N['en'], {
+	downloadWebpBtn: 'Download WEBP',
+	webpEncoding: 'Encoding WEBP… {i}/{n}',
+	webpDone: 'WEBP downloaded (~{kb} KB)',
+	webpUnsupported: 'This browser cannot encode WEBP (Chrome / Edge / Firefox can), so animated WEBP is unavailable.',
+	webpFail: 'WEBP export failed: {msg}'
+});
+Object.assign(I18N['ja'], {
+	downloadWebpBtn: 'WEBP をダウンロード',
+	webpEncoding: 'WEBP をエンコード中… {i}/{n}',
+	webpDone: 'WEBP をダウンロードしました（約 {kb} KB）',
+	webpUnsupported: 'このブラウザは WEBP のエンコードに未対応です（Chrome／Edge／Firefox で利用できます）',
+	webpFail: 'WEBP の出力に失敗しました：{msg}'
+});
+Object.assign(I18N['th'], {
+	downloadWebpBtn: 'ดาวน์โหลด WEBP',
+	webpEncoding: 'กำลังเข้ารหัส WEBP… {i}/{n}',
+	webpDone: 'ดาวน์โหลด WEBP แล้ว (ประมาณ {kb} KB)',
+	webpUnsupported: 'เบราว์เซอร์นี้ไม่รองรับการเข้ารหัส WEBP (ใช้ Chrome / Edge / Firefox ได้)',
+	webpFail: 'ส่งออก WEBP ไม่สำเร็จ: {msg}'
+});
+
+
+// ============================================================
+// Meme 頁「小紅心」的 key（只有 aria-label／title 用，畫面上只顯示圖示＋次數）
+// 未點亮 cat-123、已點亮 cat-252
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	memeLike: '按讚',
+	memeUnlike: '取消讚'
+});
+Object.assign(I18N['zh-CN'], {
+	memeLike: '点赞',
+	memeUnlike: '取消点赞'
+});
+Object.assign(I18N['en'], {
+	memeLike: 'Like',
+	memeUnlike: 'Unlike'
+});
+Object.assign(I18N['ja'], {
+	memeLike: 'いいね',
+	memeUnlike: 'いいねを取り消す'
+});
+Object.assign(I18N['th'], {
+	memeLike: 'ถูกใจ',
+	memeUnlike: 'เลิกถูกใจ'
 });
 
 

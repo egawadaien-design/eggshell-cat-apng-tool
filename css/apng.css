@@ -1,8 +1,13 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-13
-	@Correction: 45
-		本次修正：樣式鈕改成「裸圖示」——去掉粉框、白底與圓角（padding 2px），選中時橘底只比圖示大一圈；.tp-style 補 align-items: center 免得 flex 把按鈕拉寬讓橘底變成一大條
+	@Date: 2026-11-23
+	@Correction: 49
+		本次修正：Meme 卡片加「小紅心」按讚鈕樣式（.meme-like：未點亮 cat-123／已點亮 cat-252，
+		          右側次數用等寬數字，含 hover／active／focus-visible 與 .liked 狀態）
+		上次修正：#downloadWebpLink button.secondary 補進「下載按鈕專屬顏色」選擇器（深綠 rgb(20,100,80)），與下載 APNG／GIF 一致
+		上次修正：新增通用設置列樣式 .gs-row／.gs-unit／.gs-hint（一行式「文字＋數字框＋單位＋按鈕」，數字框固定 84px、寬度不被 .settings-group input 的 100% 撐開）
+		上次修正：新增 APNG 頁底部介紹區樣式 .apng-intro / .intro-grid / .intro-card / .intro-steps（三欄 1fr、間距 16px、卡片白底粉框圓角 12px），手機版（≤768px）改單欄
+		上次修正（2026-11-13）：樣式鈕改成「裸圖示」——去掉粉框、白底與圓角（padding 2px），選中時橘底只比圖示大一圈；.tp-style 補 align-items: center 免得 flex 把按鈕拉寬讓橘底變成一大條
 		上次修正：B／I／U 三顆樣式鈕改用圖示字型（cat-002／003／004），移除 .tp-b/.tp-i/.tp-u 的字母裝飾，改補 .tp-sbtn .cat 的大小與置中
 		上次修正：新增 .fx-khint（「強度」下方那行說明，左縮排對齊滑桿起點、11px 淡色）
 		上次修正：新增 .fx-param-row select（參數列的下拉選單寬度）
@@ -849,11 +854,11 @@ button:disabled { background: #d8b8c2; cursor: not-allowed; }
 button.secondary { background: #a08090; }
 button.secondary:hover { background: #8a6a7a; }
 /*下載按鈕專屬顏色*/
-#downloadLink button.secondary, #downloadGifLink button.secondary, #pngDownloadPng,
+#downloadLink button.secondary, #downloadGifLink button.secondary, #downloadWebpLink button.secondary, #pngDownloadPng,
 #pngSplitPreview, #pngConfirmBtn, #pngDownloadZip {
 	background: rgb(20, 100, 80);
 }
-#downloadLink button.secondary:hover, #downloadGifLink button.secondary:hover, #pngDownloadPng:hover,
+#downloadLink button.secondary:hover, #downloadGifLink button.secondary:hover, #downloadWebpLink button.secondary:hover, #pngDownloadPng:hover,
 #pngSplitPreview:hover, #pngConfirmBtn:hover, #pngDownloadZip:hover {
 	background: rgb(14, 75, 60);
 }
@@ -894,6 +899,39 @@ button.secondary:hover { background: #8a6a7a; }
 	font-size: 13px;
 }
 .settings-group small { color: #b090a0; font-size: 11px; }
+
+/* 通用設置：一行「同步所有幀時間為 [ 100 ] 毫秒 [設置]」
+   .settings-group input 預設 width:100%，這裡要覆寫成固定寬，才不會把按鈕擠到下一行 */
+.gs-row {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	font-size: 12px;
+	color: #806070;
+}
+.gs-row input[type="number"] {
+	width: 84px;
+	height: 32px;
+	flex: 0 0 auto;
+	padding: 6px;
+	border: 1px solid #e8c8d2;
+	border-radius: 6px;
+	font-size: 13px;
+	text-align: center;
+}
+/* 數字框的上下箭頭壓掉，外觀跟其他輸入框一致 */
+.gs-row input[type="number"]::-webkit-outer-spin-button,
+.gs-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.gs-row .gs-unit { white-space: nowrap; }
+.gs-row button {
+	height: 32px;
+	flex: 0 0 auto;
+	padding: 0 14px;
+	border-radius: 6px;
+	font-size: 13px;
+}
+.gs-hint { display: block; margin-top: 6px; }
 
 .file-list {
 	margin-top: 8px;
@@ -1626,10 +1664,56 @@ button.secondary:hover { background: #8a6a7a; }
 #fxStatus { color: #d4708a; font-size: 13px; min-height: 18px; }
 #fxInfo { font-size: 12px; color: #806070; }
 
+/* ===== APNG 頁底部介紹區：三欄特色（橫向）＋ 全寬「如何製作」步驟 ===== */
+.apng-intro {
+	max-width: 1200px;          /* 與 .main-layout 同寬，左右才會對齊上面的工作區 */
+	margin: 24px auto 0;        /* 上方留 24px 與工作區分隔，左右自動置中 */
+}
+.intro-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);   /* 三欄等寬橫向排列 */
+	gap: 16px;                                /* 間距沿用 main-layout 的 16px，視覺一致 */
+}
+.intro-card {
+	background: #fff;
+	border: 1px solid #f0d8e0;                /* 沿用站內卡片邊框色 */
+	border-radius: 12px;
+	padding: 16px 18px;
+}
+.intro-card h2 {
+	font-size: 15px;
+	color: #d4708a;                           /* 主色，與各區塊標題一致 */
+	margin-bottom: 8px;
+}
+.intro-card p {
+	font-size: 13px;
+	line-height: 1.8;
+	color: #806070;                           /* 次要文字色 */
+}
+.intro-steps {
+	margin-top: 16px;          /* 與上方三張卡同寬（1200px），只隔 16px */
+	background: #fff;
+	border: 1px solid #f0d8e0;
+	border-radius: 12px;
+	padding: 18px;
+}
+.intro-steps h2 {
+	font-size: 15px;
+	color: #d4708a;
+	margin-bottom: 10px;
+}
+.intro-steps ol {
+	padding-left: 20px;        /* 有序清單縮排，號碼才不會貼著卡片邊 */
+	font-size: 13px;
+	line-height: 1.9;
+	color: #806070;
+}
+
 /* ===== 手機版 RWD（一定要放最後，才會覆蓋上面規則） ===== */
 @media (max-width: 768px) {
 	body { padding: 10px; }
 	.main-layout { grid-template-columns: 1fr; }
+	.intro-grid { grid-template-columns: 1fr; }   /* 手機版介紹區改單欄，三張卡垂直堆疊 */
 	.right-panel { position: static; order: 2; }
 	.left-panel { order: 1; }
 	.frame-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1759,6 +1843,25 @@ button.share-btn:disabled { background: #d8b888; cursor: not-allowed; }
 .meme-card img { max-width: 100%; max-height: 220px; border-radius: 8px; }
 .meme-card .meme-title { font-size: 13px; margin-top: 8px; color: #604050; word-break: break-all; }
 .meme-card .meme-author { font-size: 11px; color: #a08090; margin-top: 4px; }
+
+/* 小紅心按讚鈕：未點亮 cat-123、已點亮 cat-252，右邊接次數
+   （做成一顆小膠囊，未點亮是白底灰字，點亮後轉粉紅底／粉紅字，跟卡片的白底有層次） */
+.meme-card .meme-like {
+	display: inline-flex; align-items: center; gap: 5px;
+	margin-top: 8px; padding: 3px 10px;
+	border: 1px solid #f0dde6; border-radius: 999px;
+	background: #fff; color: #a08090;
+	font-size: 12px; line-height: 1.6; cursor: pointer;
+	transition: background .15s, border-color .15s, color .15s, transform .1s;
+}
+.meme-card .meme-like .cat { font-size: 15px; line-height: 1; }
+.meme-card .meme-like .meme-like-count { font-variant-numeric: tabular-nums; }  /* 數字等寬，加減時不會左右跳 */
+.meme-card .meme-like:hover { background: #fff0f5; border-color: #f0c6d6; }
+.meme-card .meme-like:active { transform: scale(.94); }                          /* 按下去的回饋 */
+.meme-card .meme-like:focus-visible { outline: 2px solid #f39800; outline-offset: 2px; }
+.meme-card .meme-like.liked {                                                    /* 已點亮 */
+	color: #d6336c; border-color: #f5c2d8; background: #fff5f9; font-weight: 600;
+}
 .meme-pager { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 24px; }
 .meme-pager .meme-page-btn {
 	min-width: 32px; height: 32px; padding: 0; border: none; background: transparent;

@@ -1,7 +1,8 @@
 <!--
 	@author: [DaiEn]
-	@Date: 2026-11-13
-	@Correction: 37
+	@Date: 2026-11-23
+	@Correction: 43
+
 	蛋殼喵 APNG 工具 — 多國語言版
 -->
 <!DOCTYPE html>
@@ -12,8 +13,8 @@
 
 <!-- ===== SEO ===== -->
 <title>蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具，純本機處理</title>
-<meta name="description" content="免費線上 APNG 動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支援 LINE 動態貼圖規範檢查。">
-<meta name="keywords" content="APNG, animated PNG, LINE sticker, 貼圖, 動畫貼圖, GIF converter, online tool, free">
+<meta name="description" content="APNG 工具，免費線上動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支援 LINE 動態貼圖規範檢查。">
+<meta name="keywords" content="APNG, animated PNG, LINE sticker, LINE 動態貼圖，貼圖, 動畫貼圖, GIF converter, online tool, free">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://apng-murex.vercel.app/">
 
@@ -144,9 +145,9 @@
 
 			<!-- 拖曳上傳區 -->
 			<div class="drop-zone" id="dropZone">
-				<p><strong data-i18n="dropHint">把 PNG、APNG、GIF 圖片拖曳到這裡（可多選）</strong></p>
+				<p><strong data-i18n="dropHint">把 PNG、APNG、GIF、WebP 圖片拖曳到這裡（可多選）</strong></p>
 				<p data-i18n="dropOrClick">或點此選擇檔案</p>
-				<input type="file" id="fileInput" accept="image/png" multiple hidden>
+				<input type="file" id="fileInput" accept="image/png,image/gif,image/webp" multiple hidden>
 			</div>
 
 			<!-- 預覽區 -->
@@ -262,6 +263,12 @@
 				<button id="clearBtn" class="secondary">
 					<small class="cat cat-094"></small>&nbsp;<small data-i18n="clearBtn">清空</small>
 				</button>
+				<!-- 分享按鈕：生成成功後才顯示，點擊開啟分享 Modal -->
+				<button id="shareLink" class="secondary share-btn" style="display:none">
+					<small class="cat cat-028"></small>&nbsp;<small data-i18n="shareBtn">分享我的圖片</small>
+				</button>
+			</div>
+			<div class="actions">
 				<a id="downloadLink" style="display:none;text-decoration:none">
 					<button class="secondary">
 						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadBtn">下載 APNG</small>
@@ -272,16 +279,19 @@
 						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadGifBtn">下載 GIF</small>
 					</button>
 				</a>
-				<!-- 分享按鈕：生成成功後才顯示，點擊開啟分享 Modal -->
-				<button id="shareLink" class="secondary share-btn" style="display:none">
-					<small class="cat cat-028"></small>&nbsp;<small data-i18n="shareBtn">分享我的圖片</small>
-				</button>
+				<!-- WEBP：沒有 href，按下時才編碼（由 apng-encoder.js 綁 click） -->
+				<a id="downloadWebpLink" style="display:none;text-decoration:none">
+					<button class="secondary">
+						<small class="cat cat-022"></small>&nbsp;<small data-i18n="downloadWebpBtn">下載 WEBP</small>
+					</button>
+				</a>
 			</div>
 
 			<!-- 狀態訊息區 -->
 			<div id="status"></div>
 			<div id="fileInfo"></div>
 			<div id="lineStickerWarnings" class="warning-box"></div>
+			
 		</div>
 
 		<!-- 右側：設定面板 -->
@@ -320,6 +330,20 @@
 				<small data-i18n="outHint">設其一，另一邊自動等比</small>
 			</div>
 
+			<!-- 通用設置：把所有影格的延遲一次設成同一個值 -->
+			<div class="settings-group" id="generalSettingsGroup">
+				<h3>
+					<cat class="cat cat-227"></cat>&nbsp;<cat data-i18n="generalSettings">通用設置</cat>
+				</h3>
+				<div class="gs-row">
+					<span data-i18n="gsSyncPrefix">同步所有幀時間為</span>
+					<input type="number" id="gsDelay" min="16" max="65535" step="1" value="100" inputmode="numeric" aria-label="milliseconds">
+					<span class="gs-unit" data-i18n="gsUnit">毫秒</span>
+					<button type="button" id="gsApply" data-i18n="gsApplyBtn" disabled>設置</button>
+				</div>
+				<small data-i18n="gsHint">按下「設置」後，所有影格的毫秒數都會變成這個值</small>
+			</div>
+
 			<!-- 檔案清單（預設隱藏，動態顯示） -->
 			<div class="settings-group" id="fileListGroup" style="display:none">
 				<h3>
@@ -329,6 +353,48 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- ============================================================
+	     介紹區：三欄特色（橫向）＋ 全寬「如何製作」三步驟
+	     文字內容取自 i18n（intro* key，五語系），寬度與上方 main-layout 同為 1200px
+	     ============================================================ -->
+	<section class="apng-intro">
+		<div class="intro-grid">
+
+			<article class="intro-card">
+				<h2>
+					<cat class="cat cat-134"></cat>&nbsp;<cat data-i18n="introFmtTitle">多格式轉 APNG</cat>
+				</h2>
+				<p data-i18n="introFmtDesc">支援 GIF、WebP、PNG 序列幀一鍵轉換為 APNG 格式，自動最佳化幀率與壓縮率。</p>
+			</article>
+
+			<article class="intro-card">
+				<h2>
+					<cat class="cat cat-025"></cat>&nbsp;<cat data-i18n="introEditTitle">幀可視化編輯</cat>
+				</h2>
+				<p data-i18n="introEditDesc">線上調整每幀延遲時間、循環次數、畫面裁剪，即時預覽動畫效果。</p>
+			</article>
+
+			<article class="intro-card">
+				<h2>
+					<cat class="cat cat-023"></cat>&nbsp;<cat data-i18n="introZipTitle">智慧壓縮</cat>
+				</h2>
+				<p data-i18n="introZipDesc">有損／無損壓縮可選，在畫質幾乎無損失的前提下減小 APNG 檔案體積 30%–70%。</p>
+			</article>
+
+		</div>
+
+		<div class="intro-steps">
+			<h2>
+				<cat class="cat cat-033"></cat>&nbsp;<cat data-i18n="introHowTitle">如何製作 APNG 動圖？</cat>
+			</h2>
+			<ol>
+				<li data-i18n="introStep1">上傳 GIF、APNG或多張 PNG 圖片</li>
+				<li data-i18n="introStep2">調整幀順序、播放速度與循環次數</li>
+				<li data-i18n="introStep3">選擇壓縮等級，點擊生成即可下載 APNG 檔案</li>
+			</ol>
+		</div>
+	</section>
 </main>
 
 <!-- ============================================================
@@ -883,6 +949,7 @@
 <script src="js/apng-frames.js"></script>
 <script src="js/frame-offset.js"></script>
 <script src="js/apng-encoder.js"></script>
+<script src="js/webp-encoder.js"></script>
 <script src="js/png-editor.js"></script>
 <script src="js/fx.js"></script>
 </body>
