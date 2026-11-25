@@ -2,9 +2,20 @@
  * 蛋殼喵 APNG 工具 — 影格管理
  * 檔案匯入 / APNG、GIF、WebP 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
  * @author [DaiEn]
- * @Date: 2026-11-23
- * @Correction: 14
- * 本次修正：clearAll() 一併隱藏「下載 WEBP」鈕（downloadWebpLink），
+ * @Date: 2026-11-25
+ * @Correction: 17
+ * 本次修正：播放期間「任何操作都先停播」——stopPlaybackOnAnyAction()（L832）在 document 以捕獲階段
+ *           監聽 pointerdown／keydown／input／wheel，只要不是在播放鈕上就 pause()，
+ *           避免動畫還在跑、使用者又改設定造成畫面與設定互相打架（切頁籤也一併停）。
+ * 上次修正：右側「通用設置」新增「每 [N] 格刪除一個影格」——trimFramesByStep()（L134 附近）讀 #gsTrimStep，
+ *           以「保留 N 格、刪 1 格」循環（N=1 刪第 2、4、6…格；N=2 刪第 3、6、9…格），
+ *           一次算好保留清單再換掉（不逐格呼叫 deleteFrame），只重畫一次卡片；
+ *           最後一格被刪時走 enterEmptyState()（由 deleteFrame() 抽出的共用收尾）。
+ * 上次修正：生成後的預覽不再重複疊文字。apng-encoder.js 會把成品 APNG 放進 previewImg 並標記
+ *           dataset.baked='1'，paintTextOverlay() 看到就收起疊層（成品裡的字已經烤好了，
+ *           再疊一層靜止的字會蓋掉淡入淡出、看起來像「只停留在第一格」）；
+ *           showFrame() 換格時清掉標記，appTextChanged() 改字時自動切回原圖預覽。
+ * 上次修正：clearAll() 一併隱藏「下載 WEBP」鈕（downloadWebpLink），
  *           避免清空影格後還能下載上一輪留下的舊像素
  * 上次修正：接上右側「通用設置」——applyGeneralDelay()（L93）讀 #gsDelay 的毫秒數驗證 16～65535，
  *           把 frameDelays 全部填成同值後重畫卡片（renderTimeline）並更新總時間（updatePlaybackInfo）；
@@ -52,6 +63,8 @@ const outW = document.getElementById('outW');
 const outH = document.getElementById('outH');
 const gsDelayInput = document.getElementById('gsDelay');   // 通用設置：毫秒輸入框
 const gsApplyBtn = document.getElementById('gsApply');       // 通用設置：設置鈕
+const gsTrimInput = document.getElementById('gsTrimStep');    // 通用設置：刪格間隔輸入框
+const gsTrimBtn = document.getElementById('gsTrimBtn');       // 通用設置：刪除鈕
 
 let files = [];          // File 物件陣列
 let sourceW = 0, sourceH = 0;
@@ -113,6 +126,62 @@ gsApplyBtn.addEventListener('click', applyGeneralDelay);
 // 在輸入框按 Enter 也直接套用，不用特地移滑鼠去點按鈕
 gsDelayInput.addEventListener('keydown', e => {
 	if (e.key === 'Enter') { e.preventDefault(); applyGeneralDelay(); }
+});
+
+// ============================================================
+// 按間隔刪格：保留 N 格 → 刪掉 1 格 → 再保留 N 格 → 再刪 1 格
+// 例：N=1 第 2、4、6…格被刪（一半）；N=2 第 3、6、9…格被刪
+// 為什麼不逐格呼叫 deleteFrame()：那支每次都會 renderList / renderTimeline / showFrame，
+// 刪 50 格就要重畫 150 次卡片；這裡先把「要留的清單」算好再一次換掉，只重畫一次。
+// ============================================================
+function trimFramesByStep() {
+	if (!files.length) {
+		status.innerHTML = trMsg('gsNoFrames', null, '尚無影格可設定');
+		return;
+	}
+	const step = parseInt(gsTrimInput.value, 10);
+	if (!Number.isFinite(step) || step < 1 || step > 99) {
+		status.innerHTML = trMsg('gsTrimInvalid', null, '請輸入 1～99 之間的整數');
+		return;
+	}
+	pause();
+	const cycle = step + 1;          // 一個循環 = 保留 step 格 + 刪 1 格
+	const keepFiles = [], keepUrls = [], keepDelays = [];
+	let removed = 0;
+	for (let i = 0; i < files.length; i++) {
+		// 1 起算的第 cycle、2×cycle… 格就是要刪的那一格
+		if ((i + 1) % cycle === 0) {
+			URL.revokeObjectURL(previewUrls[i]);
+			removed++;
+			continue;
+		}
+		keepFiles.push(files[i]);
+		keepUrls.push(previewUrls[i]);
+		keepDelays.push(frameDelays[i]);
+	}
+	gsTrimInput.value = step;        // 去掉 007 這種前導零
+	if (removed === 0) {
+		// 間隔比影格數還大（例如只有 3 格卻設 5），一格都刪不到，講清楚免得以為壞了
+		status.innerHTML = trMsg('gsTrimNone', {step}, '間隔 {step} 格時沒有可刪的影格');
+		return;
+	}
+	files = keepFiles;
+	previewUrls = keepUrls;
+	frameDelays = keepDelays;
+	if (!files.length) {
+		enterEmptyState();
+		status.innerHTML = trMsg('gsTrimDone', {n: removed, left: 0}, '已刪除 {n} 格，剩下 {left} 格');
+		return;
+	}
+	currentFrame = Math.min(currentFrame, files.length - 1);
+	renderList();
+	renderTimeline();
+	showFrame(currentFrame);
+	status.innerHTML = trMsg('gsTrimDone', {n: removed, left: files.length}, '已刪除 {n} 格，剩下 {left} 格');
+}
+gsTrimBtn.addEventListener('click', trimFramesByStep);
+gsTrimInput.addEventListener('keydown', e => {
+	if (e.key === 'Enter') { e.preventDefault(); trimFramesByStep(); }
 });
 
 // 拖曳上傳
@@ -415,6 +484,7 @@ async function importWebP(buf, originalName) {
 // 重新產生所有預覽 URL 並刷新 UI
 function rebuildPreviews() {
 	gsApplyBtn.disabled = files.length === 0;   // 沒有影格時「設置」鈕不給按
+	gsTrimBtn.disabled = files.length === 0;    // 沒有影格時「刪除」鈕也不給按
 	previewUrls.forEach(u => URL.revokeObjectURL(u));
 	previewUrls = files.map(f => URL.createObjectURL(f));
 	// 補齊 frameDelays：新加入的圖片預設 100ms
@@ -579,6 +649,23 @@ function duplicateFrame(i) {
 	showFrame(i + 1);        // 跳到剛複製出來的那格，讓使用者一眼看到結果
 }
 
+// 影格清空後的收尾（最後一格被刪掉時用）：把預覽、清單、按鈕、綠框一起收起來。
+// deleteFrame() 與 trimFramesByStep() 都用得到，抽成一支避免兩邊各寫一份而走鐘
+function enterEmptyState() {
+	previewImg.style.display = 'none';
+	previewInfo.textContent = '';
+	document.getElementById('fileListGroup').style.display = 'none';
+	document.querySelector('.preview-area').style.display = 'none';
+	makeBtn.disabled = true;
+	gsApplyBtn.disabled = true;      // 沒有影格時「設置」鈕也不能按
+	gsTrimBtn.disabled = true;       // 「刪除」鈕同理
+	updatePlaybackInfo();
+	// 影格全刪光了，獨立影格設置面板也要跟著收起來（它不會經過 showFrame）
+	if (typeof window.refreshFrameOffsetPanel === 'function') window.refreshFrameOffsetPanel();
+	// 沒有影格就沒有原圖，綠色外框一起收掉
+	if (window.SourceFrame) window.SourceFrame.hide(previewStage);
+}
+
 // 刪除第 i 格，同步調整 currentFrame 位置
 function deleteFrame(i) {
 	pause();
@@ -587,16 +674,7 @@ function deleteFrame(i) {
 	previewUrls.splice(i, 1);
 	frameDelays.splice(i, 1);
 	if (files.length === 0) {
-		previewImg.style.display = 'none';
-		previewInfo.textContent = '';
-		document.getElementById('fileListGroup').style.display = 'none';
-		document.querySelector('.preview-area').style.display = 'none';
-		makeBtn.disabled = true;
-		updatePlaybackInfo();
-		// 影格全刪光了，獨立影格設置面板也要跟著收起來（它不會經過 showFrame）
-		if (typeof window.refreshFrameOffsetPanel === 'function') window.refreshFrameOffsetPanel();
-		// 沒有影格就沒有原圖，綠色外框一起收掉
-		if (window.SourceFrame) window.SourceFrame.hide(previewStage);
+		enterEmptyState();
 		return;
 	}
 	// 刪完後要把 currentFrame 調整到合理位置
@@ -611,6 +689,8 @@ function deleteFrame(i) {
 function showFrame(i) {
 	if (previewUrls.length === 0) return;
 	currentFrame = i;
+	// 換格就代表回到「原圖預覽」，把成品標記拿掉，文字疊層才會重新畫出來
+	delete previewImg.dataset.baked;
 	previewImg.src = previewUrls[i];
 	previewImg.style.display = 'block';
 	previewInfo.textContent = `Frame: ${i+1} / ${previewUrls.length}`;
@@ -656,12 +736,18 @@ let appText = null;
 	if (!host || !window.TextOverlay) return;
 	appText = window.TextOverlay.mount(host, {
 		prefix: 'app',
-		onChange: paintTextOverlay
+		onChange: appTextChanged
 	});
 })();
 
 function paintTextOverlay() {
 	if (!window.TextOverlay) return;
+	// 預覽上放的是「已烤好字的成品 APNG」（apng-encoder.js 生成時打的標記）：
+	// 字已經在畫面裡了，再疊一層只會變雙影，而且那層是靜止的，會蓋掉正在淡入淡出的成品
+	if (previewImg.dataset.baked === '1') {
+		window.TextOverlay.paintOverlay(previewStage, previewImg, null);
+		return;
+	}
 	const st = appText ? appText.state : null;
 	// 沒有影格（或預覽是收起來的）就把疊層藏起來，免得字浮在空白舞台上
 	if (!st || previewUrls.length === 0 || previewImg.style.display === 'none') {
@@ -670,6 +756,18 @@ function paintTextOverlay() {
 	}
 	// 現在是第幾格也要一併傳，否則「只顯示第 3～8 格」在預覽上不會生效
 	window.TextOverlay.paintOverlay(previewStage, previewImg, st, currentFrame + 1, previewUrls.length);
+}
+
+// ============================================================
+// 文字面板有任何改動時走這裡：如果預覽正停在「已烤好字的成品」，
+// 先切回原圖那一格，否則新字永遠看不到（改完字要能立刻看到效果）
+// ============================================================
+function appTextChanged() {
+	if (previewImg.dataset.baked === '1') {
+		delete previewImg.dataset.baked;
+		if (previewUrls.length > 0) { showFrame(currentFrame); return; }
+	}
+	paintTextOverlay();
 }
 
 // 圖片載入完成才知道 naturalWidth（第一次上傳時 sourceW 還是 0，必須等這裡重畫）
@@ -721,6 +819,25 @@ function pause() {
 	if (playTimer) clearTimeout(playTimer);
 }
 playBtn.addEventListener('click', togglePlay);
+
+// ============================================================
+// 播放期間「任何操作都要先停播」
+// 使用者在畫面上任何地方一動手（點按鈕、拖滑桿、打字、貼上、滾輪、切換頁籤）就先 pause()，
+// 免得動畫還在跑、畫面又被他剛做的改動改掉，兩邊互相打架。
+// 用捕獲階段（第三個參數 true）是為了比各按鈕自己的 click 更早執行。
+// 掛在 document 而不是只掛 APNG 頁，是因為切到 FX／PNG 頁時預覽已經看不見，
+// 動畫卻還在背景跑（回來時又從中途接著播），這種情況也該一起停。
+// 播放鈕本身例外：它就是「播放↔暫停」的開關，交給 togglePlay() 判斷。
+// ============================================================
+(function stopPlaybackOnAnyAction() {
+	['pointerdown', 'keydown', 'input', 'wheel'].forEach(function (type) {
+		document.addEventListener(type, function (e) {
+			if (!playing) return;
+			if (e.target && playBtn.contains(e.target)) return;  // 播放鈕自己處理
+			pause();
+		}, true);
+	});
+})();
 prevBtn.addEventListener('click', () => { pause(); showFrame((currentFrame - 1 + previewUrls.length) % previewUrls.length); });
 nextBtn.addEventListener('click', () => { pause(); showFrame((currentFrame + 1) % previewUrls.length); });
 document.getElementById('firstBtn').addEventListener('click', () => { pause(); showFrame(0); });

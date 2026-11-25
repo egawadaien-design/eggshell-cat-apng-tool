@@ -1,7 +1,9 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-23
-	@Correction: 69
+	@Date: 2026-11-25
+	@Correction: 70
+		本次修正：通用設置新增「按間隔刪格」7 條 key——gsTrimPrefix／gsTrimSuffix／gsTrimBtn／gsTrimHint／
+		　　　　　gsTrimDone／gsTrimNone／gsTrimInvalid × 五語系
 		本次修正：新增 Meme 頁「小紅心」的 2 條 key——memeLike／memeUnlike × 五語系（只用在 aria-label／title）
 	本次修正：新增「下載 WEBP」5 條 key——downloadWebpBtn／webpEncoding／webpDone／webpUnsupported／webpFail × 五語系
 	本次修正：introStep1 五語系改成「上傳 GIF、APNG或多張 PNG 圖片」——原本寫「影片」但站台不支援影片，改列真正支援的 APNG 匯入
@@ -1989,6 +1991,57 @@ Object.assign(I18N['ja'], {
 Object.assign(I18N['th'], {
 	memeLike: 'ถูกใจ',
 	memeUnlike: 'เลิกถูกใจ'
+});
+
+// ============================================================
+// 通用設置「按間隔刪格」的字串
+// 版面是「前綴字 + [數字框] + 後綴字 + [刪除]」，所以每種語言都拆成前後兩段，
+// 讓數字框落在句子中間（日文的量詞在數字後面，前綴只放一個全角空白佔位）
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	gsTrimPrefix: '每隔',
+	gsTrimSuffix: '格，刪除一個影格',
+	gsTrimBtn: '刪除',
+	gsTrimHint: '例：填 1 會保留 1 格、刪掉 1 格（交錯）；填 2 會保留 2 格、刪掉 1 格',
+	gsTrimDone: '已刪除 {n} 格，剩下 {left} 格',
+	gsTrimNone: '間隔 {step} 格時沒有可刪的影格（間隔比影格數大）',
+	gsTrimInvalid: '請輸入 1～99 之間的整數'
+});
+Object.assign(I18N['zh-CN'], {
+	gsTrimPrefix: '每隔',
+	gsTrimSuffix: '帧，删除一个帧',
+	gsTrimBtn: '删除',
+	gsTrimHint: '例：填 1 会保留 1 帧、删掉 1 帧（交错）；填 2 会保留 2 帧、删掉 1 帧',
+	gsTrimDone: '已删除 {n} 帧，剩下 {left} 帧',
+	gsTrimNone: '间隔 {step} 帧时没有可删除的帧（间隔比帧数大）',
+	gsTrimInvalid: '请输入 1～99 之间的整数'
+});
+Object.assign(I18N['en'], {
+	gsTrimPrefix: 'Delete one frame every',
+	gsTrimSuffix: 'frame(s)',
+	gsTrimBtn: 'Delete',
+	gsTrimHint: 'Example: 1 keeps 1 frame then deletes 1 (alternating); 2 keeps 2 frames then deletes 1',
+	gsTrimDone: 'Deleted {n} frame(s), {left} left',
+	gsTrimNone: 'Nothing to delete at interval {step} (the interval is larger than the frame count)',
+	gsTrimInvalid: 'Enter a whole number between 1 and 99'
+});
+Object.assign(I18N['ja'], {
+	gsTrimPrefix: '　',
+	gsTrimSuffix: 'フレームごとに 1 枚削除',
+	gsTrimBtn: '削除',
+	gsTrimHint: '例：1 なら 1 枚残して 1 枚削除（交互）、2 なら 2 枚残して 1 枚削除',
+	gsTrimDone: '{n} 枚削除しました（残り {left} 枚）',
+	gsTrimNone: '間隔 {step} では削除できるフレームがありません（間隔がフレーム数より大きい）',
+	gsTrimInvalid: '1～99 の整数を入力してください'
+});
+Object.assign(I18N['th'], {
+	gsTrimPrefix: 'ทุก',
+	gsTrimSuffix: 'เฟรม ลบหนึ่งเฟรม',
+	gsTrimBtn: 'ลบ',
+	gsTrimHint: 'ตัวอย่าง: 1 = เก็บ 1 เฟรมแล้วลบ 1 เฟรม (สลับกัน), 2 = เก็บ 2 เฟรมแล้วลบ 1 เฟรม',
+	gsTrimDone: 'ลบแล้ว {n} เฟรม เหลือ {left} เฟรม',
+	gsTrimNone: 'ที่ช่วง {step} ไม่มีเฟรมให้ลบ (ช่วงมากกว่าจำนวนเฟรม)',
+	gsTrimInvalid: 'กรุณากรอกจำนวนเต็ม 1–99'
 });
 
 

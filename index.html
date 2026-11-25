@@ -1,7 +1,7 @@
 <!--
 	@author: [DaiEn]
-	@Date: 2026-11-23
-	@Correction: 43
+	@Date: 2026-11-25
+	@Correction: 45
 
 	蛋殼喵 APNG 工具 — 多國語言版
 -->
@@ -68,7 +68,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon/512x512.png">
 
 <!-- 樣式 -->
-<link rel="stylesheet" href="css/apng.css">
+<link rel="stylesheet" href="css/apng.css?v=20261125b">
 
 <!-- 第三方 CDN：APNG / GIF 編碼解碼 -->
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -81,11 +81,11 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <!-- 多國語言 -->
-<script src="js/i18n.js"></script>
+<script src="js/i18n.js?v=20261125b"></script>
 
 <!-- Supabase：JS 庫 + 金鑰設定 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/supabase-config.js"></script>
+<script src="js/supabase-config.js?v=20261125b"></script>
 </head>
 <body>
 
@@ -342,6 +342,15 @@
 					<button type="button" id="gsApply" data-i18n="gsApplyBtn" disabled>設置</button>
 				</div>
 				<small data-i18n="gsHint">按下「設置」後，所有影格的毫秒數都會變成這個值</small>
+
+				<!-- 通用設置：按間隔刪格（保 N 刪 1） -->
+				<div class="gs-row">
+					<span data-i18n="gsTrimPrefix">每隔</span>
+					<input type="number" id="gsTrimStep" min="1" max="99" step="1" value="1" inputmode="numeric" aria-label="frames">
+					<span class="gs-unit" data-i18n="gsTrimSuffix">格，刪除一個影格</span>
+					<button type="button" id="gsTrimBtn" data-i18n="gsTrimBtn" disabled>刪除</button>
+				</div>
+				<small class="gs-hint" data-i18n="gsTrimHint">例：填 1 會保留 1 格、刪掉 1 格（交錯）；填 2 會保留 2 格、刪掉 1 格</small>
 			</div>
 
 			<!-- 檔案清單（預設隱藏，動態顯示） -->
@@ -940,17 +949,17 @@
      frame-offset 要讀 files / previewUrls / currentFrame，必須排在 apng-frames 之後
 	text-overlay 提供 window.TextOverlay，apng-frames / apng-encoder / png-editor / fx 都要用，必須排在最前面
      ============================================================ -->
-<script src="js/media-utils.js"></script>
-<script src="js/share.js"></script>
-<script src="js/meme.js"></script>
-<script src="js/app-shell.js"></script>
-<script src="js/source-frame.js"></script>
-<script src="js/text-overlay.js"></script>
-<script src="js/apng-frames.js"></script>
-<script src="js/frame-offset.js"></script>
-<script src="js/apng-encoder.js"></script>
-<script src="js/webp-encoder.js"></script>
-<script src="js/png-editor.js"></script>
-<script src="js/fx.js"></script>
+<script src="js/media-utils.js?v=20261125b"></script>
+<script src="js/share.js?v=20261125b"></script>
+<script src="js/meme.js?v=20261125b"></script>
+<script src="js/app-shell.js?v=20261125b"></script>
+<script src="js/source-frame.js?v=20261125b"></script>
+<script src="js/text-overlay.js?v=20261125b"></script>
+<script src="js/apng-frames.js?v=20261125b"></script>
+<script src="js/frame-offset.js?v=20261125b"></script>
+<script src="js/apng-encoder.js?v=20261125b"></script>
+<script src="js/webp-encoder.js?v=20261125b"></script>
+<script src="js/png-editor.js?v=20261125b"></script>
+<script src="js/fx.js?v=20261125b"></script>
 </body>
 </html>
