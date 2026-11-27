@@ -1,7 +1,16 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-25
-	@Correction: 70
+	@Date: 2026-11-26
+	@Correction: 76
+		本次修正：自動減色擴到 GIF／WEBP——新增 shrinkTryingFmt／doneShrinkFmt／doneShrinkMissFmt × 五語系，
+		　　　　　autoShrinkHint 改寫成「APNG／GIF／WEBP 都適用」
+		上次修正：通用設置新增「自動減色」5 條 key——autoShrinkLabel／autoShrinkHint／shrinkTrying／
+		　　　　　doneShrink／doneShrinkMiss × 五語系
+		上次修正：ICON 拆成五顆獨立 .ico（favicon-16x16.ico～favicon-128x128.ico）——pngIconNote／faqA8 五語系同步
+		上次修正：「下載 ICON(favicon)」輸出改正方形——pngIconNote／faqA8 五語系改寫為
+		　　　　　「含 favicon.ico（五種規格）＋五張同規格 PNG、等比置中四周透明不變形」
+		上次修正：PNG 頁新增「下載 ICON(favicon)」與 ZIP 內容說明——pngDownloadIcon／pngIconNote，
+		　　　　　並在 FAQ 追加 ICON 轉換問答 faqQ8／faqA8 × 五語系
 		本次修正：通用設置新增「按間隔刪格」7 條 key——gsTrimPrefix／gsTrimSuffix／gsTrimBtn／gsTrimHint／
 		　　　　　gsTrimDone／gsTrimNone／gsTrimInvalid × 五語系
 		本次修正：新增 Meme 頁「小紅心」的 2 條 key——memeLike／memeUnlike × 五語系（只用在 aria-label／title）
@@ -51,6 +60,8 @@ const I18N = {
 		pngMakeSticker: '生成靜態貼圖',
 		pngClear: '清空',
 		pngDownloadPng: '下載 PNG',
+		pngDownloadIcon: '下載 ICON(favicon)',
+		pngIconNote: '下載ICON的壓縮文件內，含五個 .ico 與五個同規格 .png（16、32、48、64、128px）；輸出為正方形，圖片等比置中、四周透明填充',
 		pngStickerWarnTitle: 'LINE 靜態貼圖限制',
 		pngWarn1: '圖片上限 370×320px，請將尺寸設為偶數。',
 		pngWarnSizeFail: '圖片超過上限：370×320px（目前 {w}×{h}）',
@@ -64,7 +75,10 @@ const I18N = {
 		pngEraseColor: '刪除顏色',
 		pngEraser: '橡皮擦',
 		pngEraserSize: '橡皮擦大小',
-		dropHint: '把 PNG、APNG、GIF、WebP 圖片拖曳到這裡（可多選）',
+		dropHint: '把 PNG、APNG、GIF、WebP 圖片或 MP4 影片拖曳到這裡（可多選）',
+		importingVideo: '解析影片中…{done}/{total}',
+		importedVideo: '已從影片取出 {n} 格（總長 {sec} 秒）',
+		videoFail: '{name} 解不開：可能是 HEVC／AV1 編碼或檔案損壞，H.264 的 MP4 一定可以',
 		dropOrClick: '或點此選擇檔案',
 		previewEmpty: '尚無圖片',
 		bgToggle: '棋盤格',
@@ -136,6 +150,7 @@ const I18N = {
 		helpTip2: '右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣',
 		helpTip3: '所有圖片都在你瀏覽器本機處理，不會上傳',
 		helpTip4: '輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動',
+		helpTip5: '拖入 MP4／MOV／WebM 會自動抽成 5～20 格，只取前 4 秒，並把總長鎖成整數秒（LINE 的規格）',
 		lineTitle: 'LINE 動態貼圖限制',
 		lineRule1: '動畫播放時間必須是整數秒（1、2、3、4 秒）',
 		lineRule2: '動畫播放時間不可超過 4 秒',
@@ -158,6 +173,8 @@ const I18N = {
 		faqA6: '目前僅支援簡單的文字輸入與濾鏡，本工具著重於處理延遲、尺寸、色彩深度與循環次數；PNG 分頁可做去背、橡皮擦，並切出 LINE 用的 240×240 與 96×74。需要更加進階的文字或濾鏡特效時，請先用其他軟件製作，例如 Photoshop，再把成品匯入這裡合成動畫。',
 		faqQ7: '需要註冊嗎？支援哪些語言？',
 		faqA7: '完全免費、免註冊，也不用安裝。介面支援繁中、簡中、English、日本語、ไทย 五種語言，預設跟隨瀏覽器語言，也可以用右上角選單手動切換。',
+		faqQ8: '可以用這個工具做網站的 ICON（favicon）嗎？',
+		faqA8: '可以。PNG 分頁生成靜態貼圖後，按下「下載 ICON(favicon)」就會即時把同一張圖轉成 16、32、48、64、128px 五種規格的正方形圖示（原圖等比縮到放得下、置中、四周透明填充，不會拉伸變形），打包成一個 ZIP：裡面有五顆 .ico（favicon-16x16.ico 到 favicon-128x128.ico）和五張同規格的 PNG。整段轉換都在瀏覽器本機用 Canvas 完成，圖片不會上傳。',
 		srcTitle: '原始碼',
 		srcDesc: '本工具開源在 GitHub，歡迎 star / issue / PR。',
 		srcTech: '技術：純 HTML / CSS / JS · UPNG.js · pako · omggif · 無框架',
@@ -197,6 +214,7 @@ const I18N = {
 		introStep1: '上傳 GIF、APNG或多張 PNG 圖片',
 		introStep2: '調整幀順序、播放速度與循環次數',
 		introStep3: '選擇壓縮等級，點擊生成即可下載 APNG 檔案',
+		eggshellAdventure: '蛋殼大冒險',
 	},
 
 	'zh-CN': {
@@ -232,6 +250,8 @@ const I18N = {
 		pngMakeSticker: '生成静态贴图',
 		pngClear: '清空',
 		pngDownloadPng: '下载 PNG',
+		pngDownloadIcon: '下载 ICON(favicon)',
+		pngIconNote: '下载ICON的压缩文件内，含五个 .ico 与五个同规格 .png（16、32、48、64、128px）；输出为正方形，图片等比居中、四周透明填充',
 		pngStickerWarnTitle: 'LINE 静态贴图限制',
 		pngWarn1: '图片上限 370×320px，请将尺寸设为偶数。',
 		pngWarnSizeFail: '图片超过上限：370×320px（目前 {w}×{h}）',
@@ -245,7 +265,10 @@ const I18N = {
 		pngEraseColor: '删除颜色',
 		pngEraser: '橡皮擦',
 		pngEraserSize: '橡皮擦大小',
-		dropHint: '把 PNG、APNG、GIF、WebP 图片拖曳到这里（可多选）',
+		dropHint: '把 PNG、APNG、GIF、WebP 图片或 MP4 视频拖曳到这里（可多选）',
+		importingVideo: '解析视频中…{done}/{total}',
+		importedVideo: '已从视频取出 {n} 帧（总长 {sec} 秒）',
+		videoFail: '{name} 打不开：可能是 HEVC／AV1 编码或文件损坏，H.264 的 MP4 一定可以',
 		dropOrClick: '或点此选择文件',
 		previewEmpty: '尚无图片',
 		bgToggle: '棋盘格',
@@ -317,6 +340,7 @@ const I18N = {
 		helpTip2: '右上的棋盘格 / 黑色按钮可以切换预览背景，方便看透明边缘',
 		helpTip3: '所有图片都在你浏览器本机处理，不会上传',
 		helpTip4: '输出的 PNG 是 APNG 格式，发 Discord / Telegram / LINE 都会动',
+		helpTip5: '拖入 MP4／MOV／WebM 会自动抽成 5～20 帧，只取前 4 秒，并把总长锁成整数秒（LINE 的规格）',
 		lineTitle: 'LINE 动态贴图限制',
 		lineRule1: '动画播放时间必须是整数秒（1、2、3、4 秒）',
 		lineRule2: '动画播放时间不可超过 4 秒',
@@ -339,6 +363,8 @@ const I18N = {
 		faqA6: '目前仅支持简单的文字输入与滤镜，本工具着重于处理延迟、尺寸、色彩深度与循环次数；PNG 分页可做去背、橡皮擦，并切出 LINE 用的 240×240 与 96×74。需要更进阶的文字或滤镜特效时，请先用其他软件制作，例如 Photoshop，再把成品导入这里合成动画。',
 		faqQ7: '需要注册吗？支持哪些语言？',
 		faqA7: '完全免费、免注册，也不用安装。界面支持繁中、简中、English、日本語、ไทย 五种语言，默认跟随浏览器语言，也可以用右上角菜单手动切换。',
+		faqQ8: '可以用这个工具做网站的 ICON（favicon）吗？',
+		faqA8: '可以。PNG 分页生成静态贴图后，按下「下载 ICON(favicon)」就会即时把同一张图转成 16、32、48、64、128px 五种规格的正方形图标（原图等比缩到放得下、居中、四周透明填充，不会拉伸变形），打包成一个 ZIP：里面有五个 .ico（favicon-16x16.ico 到 favicon-128x128.ico）和五张同规格的 PNG。整段转换都在浏览器本机用 Canvas 完成，图片不会上传。',
 		srcTitle: '源代码',
 		srcDesc: '本工具开源在 GitHub，欢迎 star / issue / PR。',
 		srcTech: '技术：纯 HTML / CSS / JS · UPNG.js · pako · omggif · 无框架',
@@ -378,6 +404,7 @@ const I18N = {
 		introStep1: '上传 GIF、APNG或多张 PNG 图片',
 		introStep2: '调整帧顺序、播放速度与循环次数',
 		introStep3: '选择压缩等级，点击生成即可下载 APNG 文件',
+		eggshellAdventure: '蛋壳大冒险',
 	},
 
 	'en': {
@@ -413,6 +440,8 @@ const I18N = {
 		pngMakeSticker: 'Make Static Sticker',
 		pngClear: 'Clear',
 		pngDownloadPng: 'Download PNG',
+		pngDownloadIcon: 'Download ICON (favicon)',
+		pngIconNote: 'The ICON ZIP contains five .ico files and five matching .png files (16, 32, 48, 64 and 128 px). Output is square: the image is scaled proportionally, centred, and padded with transparency.',
 		pngStickerWarnTitle: 'LINE Sticker Limits',
 		pngWarn1: 'Max 370×320px, use even dimensions.',
 		pngWarnSizeFail: 'Image exceeds limit: 370×320px (currently {w}×{h})',
@@ -426,7 +455,10 @@ const I18N = {
 		pngEraseColor: 'Erase color',
 		pngEraser: 'Eraser',
 		pngEraserSize: 'Eraser size',
-		dropHint: 'Drag & drop PNG / APNG / GIF / WebP here (multi-select)',
+		dropHint: 'Drag & drop PNG / APNG / GIF / WebP images or an MP4 video here (multi-select)',
+		importingVideo: 'Reading video… {done}/{total}',
+		importedVideo: 'Extracted {n} frames from the video ({sec}s total)',
+		videoFail: 'Could not decode {name} — HEVC / AV1, or a damaged file. An H.264 MP4 always works.',
 		dropOrClick: 'or click to browse',
 		previewEmpty: 'No images',
 		bgToggle: 'Checker',
@@ -498,6 +530,7 @@ const I18N = {
 		helpTip2: 'Toggle checkerboard / black background to inspect transparent edges',
 		helpTip3: 'All processing happens locally in your browser — nothing is uploaded',
 		helpTip4: 'Output PNG is APNG — animated on Discord / Telegram / LINE',
+		helpTip5: 'Dropping an MP4 / MOV / WebM auto-samples 5–20 frames, keeps only the first 4 seconds and locks the total length to a whole number of seconds (the LINE spec).',
 		lineTitle: 'LINE Animated Sticker Limits',
 		lineRule1: 'Animation duration must be a whole number of seconds (1, 2, 3, 4)',
 		lineRule2: 'Animation duration must not exceed 4 seconds',
@@ -520,6 +553,8 @@ const I18N = {
 		faqA6: 'Simple text input and filters are supported for now. This tool focuses on frame delay, size, color depth and loop count; the PNG tab can remove a background, erase with a brush, and crop the 240×240 and 96×74 sizes for LINE. For more advanced text or filter effects, create them in other software such as Photoshop first, then import the result here to assemble the animation.',
 		faqQ7: 'Is it free, and which languages are supported?',
 		faqA7: 'It is completely free, with no signup and no install. The interface comes in Traditional Chinese, Simplified Chinese, English, Japanese and Thai. It follows your browser language by default, and you can switch manually from the menu in the header.',
+		faqQ8: 'Can I use this tool to make a site ICON (favicon)?',
+		faqA8: 'Yes. After the PNG tab renders the static sticker, press "Download ICON (favicon)" and the same image is converted on the spot into square icons at 16, 32, 48, 64 and 128 px — scaled proportionally to fit, centred, padded with transparency, never stretched — and packed into one ZIP: five .ico files (favicon-16x16.ico through favicon-128x128.ico) plus five PNGs of the same sizes. The whole conversion runs locally in your browser on Canvas — nothing is uploaded.',
 		srcTitle: 'Source',
 		srcDesc: 'Open source on GitHub — star / issue / PR welcome.',
 		srcTech: 'Tech: vanilla HTML / CSS / JS · UPNG.js · pako · omggif · no framework',
@@ -559,6 +594,7 @@ const I18N = {
 		introStep1: 'Upload a GIF, an APNG, or several PNG images',
 		introStep2: 'Adjust frame order, playback speed and loop count',
 		introStep3: 'Pick a compression level, click Generate, and download the APNG file',
+		eggshellAdventure: 'Eggshell Adventure',
 	},
 
 	'ja': {
@@ -594,6 +630,8 @@ const I18N = {
 		pngMakeSticker: 'スタンプ作成',
 		pngClear: 'クリア',
 		pngDownloadPng: 'PNGをダウンロード',
+		pngDownloadIcon: 'ICON（favicon）をダウンロード',
+		pngIconNote: 'ICON の ZIP には .ico が 5 つと、同じサイズの .png が 5 つ入っています（16・32・48・64・128px）。出力は正方形で、画像は比率を保って中央に配置され、余白は透明です。',
 		pngStickerWarnTitle: 'LINEスタンプ制限',
 		pngWarn1: '画像上限370×320px、偶数サイズで作成してください。',
 		pngWarnSizeFail: '画像が上限を超えています：370×320px（現在 {w}×{h}）',
@@ -607,7 +645,10 @@ const I18N = {
 		pngEraseColor: '色削除',
 		pngEraser: '消しゴム',
 		pngEraserSize: '消しゴムサイズ',
-		dropHint: 'PNG / APNG / GIF / WebP をここにドラッグ（複数可）',
+		dropHint: 'PNG / APNG / GIF / WebP 画像、または MP4 動画をここにドラッグ（複数可）',
+		importingVideo: '動画を読み込み中…{done}/{total}',
+		importedVideo: '動画から {n} コマを取り出しました（合計 {sec} 秒）',
+		videoFail: '{name} を読み込めません。HEVC／AV1 か、ファイルが壊れている可能性があります（H.264 の MP4 は確実に読めます）',
 		dropOrClick: 'またはクリックして選択',
 		previewEmpty: '画像なし',
 		bgToggle: '市松模様',
@@ -679,6 +720,7 @@ const I18N = {
 		helpTip2: '右上の市松/黒ボタンで背景を切替、透明エッジを確認',
 		helpTip3: 'すべてブラウザ内で処理、アップロードなし',
 		helpTip4: '出力 PNG は APNG 形式、Discord / Telegram / LINE で動く',
+		helpTip5: 'MP4／MOV／WebM をドロップすると 5〜20 コマに自動で切り出し、先頭 4 秒だけを使い、合計時間を整数秒に揃えます（LINE の規格）',
 		lineTitle: 'LINE アニメーションスタンプ制限',
 		lineRule1: 'アニメーション時間は整数秒（1、2、3、4秒）であること',
 		lineRule2: 'アニメーション時間は4秒を超えないこと',
@@ -701,6 +743,8 @@ const I18N = {
 		faqA6: '現在は簡単なテキスト入力とフィルターのみ対応しています。このツールが中心に扱うのはフレームの遅延・サイズ・色数・ループ回数で、PNG タブでは背景除去、消しゴム、LINE 用の 240×240 と 96×74 の切り出しができます。より高度なテキストやフィルター効果が必要な場合は、Photoshop などのソフトで先に仕上げてから、その完成品をここに読み込んでアニメーションを合成してください。',
 		faqQ7: '登録は必要ですか？対応言語は？',
 		faqA7: '完全無料・登録不要・インストール不要です。繁体字中国語・簡体字中国語・English・日本語・ไทย の 5 言語に対応し、初期値はブラウザの言語に追従、ヘッダーのメニューから手動で切り替えられます。',
+		faqQ8: 'このツールでサイトの ICON（favicon）を作れますか？',
+		faqA8: 'はい。PNG タブでスタンプを生成したあと「ICON（favicon）をダウンロード」を押すと、同じ画像を 16・32・48・64・128px の正方形アイコンに変換します（比率を保って収め、中央に配置、余白は透明、引き伸ばしなし）。ZIP には .ico が 5 つ（favicon-16x16.ico〜favicon-128x128.ico）と、同じサイズの PNG が 5 つ入ります。処理はすべてブラウザ内の Canvas で完結し、画像は送信されません。',
 		srcTitle: 'ソースコード',
 		srcDesc: 'GitHub でオープンソース。star / issue / PR 歓迎。',
 		srcTech: '技術：vanilla HTML / CSS / JS · UPNG.js · pako · omggif · フレームワークなし',
@@ -740,6 +784,7 @@ const I18N = {
 		introStep1: 'GIF・APNG・複数の PNG 画像をアップロード',
 		introStep2: 'フレームの順序・再生速度・ループ回数を調整',
 		introStep3: '圧縮レベルを選んで生成を押すと、APNG ファイルをダウンロードできます',
+		eggshellAdventure: 'エッグシェルアドベンチャー',
 	},
 
 	'th': {
@@ -775,6 +820,8 @@ const I18N = {
 		pngMakeSticker: 'สร้างสติกเกอร์',
 		pngClear: 'ล้าง',
 		pngDownloadPng: 'ดาวน์โหลด PNG',
+		pngDownloadIcon: 'ดาวน์โหลด ICON (favicon)',
+		pngIconNote: 'ไฟล์ ZIP ของ ICON มี .ico 5 ไฟล์ และ .png ขนาดเดียวกันอีก 5 ไฟล์ (16, 32, 48, 64, 128px) ภาพออกมาเป็นสี่เหลี่ยมจัตุรัส ย่อตามสัดส่วน วางกึ่งกลาง พื้นที่ว่างโปร่งใส',
 		pngStickerWarnTitle: 'ข้อจำกัดสติกเกอร์ LINE',
 		pngWarn1: 'สูงสุด 370×320px ใช้ขนาดเลขคู่',
 		pngWarnSizeFail: 'ภาพเกินขีดจำกัด: 370×320px (ปัจจุบัน {w}×{h})',
@@ -788,7 +835,10 @@ const I18N = {
 		pngEraseColor: 'ลบสี',
 		pngEraser: 'ยางลบ',
 		pngEraserSize: 'ขนาดยางลบ',
-		dropHint: 'ลาก PNG / APNG / GIF / WebP มาวางที่นี่ (เลือกหลายไฟล์ได้)',
+		dropHint: 'ลาก PNG / APNG / GIF / WebP หรือวิดีโอ MP4 มาวางที่นี่ (เลือกหลายไฟล์ได้)',
+		importingVideo: 'กำลังอ่านวิดีโอ… {done}/{total}',
+		importedVideo: 'ดึงภาพจากวิดีโอได้ {n} เฟรม (รวม {sec} วินาที)',
+		videoFail: 'อ่าน {name} ไม่ได้ อาจเป็น HEVC／AV1 หรือไฟล์เสีย (MP4 แบบ H.264 อ่านได้แน่นอน)',
 		dropOrClick: 'หรือคลิกเพื่อเลือกไฟล์',
 		previewEmpty: 'ยังไม่มีภาพ',
 		bgToggle: 'ตารางหมากรุก',
@@ -860,6 +910,7 @@ const I18N = {
 		helpTip2: 'ปุ่มตารางหมากรุก / ดำ ที่มุมขวาบนใช้สลับพื้นหลังดูขอบโปร่ง',
 		helpTip3: 'ประมวลผลทั้งหมดในเบราว์เซอร์ของคุณ ไม่อัปโหลดขึ้นเซิร์ฟเวอร์',
 		helpTip4: 'ไฟล์ PNG ที่ส่งออกเป็น APNG เล่นบน Discord / Telegram / LINE ได้',
+		helpTip5: 'ลาก MP4／MOV／WebM มาวาง ระบบจะสุ่มเป็น 5–20 เฟรม ใช้แค่ 4 วินาทีแรก และปรับเวลารวมให้เป็นจำนวนเต็มวินาที (ตามสเปก LINE)',
 		lineTitle: 'ข้อจำกัดสติกเกอร์ภาพเคลื่อนไหว LINE',
 		lineRule1: 'เวลาแอนิเมชันต้องเป็นจำนวนวินาทีเต็ม (1, 2, 3, 4)',
 		lineRule2: 'เวลาแอนิเมชันต้องไม่เกิน 4 วินาที',
@@ -882,6 +933,8 @@ const I18N = {
 		faqA6: 'ตอนนี้รองรับเฉพาะการพิมพ์ข้อความและฟิลเตอร์แบบง่าย ๆ เท่านั้น เครื่องมือนี้เน้นจัดการเวลาหน่วง ขนาด ความลึกสี และจำนวนรอบ ส่วนแท็บ PNG ลบพื้นหลัง ถูด้วยยางลบ และตัดภาพเป็น 240×240 กับ 96×74 สำหรับ LINE ได้ หากต้องการข้อความหรือเอฟเฟกต์ฟิลเตอร์ที่ซับซ้อนกว่านี้ ควรทำในโปรแกรมอื่นก่อน เช่น Photoshop แล้วนำผลงานมาเข้าที่นี่เพื่อรวมเป็นแอนิเมชัน',
 		faqQ7: 'ใช้ฟรีไหม ต้องสมัครหรือเปล่า และรองรับภาษาใดบ้าง?',
 		faqA7: 'ฟรีทั้งหมด ไม่ต้องสมัครและไม่ต้องติดตั้ง อินเทอร์เฟซมี 5 ภาษา: จีนตัวเต็ม จีนตัวย่อ English 日本語 และไทย โดยจะตามภาษาของเบราว์เซอร์ก่อน และสลับได้จากเมนูมุมขวาบน',
+		faqQ8: 'ใช้เครื่องมือนี้สร้าง ICON (favicon) สำหรับเว็บไซต์ได้ไหม',
+		faqA8: 'ได้ หลังจากสร้างสติกเกอร์ในแท็บ PNG แล้ว กด "ดาวน์โหลด ICON (favicon)" ระบบจะแปลงภาพเดียวกันเป็นไอคอนสี่เหลี่ยมจัตุรัสขนาด 16, 32, 48, 64, 128px (ย่อตามสัดส่วนให้พอดี วางกึ่งกลาง พื้นที่ว่างโปร่งใส ไม่ยืดภาพ) แล้วรวมเป็น ZIP เดียว ภายในมี .ico 5 ไฟล์ (favicon-16x16.ico ถึง favicon-128x128.ico) และ PNG ขนาดเดียวกัน 5 ไฟล์ ทั้งหมดประมวลผลในเบราว์เซอร์ด้วย Canvas ไม่มีการอัปโหลดภาพ',
 		srcTitle: 'ซอร์สโค้ด',
 		srcDesc: 'เครื่องมือนี้เปิดโอเพนซอร์สบน GitHub ยินดี star / issue / PR',
 		srcTech: 'เทคโนโลยี: HTML / CSS / JS ล้วนๆ · UPNG.js · pako · omggif · ไม่มีเฟรมเวิร์ก',
@@ -921,6 +974,7 @@ const I18N = {
 		introStep1: 'อัปโหลด GIF, APNG หรือภาพ PNG หลายไฟล์',
 		introStep2: 'ปรับลำดับเฟรม ความเร็วในการเล่น และจำนวนรอบ',
 		introStep3: 'เลือกระดับการบีบอัด กดสร้าง แล้วดาวน์โหลดไฟล์ APNG',
+		eggshellAdventure: 'Eggshell Adventure',
 	},
 };
 
@@ -2042,6 +2096,62 @@ Object.assign(I18N['th'], {
 	gsTrimDone: 'ลบแล้ว {n} เฟรม เหลือ {left} เฟรม',
 	gsTrimNone: 'ที่ช่วง {step} ไม่มีเฟรมให้ลบ (ช่วงมากกว่าจำนวนเฟรม)',
 	gsTrimInvalid: 'กรุณากรอกจำนวนเต็ม 1–99'
+});
+
+
+// ============================================================
+// 通用設置「自動減色到 300KB 以下」的字串（2026-11-26）
+// 勾選框本身＋生成過程中的狀態＋成功／未達標兩種結果
+// ============================================================
+Object.assign(I18N['zh-TW'], {
+	autoShrinkLabel: '自動減色到 300KB 以下',
+	autoShrinkHint: '勾選後會把 APNG／GIF／WEBP 都用「共用一組調色盤＋抖動」逐階降低色彩數，盡量壓到 300KB 以下；未勾選則依「色彩」設定輸出',
+	shrinkTrying: '自動減色中：{n} 色…',
+	doneShrink: '<small class="cat cat-018"></small>&nbsp;完成！共 {n} 影格（自動減色 {from} → {to} 色，{kb} KB）',
+	doneShrinkMiss: '<small class="cat cat-030"></small>&nbsp;已降到 {to} 色仍為 {kb} KB，超過 300KB；可再縮小「輸出尺寸」或減少影格',
+	shrinkTryingFmt: '自動減色中（{fmt}）：{n} 色…',
+	doneShrinkFmt: '<small class="cat cat-018"></small>&nbsp;{fmt} 完成！（自動減色 {from} → {to} 色，{kb} KB）',
+	doneShrinkMissFmt: '<small class="cat cat-030"></small>&nbsp;{fmt} 已降到 {to} 色仍為 {kb} KB，超過 300KB'
+});
+Object.assign(I18N['zh-CN'], {
+	autoShrinkLabel: '自动减色到 300KB 以下',
+	autoShrinkHint: '勾选后会把 APNG／GIF／WEBP 都用「共用一组调色盘＋抖动」逐阶降低颜色数，尽量压到 300KB 以下；未勾选则依「色彩」设置输出',
+	shrinkTrying: '自动减色中：{n} 色…',
+	doneShrink: '<small class="cat cat-018"></small>&nbsp;完成！共 {n} 帧（自动减色 {from} → {to} 色，{kb} KB）',
+	doneShrinkMiss: '<small class="cat cat-030"></small>&nbsp;已降到 {to} 色仍为 {kb} KB，超过 300KB；可再缩小「输出尺寸」或减少帧数',
+	shrinkTryingFmt: '自动减色中（{fmt}）：{n} 色…',
+	doneShrinkFmt: '<small class="cat cat-018"></small>&nbsp;{fmt} 完成！（自动减色 {from} → {to} 色，{kb} KB）',
+	doneShrinkMissFmt: '<small class="cat cat-030"></small>&nbsp;{fmt} 已降到 {to} 色仍为 {kb} KB，超过 300KB'
+});
+Object.assign(I18N['en'], {
+	autoShrinkLabel: 'Auto-reduce colors to under 300KB',
+	autoShrinkHint: 'When checked, APNG, GIF and WEBP all share one palette with dithering and step the color count down until each fits in 300KB. Unchecked keeps exactly what the "Colors" setting produces.',
+	shrinkTrying: 'Auto-reducing: {n} colors…',
+	doneShrink: '<small class="cat cat-018"></small>&nbsp;Done! {n} frames (auto-reduced {from} → {to} colors, {kb} KB)',
+	doneShrinkMiss: '<small class="cat cat-030"></small>&nbsp;Dropped to {to} colors but the file is still {kb} KB (over 300KB). Try a smaller output size or fewer frames.',
+	shrinkTryingFmt: 'Auto-reducing {fmt}: {n} colors…',
+	doneShrinkFmt: '<small class="cat cat-018"></small>&nbsp;{fmt} done! (auto-reduced {from} → {to} colors, {kb} KB)',
+	doneShrinkMissFmt: '<small class="cat cat-030"></small>&nbsp;{fmt} dropped to {to} colors but is still {kb} KB (over 300KB).'
+});
+Object.assign(I18N['ja'], {
+	autoShrinkLabel: '300KB 以下に自動減色',
+	autoShrinkHint: 'チェックすると APNG／GIF／WEBP すべてで 1 つのパレットを共有してディザをかけ、色数を段階的に下げて 300KB 以下に収めます。未チェックなら「色数」の設定どおりに出力します。',
+	shrinkTrying: '自動減色中：{n} 色…',
+	doneShrink: '<small class="cat cat-018"></small>&nbsp;完了！全 {n} フレーム（自動減色 {from} → {to} 色、{kb} KB）',
+	doneShrinkMiss: '<small class="cat cat-030"></small>&nbsp;{to} 色まで下げても {kb} KB で 300KB を超えています。「出力サイズ」を小さくするかフレームを減らしてください。',
+	shrinkTryingFmt: '自動減色中（{fmt}）：{n} 色…',
+	doneShrinkFmt: '<small class="cat cat-018"></small>&nbsp;{fmt} 完了！（自動減色 {from} → {to} 色、{kb} KB）',
+	doneShrinkMissFmt: '<small class="cat cat-030"></small>&nbsp;{fmt} は {to} 色まで下げても {kb} KB で 300KB を超えています。'
+});
+Object.assign(I18N['th'], {
+	autoShrinkLabel: 'ลดสีอัตโนมัติให้ต่ำกว่า 300KB',
+	autoShrinkHint: 'เมื่อติ๊ก APNG／GIF／WEBP จะใช้พาเลตต์ร่วมกันพร้อมดิเทอร์ริง และลดจำนวนสีลงทีละขั้นให้เหลือไม่เกิน 300KB ถ้าไม่ติ๊กจะออกตามค่าที่ตั้งใน «สี»',
+	shrinkTrying: 'กำลังลดสีอัตโนมัติ: {n} สี…',
+	doneShrink: '<small class="cat cat-018"></small>&nbsp;เสร็จสิ้น! ทั้งหมด {n} เฟรม (ลดสี {from} → {to} สี, {kb} KB)',
+	doneShrinkMiss: '<small class="cat cat-030"></small>&nbsp;ลดถึง {to} สีแล้วยังได้ {kb} KB เกิน 300KB ลองลด «ขนาดเอาต์พุต» หรือลดจำนวนเฟรม',
+	shrinkTryingFmt: 'กำลังลดสีอัตโนมัติ ({fmt}): {n} สี…',
+	doneShrinkFmt: '<small class="cat cat-018"></small>&nbsp;{fmt} เสร็จสิ้น! (ลดสี {from} → {to} สี, {kb} KB)',
+	doneShrinkMissFmt: '<small class="cat cat-030"></small>&nbsp;{fmt} ลดถึง {to} สีแล้วยังได้ {kb} KB เกิน 300KB'
 });
 
 

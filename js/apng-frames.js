@@ -2,9 +2,13 @@
  * 蛋殼喵 APNG 工具 — 影格管理
  * 檔案匯入 / APNG、GIF、WebP 拆格 / 排序 / 時間軸與卡片渲染 / 播放控制 / 清空
  * @author [DaiEn]
- * @Date: 2026-11-25
- * @Correction: 17
- * 本次修正：播放期間「任何操作都先停播」——stopPlaybackOnAnyAction()（L832）在 document 以捕獲階段
+ * @Date: 2026-11-26
+ * @Correction: 18
+ * 本次修正：APNG 頁支援匯入影片（MP4／MOV／WebM）——importVideo()（L484 附近）用 <video> + seek
+ *           + drawImage 抽格，不引入 demux 套件：10fps 取樣、夾在 5～20 格、只取前 4 秒、
+ *           延遲均分但總和鎖在整數秒（LINE 規格）、取樣畫布長邊上限 512px；
+ *           addFiles 分流加入 isVideo，影片解不開時給 videoFail 專屬訊息（HEVC／AV1）
+ * 上次修正：播放期間「任何操作都先停播」——stopPlaybackOnAnyAction()（L832）在 document 以捕獲階段
  *           監聽 pointerdown／keydown／input／wheel，只要不是在播放鈕上就 pause()，
  *           避免動畫還在跑、使用者又改設定造成畫面與設定互相打架（切頁籤也一併停）。
  * 上次修正：右側「通用設置」新增「每 [N] 格刪除一個影格」——trimFramesByStep()（L134 附近）讀 #gsTrimStep，
@@ -216,18 +220,22 @@ bgToggle.addEventListener('click', () => {
 async function addFiles(list) {
 	const unsupported = [];
 	for (const f of Array.from(list)) {
+		// 有些系統給的 type 是空字串（APNG 也可能給 image/apng），所以副檔名也一起判斷
+		const name = f.name || '';
+		const isGIF = f.type === 'image/gif' || /\.gif$/i.test(name);
+		const isWebP = f.type === 'image/webp' || /\.webp$/i.test(name);
+		const isPNG = f.type === 'image/png' || f.type === 'image/apng' || /\.(png|apng)$/i.test(name);
+		// 影片（MP4／MOV／WebM）：交給 <video> 解碼後再抽格
+		const isVideo = (f.type && f.type.indexOf('video/') === 0) || /\.(mp4|m4v|mov|webm)$/i.test(name);
+		if (!isVideo && !isGIF && !isWebP && !isPNG) {
+			unsupported.push(name);
+			continue;
+		}
 		try {
-			// 有些系統給的 type 是空字串（APNG 也可能給 image/apng），所以副檔名也一起判斷
-			const name = f.name || '';
-			const isGIF = f.type === 'image/gif' || /\.gif$/i.test(name);
-			const isWebP = f.type === 'image/webp' || /\.webp$/i.test(name);
-			const isPNG = f.type === 'image/png' || f.type === 'image/apng' || /\.(png|apng)$/i.test(name);
-			if (!isGIF && !isWebP && !isPNG) {
-				unsupported.push(name);
-				continue;
-			}
 			const buf = await f.arrayBuffer();
-			if (isGIF) {
+			if (isVideo) {
+				await importVideo(buf, name);
+			} else if (isGIF) {
 				await importGIF(buf, name);
 			} else if (isWebP) {
 				await importWebP(buf, name);
@@ -239,7 +247,12 @@ async function addFiles(list) {
 			}
 		} catch (err) {
 			console.error('[匯入] 失敗:', f.name, err);
-			unsupported.push(f.name + '（解析錯誤）');
+			if (isVideo) {
+				// 影片失敗講清楚原因（多數是 HEVC／AV1，瀏覽器沒有那個解碼器）
+				status.innerHTML = trMsg('videoFail', {name}, '{name} 解不開：可能是 HEVC／AV1 編碼或檔案損壞，H.264 的 MP4 一定可以');
+			} else {
+				unsupported.push(f.name + '（解析錯誤）');
+			}
 		}
 	}
 	if (unsupported.length > 0) {
@@ -479,6 +492,118 @@ async function importWebP(buf, originalName) {
 
 	for (const f of newFiles) files.push(f);
 	for (const d of newDelays) frameDelays.push(d);
+}
+
+// ============================================================
+// 把影片（MP4 / MOV / WebM）抽成獨立 PNG 影格
+//
+// 為什麼不自己 demux H.264：瀏覽器本來就有解碼器（還會吃到硬解），
+//   只要「seek 到某個時間 → drawImage 到 canvas」就能拿到畫面，零依賴；
+//   自己拉 mp4box 還要處理 B 幀重排、SPS/PPS，對表情包這種短片完全不划算。
+//
+// 取幾格（本工具自己的規則，對齊本站的使用情境＝表情包）：
+//   1. 取樣率 10fps → 1 秒 10 格、2 秒 20 格，動作看起來夠順、檔案又不會爆
+//   2. 夾在 5～20 格：20 是 LINE 動態貼圖的硬上限；少於 5 格 LINE 也不收
+//   3. 只取前 4 秒：LINE 規定一支動畫最長 4 秒，超過的部分直接不採
+//   4. 每格延遲均分，但總和鎖在「整數秒」（1／2／3／4）——LINE 規定播放時間必須是整數秒，
+//      這步是為了讓使用者匯入後不用再手動調一輪（來源若不是整數秒，播放速度會略有差異）
+//   5. 取樣畫布長邊上限 512px：20 格 ×512² 的記憶體與編碼時間都還在可接受範圍
+// ============================================================
+const VIDEO_SAMPLE_FPS = 10;
+const VIDEO_MIN_FRAMES = 5;
+const VIDEO_MAX_FRAMES = 20;
+const VIDEO_MAX_SECONDS = 4;
+const VIDEO_MAX_SIDE = 512;
+
+// 等影片 seek 到指定時間：seek 完成才有新畫面可以 drawImage
+// （少數檔案的 seeked 事件不會回來，所以補一個 2 秒保險）
+function seekVideo(video, t) {
+	return new Promise(resolve => {
+		let settled = false;
+		const finish = () => {
+			if (settled) return;
+			settled = true;
+			video.removeEventListener('seeked', finish);
+			clearTimeout(timer);
+			resolve();
+		};
+		const timer = setTimeout(finish, 2000);
+		video.addEventListener('seeked', finish);
+		try {
+			video.currentTime = t;
+		} catch (e) {
+			finish();
+		}
+	});
+}
+
+async function importVideo(buf, originalName) {
+	const ext = ((originalName.match(/\.(mp4|m4v|mov|webm)$/i) || [])[1] || 'mp4').toLowerCase();
+	const mime = ext === 'webm' ? 'video/webm' : (ext === 'mov' ? 'video/quicktime' : 'video/mp4');
+	const baseName = originalName.replace(/\.(mp4|m4v|mov|webm)$/i, '');
+
+	const video = document.createElement('video');
+	video.muted = true;
+	video.playsInline = true;
+	video.preload = 'auto';
+	const url = URL.createObjectURL(new Blob([buf], { type: mime }));
+	video.src = url;
+
+	try {
+		// 等 metadata：長度與寬高都從這裡拿；8 秒還沒回應就當這台瀏覽器不吃這個編碼
+		await new Promise((resolve, reject) => {
+			const timer = setTimeout(() => reject(new Error('metadata timeout')), 8000);
+			video.onloadedmetadata = () => { clearTimeout(timer); resolve(); };
+			video.onerror = () => { clearTimeout(timer); reject(new Error('video decode error')); };
+		});
+
+		const vw = video.videoWidth;
+		const vh = video.videoHeight;
+		if (!vw || !vh) throw new Error('no video size');
+		if (!isFinite(video.duration) || video.duration <= 0) throw new Error('unknown duration');
+
+		const span = Math.min(video.duration, VIDEO_MAX_SECONDS);           // 只取前 4 秒
+		const count = Math.min(VIDEO_MAX_FRAMES,
+			Math.max(VIDEO_MIN_FRAMES, Math.round(span * VIDEO_SAMPLE_FPS)));  // 5～20 格
+		const totalSec = Math.min(VIDEO_MAX_SECONDS, Math.max(1, Math.round(span)));
+
+		// 取樣畫布：長邊最多 512，等比
+		const scale = Math.min(1, VIDEO_MAX_SIDE / Math.max(vw, vh));
+		const cw = Math.max(1, Math.round(vw * scale));
+		const ch = Math.max(1, Math.round(vh * scale));
+		const canvas = document.createElement('canvas');
+		canvas.width = cw;
+		canvas.height = ch;
+		const ctx = canvas.getContext('2d');
+
+		// 均分延遲，尾數補在前幾格 → 總和剛好等於 totalSec × 1000
+		const totalMs = totalSec * 1000;
+		const baseMs = Math.floor(totalMs / count);
+		const extra = totalMs - baseMs * count;
+
+		const newFiles = [];
+		const newDelays = [];
+		for (let i = 0; i < count; i++) {
+			status.innerHTML = trMsg('importingVideo', {done: i + 1, total: count}, '解析影片中…{done}/{total}');
+			// 取每格時間區間的中點：0 秒常常是黑場／轉場，抓中點比較穩
+			const t = Math.min(Math.max(0, span - 0.001), (i + 0.5) * (span / count));
+			await seekVideo(video, t);
+			ctx.clearRect(0, 0, cw, ch);
+			ctx.drawImage(video, 0, 0, cw, ch);
+			const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+			newFiles.push(new File([blob], baseName + '_' + String(i + 1).padStart(3, '0') + '.png', {type: 'image/png'}));
+			newDelays.push(baseMs + (i < extra ? 1 : 0));
+		}
+
+		// 先全部解完才寫進全域陣列：中途失敗不會留下半套影格
+		for (const f of newFiles) files.push(f);
+		for (const d of newDelays) frameDelays.push(d);
+		status.innerHTML = trMsg('importedVideo', {n: newFiles.length, sec: totalSec}, '已從影片取出 {n} 格（總長 {sec} 秒）');
+	} finally {
+		URL.revokeObjectURL(url);
+		video.removeAttribute('src');
+		try { video.load(); } catch (e) { /* 已經沒有 src，忽略 */ }
+	}
 }
 
 // 重新產生所有預覽 URL 並刷新 UI

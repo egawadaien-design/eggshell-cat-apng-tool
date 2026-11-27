@@ -2,8 +2,13 @@
  * 蛋殼喵 APNG 工具 — PNG 靜態貼圖編輯器
  * 去背（flood fill / 全域刪除）/ 橡皮擦 / 縮放平移 / 分割線 / 240×240 與 96×74 輸出
  * @author [DaiEn]
- * @Date: 2026-11-23
- * @Correction: 5
+ * @Date: 2026-11-25
+ * @Correction: 8
+ * 2026-11-25 追加：PNG 頁新增「下載 ICON(favicon)」——按下才開始生成，輸出改成正方形：
+ *                 原圖等比縮進 16／32／48／64／128px 的正方形並置中、四周透明（不拉伸變形），
+ *                 ZIP 內含五顆獨立 .ico（favicon-16x16.ico … favicon-128x128.ico，每顆只包自己那個尺寸）
+ *                 ＋ 五張同規格 PNG
+ *                 （resizeToCanvas 逐步減半再縮，避免大圖直縮到 16px 糊掉）
  * 2026-11-12 追加：PNG 頁新增「文字」面板；240×240 與 96×74 兩張輸出各自燒字（burnTextToResult），
  *                 主畫布預覽那一層跟著 applyTransform 重畫（縮放平移時字也貼在圖上）
  *
@@ -700,6 +705,8 @@
 	const stickerPreviewImg = document.getElementById('pngStickerPreviewImg');
 	const stickerPreviewInfo = document.getElementById('pngStickerPreviewInfo');
 	const dlPngBtn = document.getElementById('pngDownloadPng');
+	const dlIconBtn = document.getElementById('pngDownloadIcon');
+	const pngIconNote = document.getElementById('pngIconNote');
 	let stickerCanvas = null; // 最終輸出用 canvas
 
 	// trMsg 與 lastStickerCheck 宣告在檔案上方，避免此處才宣告造成前方函式踩 TDZ
@@ -740,6 +747,9 @@
 		stickerPreviewInfo.textContent = sizeStr + ' · ' + kb + ' KB';
 		stickerPreview.style.display = 'block';
 		dlPngBtn.style.display = 'inline-block';
+		// ICON(favicon) 按鈕與下方說明，跟「下載 PNG」一起出現
+		if (dlIconBtn) dlIconBtn.style.display = 'inline-block';
+		if (pngIconNote) pngIconNote.style.display = 'block';
 
 		// 記住本次檢查數據，切換語言時可重繪警告列（見 renderPngStickerWarnings）
 		lastStickerCheck = { W: stickerCanvas.width, H: stickerCanvas.height, bytes };
@@ -797,6 +807,8 @@
 		warnBox.style.display = 'none';
 		stickerPreview.style.display = 'none';
 		dlPngBtn.style.display = 'none';
+		if (dlIconBtn) dlIconBtn.style.display = 'none';
+		if (pngIconNote) pngIconNote.style.display = 'none';
 		// 清空後不保留檢查數據，否則切換語言會把舊警告又重繪出來
 		lastStickerCheck = null;
 	});
@@ -808,6 +820,123 @@
 		a.href = stickerCanvas.toDataURL('image/png');
 		a.download = 'sticker-' + Math.random().toString(36).slice(2, 8) + '.png';
 		a.click();
+	});
+
+	// ============================================================
+	// 下載 ICON(favicon)：按下才開始生成
+	// 輸出固定是正方形（16／32／48／64／128px 邊長），原圖等比縮到能塞進正方形，
+	// 置中、四周透明填充、絕不拉伸變形（例：60×32 → 64×64 內放 64×34 居中，上下透明）。
+	// ZIP 內含五顆獨立 .ico（每顆只包自己那個尺寸）＋ 五張同規格 PNG。
+	// 全程在 Canvas 本機做，不上傳。
+	// ============================================================
+	const ICON_SIZES = [16, 32, 48, 64, 128];
+
+	// 高品質縮圖：先逐步減半（每輪最多縮一半），最後才一次縮到目標尺寸。
+	// 直接從大圖 drawImage 到 16px 會取樣不足，邊緣糊成一團。
+	function resizeToCanvas(src, w, h) {
+		let cur = src, cw = src.width, ch = src.height;
+		while (cw >= w * 2 && ch >= h * 2 && cw > 2 && ch > 2) {
+			const half = document.createElement('canvas');
+			half.width = Math.max(1, Math.floor(cw / 2));
+			half.height = Math.max(1, Math.floor(ch / 2));
+			const hx = half.getContext('2d');
+			hx.imageSmoothingEnabled = true;
+			hx.imageSmoothingQuality = 'high';
+			hx.drawImage(cur, 0, 0, half.width, half.height);
+			cur = half;
+			cw = half.width;
+			ch = half.height;
+		}
+		const out = document.createElement('canvas');
+		out.width = w;
+		out.height = h;
+		const ox = out.getContext('2d');
+		ox.imageSmoothingEnabled = true;
+		ox.imageSmoothingQuality = 'high';
+		ox.clearRect(0, 0, w, h);   // 保留透明底，不要填色
+		ox.drawImage(cur, 0, 0, w, h);
+		return out;
+	}
+
+	// 正方形 ICON：等比縮到剛好放進 size×size，置中，四周留透明
+	function makeSquareIcon(src, size) {
+		const scale = Math.min(size / src.width, size / src.height);
+		const dw = Math.min(size, Math.max(1, Math.round(src.width * scale)));
+		const dh = Math.min(size, Math.max(1, Math.round(src.height * scale)));
+		const fitted = resizeToCanvas(src, dw, dh);
+		const out = document.createElement('canvas');
+		out.width = size;
+		out.height = size;
+		const ox = out.getContext('2d');
+		ox.clearRect(0, 0, size, size);
+		// 用 round 對齊整數像素，避免半像素造成縮放後糊邊
+		ox.drawImage(fitted, Math.round((size - dw) / 2), Math.round((size - dh) / 2));
+		return out;
+	}
+
+	function canvasToPngBlob(cv) {
+		return new Promise(resolve => cv.toBlob(resolve, 'image/png'));
+	}
+
+	// 把多張 PNG 打包成一顆 .ico（PNG-in-ICO，現代瀏覽器／Windows 都讀）
+	// 結構：ICONDIR 6 bytes（reserved=0, type=1, count=N） → 每張 16 bytes 目錄 → 各張 PNG 資料
+	function buildIco(items) {
+		const count = items.length;
+		const headerSize = 6 + count * 16;
+		// 單張邊長上限 256；圖示清單裡最大只到 128，這裡保險再擋一次
+		let total = headerSize;
+		items.forEach(it => { total += it.buf.byteLength; });
+
+		const u8 = new Uint8Array(total);
+		const dv = new DataView(u8.buffer);
+		dv.setUint16(0, 0, true);        // reserved
+		dv.setUint16(2, 1, true);        // type = 1 → icon
+		dv.setUint16(4, count, true);    // 圖片張數
+
+		let offset = headerSize;
+		items.forEach((it, i) => {
+			const p = 6 + i * 16;
+			u8[p]     = it.w >= 256 ? 0 : it.w;   // 寬（256 要寫 0）
+			u8[p + 1] = it.h >= 256 ? 0 : it.h;   // 高（256 要寫 0）
+			u8[p + 2] = 0;                        // 色數：PNG 用 32 位元真彩，不需調色盤
+			u8[p + 3] = 0;                        // reserved
+			dv.setUint16(p + 4, 1, true);         // color planes
+			dv.setUint16(p + 6, 32, true);        // bits per pixel
+			dv.setUint32(p + 8, it.buf.byteLength, true);  // 這張 PNG 的位元組長度
+			dv.setUint32(p + 12, offset, true);            // 這張 PNG 在檔案裡的位移
+			u8.set(new Uint8Array(it.buf), offset);
+			offset += it.buf.byteLength;
+		});
+		return u8;
+	}
+
+	if (dlIconBtn) dlIconBtn.addEventListener('click', async () => {
+		if (!stickerCanvas) return;
+		dlIconBtn.disabled = true;
+		try {
+			const zip = new JSZip();
+			for (const size of ICON_SIZES) {
+				const png = await canvasToPngBlob(makeSquareIcon(stickerCanvas, size));
+				if (!png) continue;
+				const buf = await png.arrayBuffer();
+				// PNG 保留一份
+				zip.file('favicon-' + size + 'x' + size + '.png', png);
+				// ICO 一樣五種規格，但拆成五顆獨立檔：每顆只包自己那個尺寸
+				zip.file('favicon-' + size + 'x' + size + '.ico', buildIco([{ w: size, h: size, buf }]));
+			}
+			const zipBlob = await zip.generateAsync({ type: 'blob' });
+			const a = document.createElement('a');
+			a.href = URL.createObjectURL(zipBlob);
+			a.download = 'eggshellcat-icon-' + Math.random().toString(36).slice(2, 8) + '.zip';
+			a.click();
+			// 下載是非同步的，延後再釋放 blob URL，避免還沒開始存檔就被回收
+			const url = a.href;
+			setTimeout(() => URL.revokeObjectURL(url), 3000);
+		} catch (err) {
+			console.error('ICON export failed', err);
+		} finally {
+			dlIconBtn.disabled = false;
+		}
 	});
 
 	// 重設：還原去背 + 清空整張圖片

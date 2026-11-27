@@ -1,8 +1,16 @@
 /*
 	@author: [DaiEn]
-	@Date: 2026-11-23
-	@Correction: 49
-		本次修正：Meme 卡片加「小紅心」按讚鈕樣式（.meme-like：未點亮 cat-123／已點亮 cat-252，
+	@Date: 2026-11-26
+	@Correction: 53
+		本次修正：通用設置新增「自動減色」勾選列的樣式 .gs-check-row／.gs-check——
+		          覆寫 .settings-group label 的 display:block 與 input 的 width:100%，讓勾選框維持原尺寸、文字不換行
+		上次修正：#pngDownloadIcon 補進「下載按鈕專屬顏色」選擇器（深綠 rgb(20,100,80)）與 hover（rgb(14,75,60)），
+		          與 #pngDownloadPng 完全同色——它雖有 .secondary，但只有被列進這組才會變綠
+		上次修正：頁尾版權列「© … by 簽名」垂直置中——.footer-copy 改 inline-flex + align-items: center（盒對盒置中），
+		          .footer-copy .cat 再 translateY(1.5px)（cat-153 的筆跡全在基線上方，只對盒子還不夠）
+		上次修正：.footer-github 補 text-decoration: none——頁尾「Eggshell Adventure」改成 <a> 開新分頁後，
+		          不能讓連結帶著預設底線出現
+		上次修正：Meme 卡片加「小紅心」按讚鈕樣式（.meme-like：未點亮 cat-123／已點亮 cat-252，
 		          右側次數用等寬數字，含 hover／active／focus-visible 與 .liked 狀態）
 		上次修正：#downloadWebpLink button.secondary 補進「下載按鈕專屬顏色」選擇器（深綠 rgb(20,100,80)），與下載 APNG／GIF 一致
 		上次修正：新增通用設置列樣式 .gs-row／.gs-unit／.gs-hint（一行式「文字＋數字框＋單位＋按鈕」，數字框固定 84px、寬度不被 .settings-group input 的 100% 撐開）
@@ -854,11 +862,11 @@ button:disabled { background: #d8b8c2; cursor: not-allowed; }
 button.secondary { background: #a08090; }
 button.secondary:hover { background: #8a6a7a; }
 /*下載按鈕專屬顏色*/
-#downloadLink button.secondary, #downloadGifLink button.secondary, #downloadWebpLink button.secondary, #pngDownloadPng,
+#downloadLink button.secondary, #downloadGifLink button.secondary, #downloadWebpLink button.secondary, #pngDownloadPng, #pngDownloadIcon,
 #pngSplitPreview, #pngConfirmBtn, #pngDownloadZip {
 	background: rgb(20, 100, 80);
 }
-#downloadLink button.secondary:hover, #downloadGifLink button.secondary:hover, #downloadWebpLink button.secondary:hover, #pngDownloadPng:hover,
+#downloadLink button.secondary:hover, #downloadGifLink button.secondary:hover, #downloadWebpLink button.secondary:hover, #pngDownloadPng:hover, #pngDownloadIcon:hover,
 #pngSplitPreview:hover, #pngConfirmBtn:hover, #pngDownloadZip:hover {
 	background: rgb(14, 75, 60);
 }
@@ -932,6 +940,31 @@ button.secondary:hover { background: #8a6a7a; }
 	font-size: 13px;
 }
 .gs-hint { display: block; margin-top: 6px; }
+
+/* 通用設置：自動減色勾選列（.gs-check-row > label.gs-check > checkbox + 文字）
+   .settings-group label 預設 display:block + margin-top:8px、input 預設 width:100%，
+   這裡全部覆寫掉，否則勾選框會被拉成整條、文字也換行 */
+.gs-check-row { display: flex; align-items: center; margin-top: 10px; }
+.gs-check {
+	display: flex;
+	align-items: flex-start;       /* 英文／泰文標籤較長會折行，勾選框對齊第一行 */
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	font-size: 12px;
+	color: #806070;
+	cursor: pointer;
+}
+.gs-check span { flex: 1 1 auto; min-width: 0; line-height: 1.45; }
+.gs-check input[type="checkbox"] {
+	width: auto;
+	height: 15px;
+	margin: 1px 0 0;
+	padding: 0;
+	flex: 0 0 auto;
+	accent-color: #ef9fba;
+	cursor: pointer;
+}
 
 .file-list {
 	margin-top: 8px;
@@ -1744,9 +1777,19 @@ button.secondary:hover { background: #8a6a7a; }
 .footer-group-legal { flex-direction: column; align-items: flex-end; gap: 4px; }
 .footer-brand { font-size: 14px; color: #d4708a; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 .footer-note { font-size: 12px; color: #bbb; }
-.footer-github { font-size: 13px; color: #888; background: none !important; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; font-family: inherit; }
+.footer-github { font-size: 13px; color: #888; background: none !important; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; font-family: inherit; text-decoration: none; }
 .footer-github:hover { background: none !important; color: #888 !important; }
-.footer-copy { font-size: 12px; color: #bbb; }
+/* 版權列：文字「© … by」後面接簽名圖示（cat-153）。
+   圖示是 .cat（inline-block、1.5em 大、line-height 1.2），照預設基線對齊會整個往上翹，
+   比旁邊 12px 的文字高出一截；改成 inline-flex + align-items: center 讓「文字盒」與「圖示盒」中線對齊。
+   用 gap 取代原本的空格（inline-flex 會吃掉文字節點尾端的空白）。 */
+.footer-copy { font-size: 12px; color: #bbb; display: inline-flex; align-items: center; gap: 3px; }
+
+/* 盒對盒對齊之後還差一點：cat-153 這支簽名筆跡整片都在基線「上方」
+   （實測：字級 18px 時墨水高約 12.4px、墨水中心落在基線上 6.4px），
+   跟 12px 的文字擺在一起，眼睛看到的還是「字被拉高」。
+   往下推 1.5px，讓簽名的視覺中心對到文字的小寫字身中心（試過 0／1／2px，1.5px 最順）。 */
+.footer-copy .cat { transform: translateY(1.5px); }
 
 /* ===== Emoji 字型展示頁 ===== */
 .emoji-card { max-width: 900px; margin: 0 auto; }
