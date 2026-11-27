@@ -1,9 +1,24 @@
 <!--
 	@author: [DaiEn]
-	@Date: 2026-11-25
-	@Correction: 45
+	@Date: 2026-11-26
+	@Correction: 53
 
 	蛋殼喵 APNG 工具 — 多國語言版
+	本次修正：修掉「APNG／GIF／WEBP 減色後有顏色的地方也變透明」——量化器把實心與羽化邊分開統計、
+	          查表依 alpha 分組，apng-encoder 版本號推新（20261126d）
+	上次修正：把上面那個「自動減色到 300KB 以下」擴到 GIF／WEBP——
+	          說明文字改寫成「APNG／GIF／WEBP 都適用」，腳本版本號推新（i18n／apng-encoder）
+	上次修正：通用設置新增「自動減色到 300KB 以下」勾選（#autoShrink）——勾選後生成走「共用調色盤＋有序抖動」，
+	          並逐階降色（256→…→16）直到 APNG ≤300KB；未勾選完全維持原本 UPNG 輸出
+	上次修正：APNG 頁支援匯入 MP4／MOV／WebM（fileInput accept 加影片、說明補一條 helpTip5）
+	上次修正：ICON 改為五顆獨立 .ico（favicon-16x16.ico～favicon-128x128.ico）＋五張同規格 PNG；
+	          說明文案、FAQ、JSON-LD featureList 同步改寫
+	上次修正：「下載 ICON(favicon)」輸出改為正方形（等比置中、四周透明、不變形），ZIP 內改含 favicon.ico ＋ 五張 PNG；
+	          說明文案與 FAQ 同步改寫，CSS／JS 版本號跟著往上調
+	上次修正：PNG 頁「下載 PNG」後面新增「下載 ICON(favicon)」（cat-184，同 secondary 樣式），
+	          下方加一行說明；SEO 的 description／keywords／JSON-LD featureList 與 FAQ 加入「ICON 轉換」
+	上次修正：頁尾「Eggshell Adventure」由 <button data-tab=""> 改成 <a target="_blank" rel="noopener noreferrer">，
+	          點一下開新分頁前往 https://eggshell-adventure.vercel.app/（原本 data-tab="" 會讓 switchTab('') 找不到節點而報錯）
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -12,9 +27,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- ===== SEO ===== -->
-<title>蛋殼喵 APNG 工具 — 免費線上 APNG 製作工具，純本機處理</title>
-<meta name="description" content="APNG 工具，免費線上動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支援 LINE 動態貼圖規範檢查。">
-<meta name="keywords" content="APNG, animated PNG, LINE sticker, LINE 動態貼圖，貼圖, 動畫貼圖, GIF converter, online tool, free">
+<title>APNG在線製作 - 免費動圖壓縮/轉GIF工具</title>
+<meta name="description" content="APNG 工具，無需安裝，免費在線動畫製作工具。把 PNG 序列打包成 APNG / GIF，純瀏覽器本機處理、圖片不上傳，支持 LINE 動態貼圖規範檢查，並內建 ICON（favicon）轉換，一鍵輸出 16／32／48／64／128px PNG 壓縮包。">
+<meta name="keywords" content="APNG, animated PNG, LINE sticker, LINE 動態貼圖，貼圖, 動畫貼圖, GIF converter, online tool, free, ICON, ICON 轉換, favicon, favicon 生成, favicon 產生器, 網站圖示">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://apng-murex.vercel.app/">
 
@@ -50,6 +65,13 @@
   "name": "蛋殼喵 APNG 工具",
   "url": "https://apng-murex.vercel.app/",
   "description": "免費線上 APNG 動畫製作工具，純瀏覽器本機處理，支援 LINE 動態貼圖規範檢查。",
+  "featureList": [
+    "PNG 序列打包成 APNG",
+    "APNG / GIF / WebP 互轉",
+    "LINE 動態貼圖 6 項規範檢查",
+    "靜態貼圖去背與分割",
+    "ICON（favicon）轉換：16 ／32 ／48 ／64 ／128px 正方形圖示（五顆 .ico ＋ 五張同規格 PNG）"
+  ],
   "applicationCategory": "MultimediaApplication",
   "operatingSystem": "Any",
   "offers": {
@@ -68,7 +90,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon/512x512.png">
 
 <!-- 樣式 -->
-<link rel="stylesheet" href="css/apng.css?v=20261125b">
+<link rel="stylesheet" href="css/apng.css?v=20261126a">
 
 <!-- 第三方 CDN：APNG / GIF 編碼解碼 -->
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -81,7 +103,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <!-- 多國語言 -->
-<script src="js/i18n.js?v=20261125b"></script>
+<script src="js/i18n.js?v=20261126b"></script>
 
 <!-- Supabase：JS 庫 + 金鑰設定 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -147,7 +169,7 @@
 			<div class="drop-zone" id="dropZone">
 				<p><strong data-i18n="dropHint">把 PNG、APNG、GIF、WebP 圖片拖曳到這裡（可多選）</strong></p>
 				<p data-i18n="dropOrClick">或點此選擇檔案</p>
-				<input type="file" id="fileInput" accept="image/png,image/gif,image/webp" multiple hidden>
+				<input type="file" id="fileInput" accept="image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm" multiple hidden>
 			</div>
 
 			<!-- 預覽區 -->
@@ -351,6 +373,16 @@
 					<button type="button" id="gsTrimBtn" data-i18n="gsTrimBtn" disabled>刪除</button>
 				</div>
 				<small class="gs-hint" data-i18n="gsTrimHint">例：填 1 會保留 1 格、刪掉 1 格（交錯）；填 2 會保留 2 格、刪掉 1 格</small>
+
+				<!-- 通用設置：自動減色（共用調色盤＋有序抖動），勾選才啟用；
+				     未勾選時輸出完全照「基本設定」的色彩走，行為與舊版一致 -->
+				<div class="gs-row gs-check-row">
+					<label class="gs-check" for="autoShrink">
+						<input type="checkbox" id="autoShrink">
+						<span data-i18n="autoShrinkLabel">自動減色到 300KB 以下</span>
+					</label>
+				</div>
+				<small class="gs-hint" data-i18n="autoShrinkHint">勾選後會把 APNG／GIF／WEBP 都用「共用一組調色盤＋抖動」逐階降低色彩數，盡量壓到 300KB 以下；未勾選則依「色彩」設定輸出</small>
 			</div>
 
 			<!-- 檔案清單（預設隱藏，動態顯示） -->
@@ -575,7 +607,12 @@
 				<button id="pngDownloadPng" class="secondary" style="display:none">
 					<small class="cat cat-022"></small>&nbsp;<small data-i18n="pngDownloadPng">下載 PNG</small>
 				</button>
+				<!-- ICON(favicon)：生成靜態貼圖後才出現，按下才開始生成（見 js/png-editor.js） -->
+				<button id="pngDownloadIcon" class="secondary" style="display:none">
+					<small class="cat cat-022"></small>&nbsp;<small data-i18n="pngDownloadIcon">下載 ICON(favicon)</small>
+				</button>
 			</div>
+			<p class="muted" id="pngIconNote" style="display:none;margin:8px 0 0" data-i18n="pngIconNote">下載ICON的壓縮文件內，含五個 .ico 與五個同規格 .png（16、32、48、64、128px）；輸出為正方形，圖片等比置中、四周透明填充</p>
 
 			<div id="pngStickerPreview" class="png-sticker-preview" style="display:none">
 				<img id="pngStickerPreviewImg">
@@ -756,6 +793,7 @@
 			<li data-i18n="helpTip2">右上的棋盤格 / 黑色按鈕可以切換預覽背景，方便看透明邊緣</li>
 			<li data-i18n="helpTip3">所有圖片都在你瀏覽器本機處理，不會上傳</li>
 			<li data-i18n="helpTip4">輸出的 PNG 是 APNG 格式，丟 Discord / Telegram / LINE 都會動</li>
+			<li data-i18n="helpTip5">拖入 MP4／MOV／WebM 會自動抽成 5～20 格，只取前 4 秒，並把總長鎖成整數秒（LINE 的規格）</li>
 		</ol>
 		<h2><span class="cat cat-230"></span>&nbsp;<span data-i18n="lineTitle">LINE 動態貼圖限制</span></h2>
 		<ol>
@@ -797,6 +835,8 @@
 			<p class="faq-a" data-i18n="faqA6">目前僅支援簡單的文字輸入與濾鏡，本工具著重於處理延遲、尺寸、色彩深度與循環次數；PNG 分頁可做去背、橡皮擦，並切出 LINE 用的 240×240 與 96×74。需要更加進階的文字或濾鏡特效時，請先用其他軟件製作，例如 Photoshop，再把成品匯入這裡合成動畫。</p>
 			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ7">需要註冊嗎？支援哪些語言？</span></p>
 			<p class="faq-a" data-i18n="faqA7">完全免費、免註冊，也不用安裝。介面支援繁中、簡中、English、日本語、ไทย 五種語言，預設跟隨瀏覽器語言，也可以用右上角選單手動切換。</p>
+			<p class="faq-q"><span class="cat cat-029"></span>&nbsp;<span data-i18n="faqQ8">可以用這個工具做網站的 ICON（favicon）嗎？</span></p>
+			<p class="faq-a" data-i18n="faqA8">可以。PNG 分頁生成靜態貼圖後，按下「下載 ICON(favicon)」就會即時把同一張圖轉成 16、32、48、64、128px 五種規格的正方形圖示（原圖等比縮到放得下、置中、四周透明填充，不會拉伸變形），打包成一個 ZIP：裡面有五顆 .ico（favicon-16x16.ico 到 favicon-128x128.ico）和五張同規格的 PNG。整段轉換都在瀏覽器本機用 Canvas 完成，圖片不會上傳。</p>
 		</div>
 	</div>
 </section>
@@ -863,7 +903,7 @@
 		<button data-tab="tab-src" class="footer-github">
 			<span class="cat cat-1x5 cat-116"></span>&nbsp;Star on GitHub
 		</button>
-		<span class="footer-note" data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</span>
+		<span class="footer-note"><cat data-i18n="footerNote">所有圖片皆在你的瀏覽器本機處理，不用上傳</cat></span>
 	</div>
 	<div class="footer-group footer-group-brand">
 		<button data-tab="tab-emoji" class="footer-github">
@@ -875,15 +915,19 @@
 		<button data-tab="tab-readme" class="footer-github">
 			<span class="cat cat-1x5 cat-141"></span><span data-i18n="tabReadme">APNG TOOL 修改記錄</span>
 		</button>
+		<a class="footer-github" href="https://eggshell-adventure.vercel.app/" target="_blank" rel="noopener noreferrer">
+			<span class="cat cat-1x5 cat-137"></span><span data-i18n="eggshellAdventure">Eggshell Adventure</span>
+		</a>
 	</div>
 	<div class="footer-group footer-group-legal">
 		<span class="footer-brand"><span class="cat cat-1x5 cat-111"></span>&nbsp;EggshellCat APNG Tool</span>
-		<span class="footer-copy">© 2026 EggshellCat Studio by DaiEn</span>
+		<span class="footer-copy">© 2026 EggshellCat Studio by&nbsp;&nbsp;<span class="cat cat-153 cat-2x"></span></span>
 		<button class="footer-github" disabled title="">
 			<span class="cat cat-1x5 cat-140"></span><span data-i18n="supportBtn">支持我們</span>
 		</button>
 	</div>
 </footer>
+
 
 <!-- ============================================================
      分享 Modal：點「分享我的圖片」彈出，上傳到 Supabase
@@ -955,11 +999,11 @@
 <script src="js/app-shell.js?v=20261125b"></script>
 <script src="js/source-frame.js?v=20261125b"></script>
 <script src="js/text-overlay.js?v=20261125b"></script>
-<script src="js/apng-frames.js?v=20261125b"></script>
+<script src="js/apng-frames.js?v=20261126a"></script>
 <script src="js/frame-offset.js?v=20261125b"></script>
-<script src="js/apng-encoder.js?v=20261125b"></script>
+<script src="js/apng-encoder.js?v=20261126d"></script>
 <script src="js/webp-encoder.js?v=20261125b"></script>
-<script src="js/png-editor.js?v=20261125b"></script>
+<script src="js/png-editor.js?v=20261125g"></script>
 <script src="js/fx.js?v=20261125b"></script>
 </body>
 </html>
